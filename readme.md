@@ -24,7 +24,7 @@ pip install .
 
 当计算物品数量![](http://latex.codecogs.com/svg.latex?N)上升，获取分布列需要多次卷积时，朴素FFT计算复杂度接近![](http://latex.codecogs.com/svg.latex?O(N^2log_2N))，故采用快速幂进行加速，复杂度降为![](http://latex.codecogs.com/svg.latex?O(Nlog_2N))。
 
-![](http://latex.codecogs.com/svg.latex?{\sum_{n=1}^{log_2N}{n2^n}\textless\sum_{n=1}^{log_2N}{log_2N\cdot 2^n}\textless2Nlog_2N\Rightarrow O(Nlog_2N)})
+![](http://latex.codecogs.com/svg.latex?{\sum_{n=1}^{log_2N}{n2^n}\textless\sum_{n=1}^{log_2N}{log_2N{\cdot}2^n}\textless2Nlog_2N{\Rightarrow}O(Nlog_2N)})
 
 ### 用例
 
