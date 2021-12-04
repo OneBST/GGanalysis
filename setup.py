@@ -7,7 +7,9 @@ EMAIL = 'onebst@foxmail.com'
 AUTHOR = 'OneBST'
 REQUIRES_PYTHON = '>=3.6.0'
 VERSION = '0.1.0'
-
+REQUIRED = [
+    'numpy', 'scipy'
+]
 
 setuptools.setup(
     name=NAME,
@@ -18,6 +20,7 @@ setuptools.setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=setuptools.find_packages(include=["GGanalysisLite"]),
+    install_requires=REQUIRED,
     include_package_data=True,
     license='MIT',
 )
