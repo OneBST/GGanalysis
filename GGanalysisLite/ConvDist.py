@@ -78,5 +78,9 @@ class GenshinPlayer():
         temp = signal.convolve(temp, w5_dist)
         return temp[:(self.p_pull+self.u_pull+self.w_pull+1)].sum()
 
+def calc_expectation(dist):
+    temp = np.arange(0, len(dist), 1, dtype=float)
+    return (dist*temp).sum()
+
 if __name__ == '__main__':
     pass
