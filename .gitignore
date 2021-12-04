@@ -8,6 +8,7 @@ __pycache__/
 temp.csv
 temp_plot.py
 temp_use.py
+conv_compare.py
 
 # test files
 test.py
