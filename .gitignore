@@ -1,0 +1,19 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/ 
+*.pyc
+
+# temp files
+*.o
+*.png
+temp.csv
+temp_plot.py
+temp_use.py
+
+# test files
+test.py
+temp.py
+.DS_Store
+
+
+# vs code setting
+.vscode/
