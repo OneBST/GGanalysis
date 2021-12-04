@@ -31,6 +31,9 @@ class PityGacha():
             item_expectation += item_distribution[i] * i
         return item_expectation
 
+class Pity5starCommon(PityGacha):
+    pass
+
 class Pity5starCharacter(PityGacha):
     pass
 
@@ -54,5 +57,4 @@ class Pity5starWeapon(PityGacha):
         return pity_p
 
 if __name__ == '__main__':
-    a = Pity5starWeapon()
-    print(a.calc_expectation())
+    pass

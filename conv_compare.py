@@ -27,6 +27,7 @@ def timer(func):
 player =  gg.PityGacha()
 a = player.get_distribution(1, 90)[1]
 
+
 num_b = 1000
 
 @timer
@@ -61,4 +62,5 @@ d = smart_conv(num_b)
 # d = smart_conv(num_b, method='fft')
 
 print(((b-c)**2).sum())
+
 print(((b-d)**2).sum())
