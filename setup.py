@@ -17,7 +17,7 @@ setuptools.setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=setuptools.find_packages(exclude=["GGanalysisLite"]),
+    packages=setuptools.find_packages(include=["GGanalysisLite"]),
     include_package_data=True,
     license='MIT',
 )
