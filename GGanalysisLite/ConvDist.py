@@ -52,15 +52,16 @@ class GenshinPlayer():
             return np.ones(1, dtype=float)
         temp = Pity5starWeapon()
         return smart_conv(temp.distribution, self.w5)
-    # 获得排名
+    
+    # 获得排名 返回两个值，前为小于等于指定抽数之和，大于等于指定抽数之和
     def get_p5_rank(self):
-        return self.get_p5_dist()[:(self.p_pull+1)].sum()
+        return self.get_p5_dist()[:(self.p_pull+1)].sum(), self.get_p5_dist()[(self.p_pull):].sum()
     def get_c5_rank(self):
-        return self.get_c5_dist()[:(self.c_pull+1)].sum()
+        return self.get_c5_dist()[:(self.c_pull+1)].sum(), self.get_c5_dist()[(self.c_pull):].sum()
     def get_u5_rank(self):
-        return self.get_u5_dist()[:(self.u_pull+1)].sum()
+        return self.get_u5_dist()[:(self.u_pull+1)].sum(), self.get_u5_dist()[(self.u_pull):].sum()
     def get_w5_rank(self):
-        return self.get_w5_dist()[:(self.w_pull+1)].sum()
+        return self.get_w5_dist()[:(self.w_pull+1)].sum(), self.get_w5_dist()[(self.w_pull):].sum()
     # 综合排名（角色池根据五星数量计算）
     def get_comprehensive_rank(self):
         p5_dist = self.get_p5_dist()
@@ -68,7 +69,7 @@ class GenshinPlayer():
         w5_dist = self.get_w5_dist()
         temp = signal.convolve(p5_dist, c5_dist)
         temp = signal.convolve(temp, w5_dist)
-        return temp[:(self.p_pull+self.c_pull+self.w_pull+1)].sum()
+        return temp[:(self.p_pull+self.c_pull+self.w_pull+1)].sum(), temp[(self.p_pull+self.c_pull+self.w_pull):].sum()
     # 综合排名（角色池根据UP五星数量计算）
     def get_comprehensive_rank_Up5Character(self):
         p5_dist = self.get_p5_dist()
@@ -76,7 +77,7 @@ class GenshinPlayer():
         w5_dist = self.get_w5_dist()
         temp = signal.convolve(p5_dist, u5_dist)
         temp = signal.convolve(temp, w5_dist)
-        return temp[:(self.p_pull+self.u_pull+self.w_pull+1)].sum()
+        return temp[:(self.p_pull+self.u_pull+self.w_pull+1)].sum(), temp[(self.p_pull+self.u_pull+self.w_pull):].sum()
 
 def calc_expectation(dist):
     temp = np.arange(0, len(dist), 1, dtype=float)
