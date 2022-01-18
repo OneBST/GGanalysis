@@ -30,6 +30,8 @@ pip install .
 
 使用`GenshinPlayer`类添加玩家，初始化其抽卡情况，随后使用类函数输出`rank`
 
+返回的`rank`会有两个，一个是你比多大比例的玩家更倒霉或一样倒霉，称为**“非酋度”**，一个是你比多大比例的玩家更幸运或者一样幸运，称为**“欧皇度”**。这两个值都大于0，最高为1。
+
 ```python
 import GGanalysisLite as ggl
 
@@ -52,22 +54,22 @@ player = ggl.GenshinPlayer(	p5=permanent_5,
                             u_pull=character_up_pull,
                             w_pull=weapon_pull)
 
-# 查看常驻祈愿rank
+# 查看常驻祈愿rank（仅考虑五星数量）
 print('常驻祈愿', player.get_p5_rank())
 
-# 查看角色祈愿rank（考虑五星数量）
+# 查看角色祈愿rank（仅考虑五星数量）
 print('角色祈愿', player.get_c5_rank())
 
-# 查看UP角色rank（考虑UP五星数量）
+# 查看UP角色rank（仅考虑UP五星数量）
 print('角色祈愿UP', player.get_u5_rank())
 
-# 查看武器祈愿rank
+# 查看武器祈愿rank（仅考虑五星数量）
 print('武器祈愿', player.get_w5_rank())
 
-# 查看综合rank（角色祈愿考虑五星数量）
+# 查看综合rank（角色祈愿仅考虑五星数量，常驻祈愿仅考虑五星数量，武器祈愿仅考虑五星数量）
 print('综合', player.get_comprehensive_rank())
 
-# 查看综合rank（角色祈愿考虑UP数量）
+# 查看综合rank（角色祈愿考虑UP数量，常驻祈愿仅考虑五星数量，武器祈愿仅考虑五星数量）
 print('综合UP', player.get_comprehensive_rank_Up5Character())
 ```
 

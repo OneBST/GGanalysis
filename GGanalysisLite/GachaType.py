@@ -28,10 +28,10 @@ class PityGacha():
             item_distribution[i] = temp_state * pity_p[i]
             temp_state = temp_state * (1-pity_p[i])
         return item_distribution
-    # 返回计算了抽取1-n个物品的分布列表，比单独计算更快
+    # 以列表形式返回抽取1-n个物品的分布列，比单独计算更快
     def calc_distribution_1_to_n(self, n):
         return smart_conv_1_to_n(self.distribution, n, method='auto')
-    # 计算条件下的分布
+    # 计算条件下的分布列
     def conditional_distribution(self, n, pull_state=0):  # n为要抽多少个，pull_state为垫抽数量
         # 计算抽一个的条件分布
         temp = self.distribution.copy()
