@@ -1,7 +1,7 @@
 import GGanalysisLite as ggl
 
 permanent_5 = 5			# 常驻祈愿五星数量
-permanent_pull = 400	# 常驻祈愿恰好出最后一个五星时花费的抽数
+permanent_pull = 301	# 常驻祈愿恰好出最后一个五星时花费的抽数
 character_5 = 14		# 角色祈愿五星数量
 character_pull = 876	# 角色祈愿恰好出最后一个五星时花费的抽数
 character_up_5 = 8		# 角色祈愿UP五星数量
