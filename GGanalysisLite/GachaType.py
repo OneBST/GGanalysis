@@ -39,6 +39,8 @@ class PityGacha():
         return smart_conv_1_to_n(self.distribution, n, method='auto')
     # 计算条件下的分布列
     def conditional_distribution(self, n, pull_state=0):  # n为要抽多少个，pull_state为垫抽数量
+        if n == 0:
+            return np.array([1])
         # 计算抽一个的条件分布
         temp = self.distribution.copy()
         temp = temp[pull_state:]
@@ -61,7 +63,7 @@ class Pity5starCommon(PityGacha):
 class Pity5starCharacter(PityGacha):
     pass
 
-# 原神UP机制类
+# 原神UP五星角色类
 class Up5starCharacter(Pity5starCharacter):
     def __init__(self, pity_p=None):
         super().__init__(pity_p)
@@ -70,7 +72,8 @@ class Up5starCharacter(Pity5starCharacter):
         self.distribution = AddDist(0.5*self.distribution_5star, 0.5*temp_distribution)
     def conditional_distribution(self, n, pull_state=0, up_guarantee=0):
         # n为要抽多少个，pull_state为垫抽数量，up_guarantee为是否有大保底
-
+        if n == 0:
+            return np.array([1])
         # 计算抽一个的条件分布
         if up_guarantee:  # 有大保底
             temp = self.distribution_5star.copy()
@@ -120,6 +123,8 @@ class UP5starWeaponEP(Pity5starWeapon):
                                     up_guarantee=0, # 是否为大保底
                                     fate_point=0,   # 命定值
                                 ):  
+        if n == 0:
+            return np.array([1])
         # 抽1/2/3五星的分布
         item_1 = self.distribution_5star.copy()
         item_1 = item_1[pull_state:]
@@ -149,7 +154,23 @@ class UP5starWeaponEP(Pity5starWeapon):
         # 计算总分布
         return signal.convolve(temp, smart_conv(self.distribution, n-1))
 
-# 原神玩家类
+
+def GI_conv_cw(                # 计算n个UP角色m个UP武器抽数分布
+            n,              # n个角色
+            c_pullstate,    # 角色池垫抽
+            c_up_guarantee, # 角色池保底
+            m,              # m个武器
+            w_pullstate,    # 武器池垫抽
+            w_up_guarantee, # 武器池保底
+            w_fate_point    # 武器池命定值
+            ):
+    c_class = Up5starCharacter()
+    w_class = UP5starWeaponEP()
+    dist_c = c_class.conditional_distribution(n, pull_state=c_pullstate, up_guarantee=c_up_guarantee)
+    dist_w = w_class.conditional_distribution(m, pull_state=w_pullstate, up_guarantee=w_up_guarantee, fate_point=w_fate_point)
+    return signal.convolve(dist_c, dist_w)
+
+# 原神玩家类，用于根据抽卡记录判断欧非
 class GenshinPlayer():
     def __init__(self,
                 p5=0,       c5=0,       u5=0,       w5=0,       # 五星数量
