@@ -7,3 +7,4 @@
 '''
 from GGanalysisLite.GachaType import *
 from GGanalysisLite.ConvDist import *
+from GGanalysisLite.StationaryDist import *
