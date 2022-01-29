@@ -24,7 +24,7 @@ pip install .
 
 对于一个分布列截止在![](http://latex.codecogs.com/svg.latex?K)且重复试验独立的随机事件，有![](http://latex.codecogs.com/svg.latex?N)次试验叠加时，通过朴素的动态规划计算分布的复杂度是![](http://latex.codecogs.com/svg.latex?O(K^2N^2) )，这样的方法并不够快。如果采用朴素的FFT计算卷积结果，复杂度为![](http://latex.codecogs.com/svg.latex?O(KN^2log_2{KN}))，故采用快速幂进行加速，复杂度降为![](http://latex.codecogs.com/svg.latex?O(KNlog_2{KN}))。一般来说![](http://latex.codecogs.com/svg.latex?K)较小且为常数，此时复杂度为![](http://latex.codecogs.com/svg.latex?O(Nlog_2{N}))
 
-![](http://latex.codecogs.com/svg.latex?{\sum_{n=1}^{log_2N}{log_2{K2^n}\cdot K2^n}\textless\sum_{n=1}^{log_2N}{log_2KN{\cdot}K2^n}\textless2KNlog_2(KN){\Rightarrow}O(KN\cdot log_2{KN})})
+![](http://latex.codecogs.com/svg.latex?\sum_{n=1}^{log_2N}{log_2{K2^n}\cdot K2^n}\textless\sum_{n=1}^{log_2N}{log_2KN{\cdot}K2^n}\textless2KNlog_2(KN){\Rightarrow}O(KN\cdot log_2{KN}))
 
 ### 用例
 
