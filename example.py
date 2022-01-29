@@ -1,5 +1,6 @@
 import GGanalysisLite as ggl
 
+# “非酋度”及“欧皇度”计算
 permanent_5 = 5			# 常驻祈愿五星数量
 permanent_pull = 301	# 常驻祈愿恰好出最后一个五星时花费的抽数
 character_5 = 14		# 角色祈愿五星数量
@@ -36,3 +37,16 @@ print('综合', player.get_comprehensive_rank())
 
 # 查看综合rank（角色祈愿考虑UP数量）
 print('综合UP', player.get_comprehensive_rank_Up5Character())
+
+
+# 条件分布列计算
+# 计算垫了30抽，有大保底，抽取2个UP五星角色所需抽数的分布列
+c = ggl.Up5starCharacter()
+dist_c = c.conditional_distribution(2, pull_state=30, up_guarantee=1)
+
+# 计算垫了10抽，有大保底，命定值为0，抽取2个定轨UP五星武器所需抽数的分布列
+w = ggl.UP5starWeaponEP()
+dist_w = w.conditional_distribution(2, pull_state=10, up_guarantee=1， fate_point=0)
+
+# 计算在没有垫抽情况下获得2个UP角色和1个定轨五星武器的抽数分布列
+dist_cw = ggl.GI_conv_cw(3, 0, 0, 1, 0, 0, 0)

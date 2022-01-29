@@ -28,6 +28,8 @@ pip install .
 
 ### 用例
 
+**“非酋度”及“欧皇度”计算**
+
 使用`GenshinPlayer`类添加玩家，初始化其抽卡情况，随后使用类函数输出`rankA` `rankB`两个排名值。（注意这里的排名值只统计到玩家最后一次抽到五星/UP五星位置，垫抽部分和垫出的“大保底”没有考虑，需要更详细的计算请用[GGanalysis](https://github.com/OneBST/GGanalysis)包）
 
 返回的`rankA`是你比多大比例的玩家更倒霉或一样倒霉，称为“非酋度”。`rankB`是你比多大比例的玩家更幸运或者一样幸运，称为“欧皇度”。这两个值都大于0，最高为1。
@@ -71,5 +73,22 @@ print('综合', player.get_comprehensive_rank())
 
 # 查看综合rank（角色祈愿考虑UP数量，常驻祈愿仅考虑五星数量，武器祈愿仅考虑五星数量）
 print('综合UP', player.get_comprehensive_rank_Up5Character())
+```
+
+**条件分布列计算**
+
+玩家经常想知道，在现在的基础上，再抽多少抽可以抽到想要的角色。或是想知道抽n个UP角色和m个定轨五星武器的抽数分布，以了解准备多少抽有多大把握可以抽到。这些的计算也很简单，以下是使用工具包获得分布列的简单实现。在获取了分布列后，简单累加就是概率。
+
+```python
+# 计算垫了30抽，有大保底，抽取2个UP五星角色所需抽数的分布列
+c = ggl.Up5starCharacter()
+dist_c = c.conditional_distribution(2, pull_state=30, up_guarantee=1)
+
+# 计算垫了10抽，有大保底，命定值为0，抽取2个定轨UP五星武器所需抽数的分布列
+w = ggl.UP5starWeaponEP()
+dist_w = w.conditional_distribution(2, pull_state=10, up_guarantee=1， fate_point=0)
+
+# 计算在没有垫抽情况下获得2个UP角色和1个定轨五星武器的抽数分布列
+dist_cw = ggl.GI_conv_cw(3, 0, 0, 1, 0, 0, 0)
 ```
 
