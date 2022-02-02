@@ -46,7 +46,7 @@ dist_c = c.conditional_distribution(2, pull_state=30, up_guarantee=1)
 
 # 计算垫了10抽，有大保底，命定值为0，抽取2个定轨UP五星武器所需抽数的分布列
 w = ggl.UP5starWeaponEP()
-dist_w = w.conditional_distribution(2, pull_state=10, up_guarantee=1， fate_point=0)
+dist_w = w.conditional_distribution(2, pull_state=10, up_guarantee=1, fate_point=0)
 
 # 计算在没有垫抽情况下获得2个UP角色和1个定轨五星武器的抽数分布列
 dist_cw = ggl.GI_conv_cw(3, 0, 0, 1, 0, 0, 0)
