@@ -92,3 +92,8 @@ dist_w = w.conditional_distribution(2, pull_state=10, up_guarantee=1， fate_poi
 dist_cw = ggl.GI_conv_cw(3, 0, 0, 1, 0, 0, 0)
 ```
 
+### 其他
+
+写了一个估算总氪金数的小程序`GetCost.py`，比较粗糙而且没怎么检查，可以用着玩一下，以后会仔细想想放哪里。
+
+还有一个在测试的`PredictNextType.py`用于计算普池下一个五星是角色还是武器，会给出概率，还在观察有无BUG，也是可以玩一下的玩意。

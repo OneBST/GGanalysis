@@ -49,4 +49,4 @@ w = ggl.UP5starWeaponEP()
 dist_w = w.conditional_distribution(2, pull_state=10, up_guarantee=1, fate_point=0)
 
 # 计算在没有垫抽情况下获得2个UP角色和1个定轨五星武器的抽数分布列
-dist_cw = ggl.GI_conv_cw(3, 0, 0, 1, 0, 0, 0)
+dist_cw = ggl.GI_conv_cw(2, 0, 0, 1, 0, 0, 0)
