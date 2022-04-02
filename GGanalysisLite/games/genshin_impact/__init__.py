@@ -1,0 +1,1 @@
+from GGanalysisLite.games.genshin_impact.model import *
