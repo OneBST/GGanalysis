@@ -130,7 +130,7 @@ class markov_layer(gacha_layer):
     def _get_conditional_dist(self, begin_pos=0):
         # 从一个位置开始的转移的分布情况
         dist = [0]
-        X = np.zeros(4)
+        X = np.zeros(self.state_len)
         X[begin_pos] = 1
         while True:
             X = np.matmul(self.M, X)

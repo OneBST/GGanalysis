@@ -1,6 +1,7 @@
 from GGanalysisLite.distribution_1d import *
 from GGanalysisLite.gacha_layers import *
 
+# 基本抽卡类
 class common_gacha_model():
     def __init__(self) -> None:
         # 初始化抽卡层

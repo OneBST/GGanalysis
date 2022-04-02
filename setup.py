@@ -6,9 +6,9 @@ URL = 'https://github.com/OneBST/GGanalysisLite'
 EMAIL = 'onebst@foxmail.com'
 AUTHOR = 'OneBST'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.1.2'
+VERSION = '0.2.0'
 REQUIRED = [
-    'numpy', 'scipy'
+    'numpy', 'scipy', 'matplotlib'
 ]
 
 setuptools.setup(
