@@ -6,7 +6,6 @@ from GGanalysisLite.distribution_1d import *
 from GGanalysisLite.gacha_layers import *
 from GGanalysisLite.basic_models import *
 from GGanalysisLite.stationary_dist import *
+from GGanalysisLite.games.genshin_impact import model as GI
 
-# 各个抽卡游戏模型
-from GGanalysisLite.games import genshin_impact as GI
 
