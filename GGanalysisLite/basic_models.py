@@ -26,8 +26,16 @@ class common_gacha_model():
         ans.var = ans_dist[1].var + ans_dist[0].var * (item_num - 1)
         return ans
 
+    def get_dist(self, item_num: int=1, parameter_list: list=None):
+        return self._get_dist(item_num, parameter_list)
+
     def _forward(self, parameter_list: list=None):
         ans_dist = None
+        # 没有输入参数
+        if parameter_list is None:
+            for layer in self.layers:
+                ans_dist = layer(ans_dist)
+            return ans_dist
         # 将分布逐层推进
         for parameter, layer in zip(parameter_list, self.layers):
             # print(a[1])

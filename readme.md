@@ -1,4 +1,4 @@
-# 游戏抽卡概率分析工具包-GGanalysisLite
+# 抽卡游戏概率分析工具包-GGanalysisLite
 
 本工具包最开始用于原神抽卡概率计算，想了一下为什么不扩展到更多游戏呢，于是重构了一下代码加入了对更多抽卡模型的支持。GGanalysisLite里的GG以前是指Genshin Impact，现在可以指Gacha Game了。
 

@@ -117,10 +117,11 @@ class bernoulli_layer(gacha_layer):
 
 # 马尔科夫抽卡层
 class markov_layer(gacha_layer):
-    def __init__(self, M: np.ndarray) -> None:
+    def __init__(self, M: np.ndarray, p_error = 1e-8) -> None:
         super().__init__()
         # 输入矩阵中，零状态为末态
         self.M = M
+        self.p_error = p_error
         self.state_len = self.M.shape[0]
         self.dist = self._get_conditional_dist()
         self.exp = self.dist.exp
@@ -134,7 +135,7 @@ class markov_layer(gacha_layer):
         X[begin_pos] = 1
         while True:
             X = np.matmul(self.M, X)
-            if X[0] == 0:
+            if sum(X) < self.p_error:
                 break
             dist.append(X[0])
             X[0] = 0
