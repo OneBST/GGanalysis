@@ -86,9 +86,9 @@ class bernoulli_layer(gacha_layer):
         output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
         output_D = self._calc_combined_2th_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
         test_len = int(output_E+10*output_D**0.5)
-        print(output_E, output_D)
+        # print(output_E, output_D)
         while True:
-            print('范围', test_len)
+            # print('范围', test_len)
             # 通过频域关系进行计算
             F_f = fft(pad_zero(f_dist, test_len))
             F_c = fft(pad_zero(c_dist, test_len))
