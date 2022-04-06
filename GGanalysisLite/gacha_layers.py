@@ -1,10 +1,11 @@
 from GGanalysisLite.distribution_1d import *
 from typing import Union
 from scipy.fftpack import fft,ifft
+from scipy.stats import binom
 import numpy as np
 
 # 抽卡层的基类，定义了抽卡层的基本行为
-class gacha_layer:
+class Gacha_layer:
     def __init__(self) -> None:
         # 此处记录的是初始化信息，不会随forward更新
         self.dist = finite_dist_1D([1])
@@ -18,7 +19,7 @@ class gacha_layer:
         pass
 
 # 保底抽卡层
-class pity_layer(gacha_layer):
+class Pity_layer(Gacha_layer):
     def __init__(self, pity_p: Union[list, np.ndarray]) -> None:
         super().__init__()
         self.pity_p = pity_p
@@ -52,7 +53,7 @@ class pity_layer(gacha_layer):
         return output_dist
 
 # 伯努利抽卡层
-class bernoulli_layer(gacha_layer):
+class Bernoulli_layer(Gacha_layer):
     def __init__(self, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         self.p = p  # 伯努利试验概率
@@ -116,7 +117,7 @@ class bernoulli_layer(gacha_layer):
     '''
 
 # 马尔科夫抽卡层
-class markov_layer(gacha_layer):
+class Markov_layer(Gacha_layer):
     def __init__(self, M: np.ndarray, p_error = 1e-8) -> None:
         super().__init__()
         # 输入矩阵中，零状态为末态

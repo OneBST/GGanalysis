@@ -1,8 +1,7 @@
 from typing import Union
 import numpy as np
 from scipy.signal import convolve
-from scipy.fftpack import fft,ifft
-from scipy.stats import binom
+
 
 # 输入离散分布列计算期望
 def calc_expectation(dist: Union['finite_dist_1D', list, np.ndarray]) -> float:

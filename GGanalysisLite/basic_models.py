@@ -8,6 +8,13 @@ class common_gacha_model():
         self.layers = []
         # 在本层中定义抽卡层
     
+    def __call__(self, *args: any, **kwds: any) -> finite_dist_1D:
+        parameter_list = self._build_parameter_list(*args, **kwds)
+        return self._forward(parameter_list)[1]
+
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        return None
+
     # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
     def _get_multi_dist(self, end_pos: int, parameter_list: list=None):
         input_dist = self._forward(parameter_list)
@@ -31,12 +38,12 @@ class common_gacha_model():
 
     def _forward(self, parameter_list: list=None):
         ans_dist = None
-        # 没有输入参数
+        # 没有输入参数返回默认分布
         if parameter_list is None:
             for layer in self.layers:
                 ans_dist = layer(ans_dist)
             return ans_dist
-        # 将分布逐层推进
+        # 有输入参数则将分布逐层推进
         for parameter, layer in zip(parameter_list, self.layers):
             # print(a[1])
             ans_dist = layer(ans_dist, *parameter[0], **parameter[1])

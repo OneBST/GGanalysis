@@ -11,7 +11,7 @@ class AN_6star_common(common_gacha_model):
         pity_p[1:51] = 0.02
         pity_p[51:99] = np.arange(1, 49) * 0.02 + 0.02
         pity_p[99] = 1
-        self.layers = [pity_layer(pity_p)]
+        self.layers = [Pity_layer(pity_p)]
     
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
         parameter_list = [[[], {'pull_state':pull_state}]]
@@ -23,7 +23,7 @@ class AN_6star_common(common_gacha_model):
 class AN_6star_singleup(AN_6star_common):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(bernoulli_layer(1/2))
+        self.layers.append(Bernoulli_layer(1/2))
 
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
         parameter_list = [[[], {'pull_state':pull_state}], [[], {}]]
@@ -35,7 +35,7 @@ class AN_6star_singleup(AN_6star_common):
 class AN_6star_dualup(AN_6star_common):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(bernoulli_layer(1/4))
+        self.layers.append(Bernoulli_layer(1/4))
 
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
         parameter_list = [[[], {'pull_state':pull_state}], [[], {}]]
@@ -47,7 +47,7 @@ class AN_6star_dualup(AN_6star_common):
 class AN_6star_limitup(AN_6star_common):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(bernoulli_layer(0.35))
+        self.layers.append(Bernoulli_layer(0.35))
 
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
         parameter_list = [[[], {'pull_state':pull_state}], [[], {}]]

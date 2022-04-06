@@ -11,10 +11,14 @@ class GI_5star_common(common_gacha_model):
         pity_p[1:74] = 0.006
         pity_p[74:90] = np.arange(1, 17) * 0.06 + 0.006
         pity_p[90] = 1
-        self.layers = [pity_layer(pity_p)]
+        self.layers = [Pity_layer(pity_p)]
     
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        parameter_list = [[[], {'pull_state':kwds['pull_state']}]]
+        return parameter_list
+
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        parameter_list = [[[], {'pull_state':pull_state}]]
+        parameter_list = self._build_parameter_list(pull_state=pull_state)  # [[[], {'pull_state':pull_state}]]
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -23,12 +27,16 @@ class GI_5star_common(common_gacha_model):
 class GI_5star_upcharacter(GI_5star_common):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(pity_layer([0, 0.5, 1]))
+        self.layers.append(Pity_layer([0, 0.5, 1]))
+
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        l1_param = [[], {'pull_state':kwds['pull_state']}]
+        l2_param = [[], {'pull_state':kwds['up_guarantee']}]
+        parameter_list = [l1_param, l2_param]
+        return parameter_list
 
     def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        l1_param = [[], {'pull_state':pull_state}]
-        l2_param = [[], {'pull_state':up_guarantee}]
-        parameter_list = [l1_param, l2_param]
+        parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -42,10 +50,14 @@ class GI_4star_common(common_gacha_model):
         pity_p[1:9] = 0.051
         pity_p[9] = 0.051 + 0.51
         pity_p[10] = 1
-        self.layers = [pity_layer(pity_p)]
+        self.layers = [Pity_layer(pity_p)]
+
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        parameter_list = [[[], {'pull_state':kwds['pull_state']}]]
+        return parameter_list
 
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        parameter_list = [[[], {'pull_state':pull_state}]]
+        parameter_list = self._build_parameter_list(pull_state=pull_state)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -54,12 +66,16 @@ class GI_4star_common(common_gacha_model):
 class GI_4star_upcharacter(GI_4star_common):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(pity_layer([0, 0.5, 1]))
+        self.layers.append(Pity_layer([0, 0.5, 1]))
+
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        l1_param = [[], {'pull_state':kwds['pull_state']}]
+        l2_param = [[], {'pull_state':kwds['up_guarantee']}]
+        parameter_list = [l1_param, l2_param]
+        return parameter_list
 
     def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        l1_param = [[], {'pull_state':pull_state}]
-        l2_param = [[], {'pull_state':up_guarantee}]
-        parameter_list = [l1_param, l2_param]
+        parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -68,18 +84,22 @@ class GI_4star_upcharacter(GI_4star_common):
 class GI_4star_specific_upcharacter(GI_4star_upcharacter):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(bernoulli_layer(1/3))
+        self.layers.append(Bernoulli_layer(1/3))
 
-    def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        l1_param = [[], {'pull_state':pull_state}]
-        l2_param = [[], {'pull_state':up_guarantee}]
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        l1_param = [[], {'pull_state':kwds['pull_state']}]
+        l2_param = [[], {'pull_state':kwds['up_guarantee']}]
         l3_param = [[], {}]
         parameter_list = [l1_param, l2_param, l3_param]
+        return parameter_list
+
+    def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
+        parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
 
-# 获取普通五星
+# 获取普通五星武器
 class GI_5star_weapon(common_gacha_model):
     def __init__(self) -> None:
         super().__init__()
@@ -88,10 +108,14 @@ class GI_5star_weapon(common_gacha_model):
         pity_p[1:63] = 0.007
         pity_p[63:77] = np.arange(1, 15) * 0.07 + 0.007
         pity_p[77] = 1
-        self.layers = [pity_layer(pity_p)]
+        self.layers = [Pity_layer(pity_p)]
     
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        parameter_list = [[[], {'pull_state':kwds['pull_state']}]]
+        return parameter_list
+
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        parameter_list = [[[], {'pull_state':pull_state}]]
+        parameter_list = self._build_parameter_list(pull_state=pull_state)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -100,12 +124,16 @@ class GI_5star_weapon(common_gacha_model):
 class GI_5star_upweapon(GI_5star_weapon):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(pity_layer([0, 0.75, 1]))
+        self.layers.append(Pity_layer([0, 0.75, 1]))
+
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        l1_param = [[], {'pull_state':kwds['pull_state']}]
+        l2_param = [[], {'pull_state':kwds['up_guarantee']}]
+        parameter_list = [l1_param, l2_param]
+        return parameter_list
 
     def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        l1_param = [[], {'pull_state':pull_state}]
-        l2_param = [[], {'pull_state':up_guarantee}]
-        parameter_list = [l1_param, l2_param]
+        parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -128,9 +156,11 @@ class GI_5star_upweapon_EP(GI_5star_weapon):
             ['fate2', 'get', 1]
         ]
         M = table2matrix(self.state_num, state_trans)
-        self.layers.append(markov_layer(M))
+        self.layers.append(Markov_layer(M))
 
-    def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, fate_point: int=0, multi_dist: bool=False) -> finite_dist_1D:
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        fate_point = kwds['fate_point']
+        up_guarantee = kwds['up_guarantee']
         if fate_point >= 2:
             begin_pos = 4
         elif fate_point == 1 and up_guarantee == 1:
@@ -141,9 +171,13 @@ class GI_5star_upweapon_EP(GI_5star_weapon):
             begin_pos = 1
         else:
             begin_pos = 0
-        l1_param = [[], {'pull_state':pull_state}]
+        l1_param = [[], {'pull_state':kwds['pull_state']}]
         l2_param = [[], {'begin_pos':begin_pos}]
         parameter_list = [l1_param, l2_param]
+        return parameter_list
+
+    def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, fate_point: int=0, multi_dist: bool=False) -> finite_dist_1D:
+        parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee, fate_point=fate_point)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -157,7 +191,7 @@ class GI_4star_weapon(common_gacha_model):
         pity_p[1:8] = 0.06
         pity_p[8] = 0.06 + 0.6
         pity_p[9] = 1
-        self.layers = [pity_layer(pity_p)]
+        self.layers = [Pity_layer(pity_p)]
     
     def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
         parameter_list = [[[], {'pull_state':pull_state}]]
@@ -169,12 +203,16 @@ class GI_4star_weapon(common_gacha_model):
 class GI_4star_upweapon(GI_4star_weapon):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(pity_layer([0, 0.75, 1]))
+        self.layers.append(Pity_layer([0, 0.75, 1]))
+
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        l1_param = [[], {'pull_state':kwds['pull_state']}]
+        l2_param = [[], {'pull_state':kwds['up_guarantee']}]
+        parameter_list = [l1_param, l2_param]
+        return parameter_list
 
     def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        l1_param = [[], {'pull_state':pull_state}]
-        l2_param = [[], {'pull_state':up_guarantee}]
-        parameter_list = [l1_param, l2_param]
+        parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
@@ -183,13 +221,17 @@ class GI_4star_upweapon(GI_4star_weapon):
 class GI_4star_specific_upweapon(GI_4star_upweapon):
     def __init__(self) -> None:
         super().__init__()
-        self.layers.append(bernoulli_layer(1/5))
+        self.layers.append(Bernoulli_layer(1/5))
 
-    def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        l1_param = [[], {'pull_state':pull_state}]
-        l2_param = [[], {'pull_state':up_guarantee}]
+    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
+        l1_param = [[], {'pull_state':kwds['pull_state']}]
+        l2_param = [[], {'pull_state':kwds['up_guarantee']}]
         l3_param = [[], {}]
         parameter_list = [l1_param, l2_param, l3_param]
+        return parameter_list
+
+    def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, multi_dist: bool=False) -> finite_dist_1D:
+        parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee)
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
