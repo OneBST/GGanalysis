@@ -6,5 +6,3 @@ from GGanalysisLite.distribution_1d import *
 from GGanalysisLite.gacha_layers import *
 from GGanalysisLite.basic_models import *
 from GGanalysisLite.stationary_dist import *
-from GGanalysisLite.games.genshin_impact import model as GI
-from GGanalysisLite.games.arknights import model as AN

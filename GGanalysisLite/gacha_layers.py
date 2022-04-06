@@ -108,13 +108,7 @@ class Bernoulli_layer(Gacha_layer):
         # 计算联合二阶矩 a表示完整序列 b表示条件序列
         p = self.p
         return (p*(p*(Db+Eb**2)+(1-p)*(Da+Ea**2))+2*(1-p)*Ea*(p*Eb+(1-p)*Ea))/(p**2)
-    '''
-    def _get_dist(self, item_num, pulls):  # 恰好在第x抽抽到item_num个道具的概率，限制长度最高为pulls
-        x = np.arange(pulls+1)
-        dist = self.p * (binom.pmf(0, x-1, self.p))
-        dist[0] = 0
-        return finite_dist_1D(dist)
-    '''
+    
 
 # 马尔科夫抽卡层
 class Markov_layer(Gacha_layer):
@@ -166,6 +160,10 @@ class Markov_layer(Gacha_layer):
         output_dist.exp = output_E
         output_dist.var = output_D
         return output_dist
+
+
+# 集齐道具层
+
 
 if __name__ == "__main__":
     # 原神武器池参数
