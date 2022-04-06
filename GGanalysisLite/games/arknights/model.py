@@ -2,55 +2,24 @@ from GGanalysisLite.distribution_1d import *
 from GGanalysisLite.gacha_layers import *
 from GGanalysisLite.basic_models import *
 
+'''
+    注意，本模块按公示概率进行建模，但忽略了一些情况
+        如不纳入对300保底的考虑，获取1个物品的分布不会在第300抽处截断
+        这么做的原因是，模型只支持一抽最多获取1个物品，若在第300抽处
+        刚好抽到物品，等于一抽抽到两个物品，无法处理。对于这个问题，建议
+        结合抽数再加一步分析，进行一次后处理
+'''
+
+pity_6star = np.zeros(100)
+pity_6star[1:51] = 0.02
+pity_6star[51:99] = np.arange(1, 49) * 0.02 + 0.02
+pity_6star[99] = 1
+
 # 获取普通六星
-class AN_6star_common(common_gacha_model):
-    def __init__(self) -> None:
-        super().__init__()
-        # 设置保底概率
-        pity_p = np.zeros(100)
-        pity_p[1:51] = 0.02
-        pity_p[51:99] = np.arange(1, 49) * 0.02 + 0.02
-        pity_p[99] = 1
-        self.layers = [Pity_layer(pity_p)]
-    
-    def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        parameter_list = [[[], {'pull_state':pull_state}]]
-        if multi_dist:
-            return self._get_multi_dist(item_num, parameter_list)
-        return self._get_dist(item_num, parameter_list)
-
+Common_6star = pity_model(pity_6star)
 # 获取单UP六星
-class AN_6star_singleup(AN_6star_common):
-    def __init__(self) -> None:
-        super().__init__()
-        self.layers.append(Bernoulli_layer(1/2))
-
-    def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        parameter_list = [[[], {'pull_state':pull_state}], [[], {}]]
-        if multi_dist:
-            return self._get_multi_dist(item_num, parameter_list)
-        return self._get_dist(item_num, parameter_list)
-
-# 获取双UP六星中的特定六星
-class AN_6star_dualup(AN_6star_common):
-    def __init__(self) -> None:
-        super().__init__()
-        self.layers.append(Bernoulli_layer(1/4))
-
-    def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        parameter_list = [[[], {'pull_state':pull_state}], [[], {}]]
-        if multi_dist:
-            return self._get_multi_dist(item_num, parameter_list)
-        return self._get_dist(item_num, parameter_list)
-    
+SingleUP_6star_ = pity_bernoulli_model(pity_6star, 1/2)
+# 获取双UP六星中的特点六星
+DualUP_specific_6star = pity_bernoulli_model(pity_6star, 1/4)    
 # 获取限定UP六星中的限定六星
-class AN_6star_limitup(AN_6star_common):
-    def __init__(self) -> None:
-        super().__init__()
-        self.layers.append(Bernoulli_layer(0.35))
-
-    def get_dist(self, item_num: int=1, pull_state: int=0, multi_dist: bool=False) -> finite_dist_1D:
-        parameter_list = [[[], {'pull_state':pull_state}], [[], {}]]
-        if multi_dist:
-            return self._get_multi_dist(item_num, parameter_list)
-        return self._get_dist(item_num, parameter_list)
+LimitedUP_6star = pity_bernoulli_model(pity_6star, 0.35)
