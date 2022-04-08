@@ -1,5 +1,7 @@
+from numpy import empty
 from GGanalysisLite.distribution_1d import *
 from GGanalysisLite.gacha_layers import *
+from typing import Union
 
 # 所有抽卡模型的基类，目前什么也不干
 class gacha_model:
@@ -14,11 +16,15 @@ class common_gacha_model(gacha_model):
         # 在本层中定义抽卡层
     
     # 调用本类时运行的函数
-    def __call__(self, item_num: int=1, multi_dist: bool=False, *args: any, **kwds: any) -> finite_dist_1D:
+    def __call__(self, item_num: int=1, multi_dist: bool=False, *args: any, **kwds: any) -> Union[finite_dist_1D, list]:
         parameter_list = self._build_parameter_list(*args, **kwds)
         # 如果没有对 _build_parameter_list 进行定义就输入参数，报错
-        if args is not None and kwds is not None and parameter_list is None:
+        if args != () and kwds != {} and parameter_list is None:
             raise Exception('Parameters is not defined.')
+        # 如果 item_num 为0，则返回 [完整分布, 条件分布] 列表
+        if item_num == 0:
+            return self._forward(parameter_list)
+        # 返回抽取 [1, 抽取个数] 个道具的分布列表
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
         return self._get_dist(item_num, parameter_list)
