@@ -68,9 +68,7 @@ class genshin_5star_EP_weapon(common_gacha_model):
         self.layers.append(Pity_layer(pity_w5star))
         self.layers.append(Markov_layer(M))
 
-    def _build_parameter_list(self, *args: any, **kwds: any) -> list:
-        fate_point = kwds['fate_point']
-        up_guarantee = kwds['up_guarantee']
+    def _build_parameter_list(self, pull_state: int=0, up_guarantee: int=0, fate_point: int=0) -> list:
         if fate_point >= 2:
             begin_pos = 4
         elif fate_point == 1 and up_guarantee == 1:
@@ -81,14 +79,9 @@ class genshin_5star_EP_weapon(common_gacha_model):
             begin_pos = 1
         else:
             begin_pos = 0
-        l1_param = [[], {'pull_state':kwds['pull_state']}]
+        l1_param = [[], {'pull_state':pull_state}]
         l2_param = [[], {'begin_pos':begin_pos}]
         parameter_list = [l1_param, l2_param]
         return parameter_list
-    # def get_dist(self, item_num: int=1, pull_state: int=0, up_guarantee: int=0, fate_point: int=0, multi_dist: bool=False) -> finite_dist_1D:
-    #     parameter_list = self._build_parameter_list(pull_state=pull_state, up_guarantee=up_guarantee, fate_point=fate_point)
-    #     if multi_dist:
-    #         return self._get_multi_dist(item_num, parameter_list)
-    #     return self._get_dist(item_num, parameter_list)
 
 UP_5star_EP_weapon = genshin_5star_EP_weapon()
