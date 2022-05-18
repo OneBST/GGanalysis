@@ -92,8 +92,8 @@ class Bernoulli_layer(Gacha_layer):
         while True:
             # print('范围', test_len)
             # 通过频域关系进行计算
-            F_f = fft(pad_zero(f_dist, test_len))
-            F_c = fft(pad_zero(c_dist, test_len))
+            F_f = fft(pad_zero(f_dist.dist, test_len))
+            F_c = fft(pad_zero(c_dist.dist, test_len))
             output_dist = (self.p * F_c) / (1 - (1-self.p) * F_f)
             output_dist = finite_dist_1D(abs(ifft(output_dist)))
             # 误差限足够小则停止

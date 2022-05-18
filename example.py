@@ -1,6 +1,4 @@
-# from matplotlib import pyplot as plt
-import matplotlib.pyplot as plt
-from GGanalysisLite import *
+from GGanalysisLite import finite_dist_1D
 import numpy as np
 
 # 使用finite_dist_1D类进行快速卷积

@@ -57,6 +57,8 @@ def table2matrix(state_num, state_trans):
 
 # 给 numpy 数组末尾补零至指定长度
 def pad_zero(dist, target_len):
+    if target_len <= len(dist):
+        return dist
     return np.pad(dist, (0, target_len-len(dist)), 'constant', constant_values=0)
 
 # 切除分布尾部并重新进行概率归一化
@@ -86,7 +88,8 @@ class finite_dist_1D:  # 随机事件为有限个数的分布
                 return self.var
             if key == 'p_sum':
                 return self.p_sum
-        return super().__getattr__(key)
+        # 还是决定注释掉，不自动进行numpy变换，需要手工.dist
+        # return super().__getattr__(key)
     
     def __iter__(self): 
         return iter(self.dist)

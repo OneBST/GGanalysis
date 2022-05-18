@@ -12,6 +12,25 @@ from GGanalysisLite.basic_models import *
     见 https://github.com/OneBST/GGanalysis
 '''
 
+__all__ = [
+    'pity_5star',
+    'pity_4star',
+    'pity_w5star',
+    'pity_w4star',
+    'Common_5star',
+    'Common_4star',
+    'UP_5star_character',
+    'UP_4star_character',
+    'UP_4star_specific_character',
+    'Common_5star_weapon',
+    'Common_4star_weapon',
+    'UP_5star_weapon',
+    'UP_5star_specific_weapon',
+    'UP_4star_weapon',
+    'UP_4star_specific_weapon',
+    'UP_5star_EP_weapon',
+]
+
 # 原神普通五星保底概率表
 pity_5star = np.zeros(91)
 pity_5star[1:74] = 0.006
@@ -44,6 +63,7 @@ UP_4star_specific_character = dual_pity_bernoulli_model(pity_4star, [0, 0.5, 1],
 Common_5star_weapon = pity_model(pity_w5star)
 Common_4star_weapon = pity_model(pity_w4star)
 UP_5star_weapon = dual_pity_model(pity_w5star, [0, 0.75, 1])
+UP_5star_specific_weapon = dual_pity_bernoulli_model(pity_w5star, [0, 0.75, 1], 1/2)
 UP_4star_weapon = dual_pity_model(pity_w4star, [0, 0.75, 1])
 UP_4star_specific_weapon = dual_pity_bernoulli_model(pity_w4star, [0, 0.75, 1], 1/5)
 
