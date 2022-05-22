@@ -246,31 +246,39 @@ class Coupon_Collector_layer(Gacha_layer):
         output_E = c_dist.exp + (self._calc_exp_var(a, k)[0]-1) * f_dist.exp  # 叠加后的期望
         # 计算叠加后的方差
         def calc_combined_output_2nd_moment():
-            ans_D = 0
             # 中间所用的一阶与二阶矩
             Ef = f_dist.exp
-            E2f = f_dist.exp ** 2 + f_dist.var
+            E2f = f_dist.exp**2 + f_dist.var
             Ec = c_dist.exp
-            E2c = c_dist.exp ** 2 + c_dist.var
+            E2c = c_dist.exp**2 + c_dist.var
             # C1系数
             C1 = self._calc_coefficient_1(a, k)
             # 临时标记指数
             n = k-a
+            ans_2moment = 0
+            ans_temp = 0
             # 累加计算
             for i in range(a+1):
                 for j in range(k-a+i):
+                    # 防止遇到除0情况
+                    if k-a+i-j-1 == 0:
+                        continue
                     C2 = self._calc_coefficient_2(i, j, a, k)
                     C3 = self._calc_coefficient_3(i, j, a, k)
-                    ans_ij = C2 * C3**n / (C3-1)**3 * \
+                    ans_ij = ((C3**n) / (C3-1)**3) * \
                             ((C3-1)*(-2*Ef*Ec*((n-2)*C3-n+1)+(1-C3)*E2c)+\
-                            E2f*((1-C3)*((n-2)*C3-n+1)-((n**2-5*n+6)*C3**2-2*(n**2-4*n+3)*C3+n**2-3*n+2)))
+                            ((1-C3)*E2f*((n-2)*C3-n+1)-(Ef**2)*((n**2-5*n+6)*(C3**2)-2*(n**2-4*n+3)*C3+n**2-3*n+2)))
+                    
+                    ans_temp += C1*C2*(C3**n)*(Ef*((n-2)*C3-n+1)+(C3-1)*Ec)/(C3-1)**2
+                    
                     # print(C1, C2, C3, ans_ij)
-                    ans_D += ans_ij
-            ans_D *= C1
-            return ans_D
+                    ans_2moment += C2 / C3 * ans_ij
+            ans_2moment *= C1
+            # print('calcE', ans_temp)
+            return ans_2moment
         output_D = calc_combined_output_2nd_moment() - output_E**2  # 叠加后的方差
         test_len = int(output_E+10*output_D**0.5)
-        print(output_E, output_D, test_len)
+        # print(output_E, output_D, test_len)
 
         while True:
             # print('范围', test_len)
@@ -283,6 +291,7 @@ class Coupon_Collector_layer(Gacha_layer):
             buff_F_f_multi = F_f ** (k-a)
             for i in range(a+1):
                 for j in range(k-a+i):
+                    # 防止遇到除0情况
                     if k-a+i-j-1 == 0:
                         continue
                     C2 = self._calc_coefficient_2(i, j, a, k)
@@ -302,8 +311,6 @@ class Coupon_Collector_layer(Gacha_layer):
                 output_dist.var = output_D
                 return output_dist
             test_len *= 2
-
-
 
 
 if __name__ == "__main__":
