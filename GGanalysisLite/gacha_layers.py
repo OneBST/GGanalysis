@@ -18,6 +18,8 @@ class Gacha_layer:
     def _forward(self, input, full_mode, *args, **kwds) -> finite_dist_1D:
         # 根据full_mode在这项里进行完整分布或条件分布的计算，返回一个分布
         pass
+    def __str__(self) -> str:
+        return "Gacha Layer\n"
 
 # 保底抽卡层
 class Pity_layer(Gacha_layer):
@@ -27,6 +29,8 @@ class Pity_layer(Gacha_layer):
         self.dist = p2dist(self.pity_p)
         self.exp = self.dist.exp
         self.var = self.dist.var
+    def __str__(self) -> str:
+        return f"Pity Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
     def _forward(self, input, full_mode, pull_state=0) -> finite_dist_1D:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -62,6 +66,8 @@ class Bernoulli_layer(Gacha_layer):
         self.max_dist_len = max_dist_len
         self.exp = 1/p
         self.var = (p**2-2*p+1)/((1-p)*p**2)
+    def __str__(self) -> str:
+        return f"Bernoulli Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
     def _forward(self, input, full_mode) -> finite_dist_1D:
         # 作为第一层（不过一般不会当做第一层吧）
         if input is None:
@@ -124,7 +130,8 @@ class Markov_layer(Gacha_layer):
         self.dist = self._get_conditional_dist()
         self.exp = self.dist.exp
         self.var = self.dist.var
-    
+    def __str__(self) -> str:
+        return f"Markov Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
     # 通过转移矩阵计算分布
     def _get_conditional_dist(self, begin_pos=0):
         # 从一个位置开始的转移的分布情况
@@ -169,7 +176,7 @@ class Markov_layer(Gacha_layer):
 # 集齐道具层写完了，但是还没有测试
 # 集齐道具层，一般用于最后一层 如果想要实现集齐k种（不足总种类）后继续进入下一层的模型，需要在初始化时给出 target_types
 class Coupon_Collector_layer(Gacha_layer):
-    def __init__(self, item_types, target_types=None, e_error=1e-6, max_dist_len=1e6) -> None:
+    def __init__(self, item_types, target_types=None, e_error=1e-6, max_dist_len=1e5) -> None:
         super().__init__()
         self.types = item_types # 道具种类
         self.target_types = target_types  # 目标抽数，用于多次使用时
@@ -179,7 +186,8 @@ class Coupon_Collector_layer(Gacha_layer):
             self.exp, self.var = self._calc_exp_var(0, self.types)
         else:
             self.exp, self.var = self._calc_exp_var(0, self.target_types)
-    
+    def __str__(self) -> str:
+        return f"Coupon Collector Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
     # 计算抽k类物品的期望和方差
     def _calc_exp_var(self, initial_types, target_types):
         ans_exp = 0
@@ -270,7 +278,6 @@ class Coupon_Collector_layer(Gacha_layer):
                             ((1-C3)*E2f*((n-2)*C3-n+1)-(Ef**2)*((n**2-5*n+6)*(C3**2)-2*(n**2-4*n+3)*C3+n**2-3*n+2)))
                     
                     ans_temp += C1*C2*(C3**n)*(Ef*((n-2)*C3-n+1)+(C3-1)*Ec)/(C3-1)**2
-                    
                     # print(C1, C2, C3, ans_ij)
                     ans_2moment += C2 / C3 * ans_ij
             ans_2moment *= C1
@@ -279,7 +286,6 @@ class Coupon_Collector_layer(Gacha_layer):
         output_D = calc_combined_output_2nd_moment() - output_E**2  # 叠加后的方差
         test_len = int(output_E+10*output_D**0.5)
         # print(output_E, output_D, test_len)
-
         while True:
             # print('范围', test_len)
             # 通过频域关系进行计算

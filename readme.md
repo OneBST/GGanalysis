@@ -21,7 +21,7 @@ pip install .
 1. `Pity_layer` 保底抽卡层
 2. `Bernoulli_layer` 伯努利抽卡层
 3. `Markov_layer` 马尔可夫抽卡层
-3. `Coupon_Collector_layer` 集齐道具层（没有完工，还不完善）
+3. `Coupon_Collector_layer` 集齐道具层（还未经过充分的测试）
 
 
 
