@@ -245,7 +245,7 @@ class Coupon_Collector_layer(Gacha_layer):
         
         output_E = c_dist.exp + (self._calc_exp_var(a, k)[0]-1) * f_dist.exp  # 叠加后的期望
         # 计算叠加后的方差
-        def calc_output_D():
+        def calc_combined_output_2nd_moment():
             ans_D = 0
             # 中间所用的一阶与二阶矩
             Ef = f_dist.exp
@@ -264,28 +264,38 @@ class Coupon_Collector_layer(Gacha_layer):
                     ans_ij = C2 * C3**n / (C3-1)**3 * \
                             ((C3-1)*(-2*Ef*Ec*((n-2)*C3-n+1)+(1-C3)*E2c)+\
                             E2f*((1-C3)*((n-2)*C3-n+1)-((n**2-5*n+6)*C3**2-2*(n**2-4*n+3)*C3+n**2-3*n+2)))
+                    # print(C1, C2, C3, ans_ij)
                     ans_D += ans_ij
             ans_D *= C1
-        output_D = calc_output_D()  # 叠加后的方差
+            return ans_D
+        output_D = calc_combined_output_2nd_moment() - output_E**2  # 叠加后的方差
         test_len = int(output_E+10*output_D**0.5)
-        print(output_E, output_D)
+        print(output_E, output_D, test_len)
 
         while True:
             # print('范围', test_len)
             # 通过频域关系进行计算
-            F_f = fft(pad_zero(f_dist, test_len))
-            F_c = fft(pad_zero(c_dist, test_len))
+            F_f = fft(pad_zero(f_dist.dist, test_len))
+            F_c = fft(pad_zero(c_dist.dist, test_len))
             output_dist = 0
             C1 = self._calc_coefficient_1(a, k)
+            # 预计算F_f ^ (k-a)减少计算量
+            buff_F_f_multi = F_f ** (k-a)
             for i in range(a+1):
                 for j in range(k-a+i):
+                    if k-a+i-j-1 == 0:
+                        continue
                     C2 = self._calc_coefficient_2(i, j, a, k)
                     C3 = self._calc_coefficient_3(i, j, a, k)
-                    output_dist += (C2 / C3) *  (F_c*(C3*F_f)**(k-a)/F_f*(1-C3*F_f))
-            output_dist *= C1
+                    output_dist += (C2/C3) *  (C3**(k-a)*buff_F_f_multi / (1-C3*F_f))
+            output_dist = output_dist * C1 * F_c / F_f
+            # return output_dist
+            # print('out_0', output_dist[0], output_dist[1], output_dist[2])
             output_dist = finite_dist_1D(abs(ifft(output_dist)))
+            
             # 误差限足够小则停止
-            if abs(output_dist.exp-output_E)/output_E < self.e_error or test_len > self.max_dist_len:
+            calc_error = abs(output_dist.exp-output_E)/output_E
+            if calc_error < self.e_error or test_len > self.max_dist_len:
                 if test_len > self.max_dist_len:
                     print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
                 output_dist.exp = output_E
