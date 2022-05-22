@@ -16,7 +16,7 @@ class Gacha_layer:
         # 返回一个元组 (完整分布, 条件分布)
         return self._forward(input, 1), self._forward(input, 0, *args, **kwds)
     def _forward(self, input, full_mode, *args, **kwds) -> finite_dist_1D:
-        # 在这项里进行完整分布和条件分布的计算，返回一个元组 (完整分布，条件分布)
+        # 根据full_mode在这项里进行完整分布或条件分布的计算，返回一个分布
         pass
 
 # 保底抽卡层
@@ -71,9 +71,10 @@ class Bernoulli_layer(Gacha_layer):
                 dist = self.p * (binom.pmf(0, x-1, self.p))
                 dist[0] = 0
                 # 误差限足够小则停止
-                if abs(calc_expectation(dist)-self.exp)/(self.exp) < self.e_error or test_len > self.max_dist_len:
+                calc_error = abs(calc_expectation(dist)-self.exp)/(self.exp)
+                if calc_error < self.e_error or test_len > self.max_dist_len:
                     if test_len > self.max_dist_len:
-                        print('Warning: distribution is too long!')
+                        print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
                     dist = finite_dist_1D(dist)
                     dist.exp = self.exp
                     dist.var = self.var
@@ -86,7 +87,7 @@ class Bernoulli_layer(Gacha_layer):
         else:
             c_dist: finite_dist_1D = input[1]
         output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
-        output_D = self._calc_combined_2th_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
+        output_D = self._calc_combined_2nd_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
         test_len = int(output_E+10*output_D**0.5)
         # print(output_E, output_D)
         while True:
@@ -97,23 +98,24 @@ class Bernoulli_layer(Gacha_layer):
             output_dist = (self.p * F_c) / (1 - (1-self.p) * F_f)
             output_dist = finite_dist_1D(abs(ifft(output_dist)))
             # 误差限足够小则停止
-            if abs(output_dist.exp-output_E)/output_E < self.e_error or test_len > self.max_dist_len:
+            calc_error = abs(output_dist.exp-output_E)/output_E
+            if calc_error < self.e_error or test_len > self.max_dist_len:
                 if test_len > self.max_dist_len:
-                    print('Warning: distribution is too long!')
+                    print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
                 output_dist.exp = output_E
                 output_dist.var = output_D
                 return output_dist
             test_len *= 2
 
-    def _calc_combined_2th_moment(self, Ea, Eb, Da, Db):
+    def _calc_combined_2nd_moment(self, Ea, Eb, Da, Db):
         # 计算联合二阶矩 a表示完整序列 b表示条件序列
         p = self.p
         return (p*(p*(Db+Eb**2)+(1-p)*(Da+Ea**2))+2*(1-p)*Ea*(p*Eb+(1-p)*Ea))/(p**2)
     
 
-# 马尔科夫抽卡层
+# 马尔科夫抽卡层,对于不能在有限次数内移动到目标态的情况采用截断的方法处理
 class Markov_layer(Gacha_layer):
-    def __init__(self, M: np.ndarray, p_error = 1e-8) -> None:
+    def __init__(self, M: np.ndarray, p_error=1e-8) -> None:
         super().__init__()
         # 输入矩阵中，零状态为末态
         self.M = M
@@ -136,6 +138,7 @@ class Markov_layer(Gacha_layer):
             dist.append(X[0])
             X[0] = 0
         return finite_dist_1D(dist)
+
     def _forward(self, input, full_mode, begin_pos=0) -> finite_dist_1D:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -163,71 +166,133 @@ class Markov_layer(Gacha_layer):
         return output_dist
 
 
-# 集齐道具层
+# 集齐道具层写完了，但是还没有测试
+# 集齐道具层，一般用于最后一层 如果想要实现集齐k种（不足总种类）后继续进入下一层的模型，需要在初始化时给出 target_types
 class Coupon_Collector_layer(Gacha_layer):
-    def __init__(self, item_types, e_error = 1e-12, max_dist_len=1e5) -> None:
+    def __init__(self, item_types, target_types=None, e_error=1e-6, max_dist_len=1e6) -> None:
         super().__init__()
-        self.types = item_types  # 伯努利试验概率
+        self.types = item_types # 道具种类
+        self.target_types = target_types  # 目标抽数，用于多次使用时
         self.e_error = e_error  # 期望的误差限制
         self.max_dist_len = max_dist_len
-        self.exp = 0  # 所需个数的期望
-        for i in range(item_types):
-            self.exp += item_types/(item_types-i)
-        self.var = 0  # 所需个数的方差
-        for i in range(item_types):
-            self.var += (1-(item_types-i)/item_types)/(((item_types-i)/item_types) ** 2)
-    def _forward(self, input, full_mode, get_types=None) -> finite_dist_1D:
-        # 如果没有规定需要多少物品，认为需要集齐物品
-        if get_types is None:
-            get_types = self.types
-        # 作为第一层时，初始分布
+        if target_types is None:
+            self.exp, self.var = self._calc_exp_var(0, self.types)
+        else:
+            self.exp, self.var = self._calc_exp_var(0, self.target_types)
+    
+    # 计算抽k类物品的期望和方差
+    def _calc_exp_var(self, initial_types, target_types):
+        ans_exp = 0
+        ans_var = 0
+        # 默认为抽齐
+        for i in range(initial_types+1, target_types+1):
+            ans_exp += self.types / (self.types-i+1)
+            ans_var += (i-1) * self.types / (self.types-i+1) ** 2
+        return ans_exp, ans_var
+    
+    # 下面几个函数是用来计算系数的，方便代码阅读
+    # 计算统一乘的系数
+    def _calc_coefficient_1(self, initial_types, target_types):
+        return comb(self.types-initial_types, target_types-initial_types-1) * (self.types-target_types+1) / self.types
+    # 计算内部乘的系数
+    def _calc_coefficient_2(self, i, j, initial_types, target_types):
+        return (-1)**j * comb(initial_types, i) * comb(target_types-initial_types+i-1, j)
+    # 计算乘方内部系数
+    def _calc_coefficient_3(self, i, j, initial_types, target_types):
+        return (target_types-initial_types+i-j-1) / self.types
+
+    def _forward(self, input, full_mode, initial_types=0, target_types=None) -> finite_dist_1D:
+        # 便于和推导统一的标记，同时自动识别应该如何处理
+        if target_types is not None:
+            k = target_types
+        elif self.target_types is not None:
+            k = self.target_types
+        else:
+            k = self.types
+        a = initial_types
+        # 作为第一层时，给出初始分布
         if input is None:
-            test_len = int(self.exp * 10)
+            output_E, output_D = self._calc_exp_var(a, k)
+            test_len = int(output_E + 10 * output_D ** 0.5)
             while True:
                 x = np.arange(test_len+1)
                 dist = np.zeros(test_len+1)
-                for j in range(get_types):
-                    dist += (-1) ** j * comb(get_types-1, j) * ((get_types-j-1) / self.types) ** (x-1)
-                dist *= comb(self.types-1, get_types-1)
-                dist[:get_types] = 0  # 小于这个值概率为0
+                C1 = self._calc_coefficient_1(a, k)
+                for i in range(a+1):
+                    for j in range(k-a+i):
+                        C2 = self._calc_coefficient_2(i, j, a, k)
+                        C3 = self._calc_coefficient_3(i, j, a, k)
+                        dist[k-a:] += C2 * C3 ** (x[k-a:]-1)
+                dist *= C1
                 # 误差限足够小则停止
-                if abs(calc_expectation(dist)-self.exp)/(self.exp) < self.e_error or test_len > self.max_dist_len:
+                calc_error = abs(calc_expectation(dist)-output_E)/output_E
+                if calc_error < self.e_error or test_len > self.max_dist_len:
                     if test_len > self.max_dist_len:
-                        print('Warning: distribution is too long!')
+                        print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
                     dist = finite_dist_1D(dist)
-                    dist.exp = self.exp
-                    dist.var = self.var
+                    dist.exp = output_E
+                    dist.var = output_D
                     return dist
                 test_len *= 2
-        # 作为后续输入层(这部分还没写！！！！！！！！！！！！！！！)
+
+        # 作为后续输入层
+        # f_dist 为完整分布 c_dist 为条件分布 根据工作模式不同进行切换
         f_dist: finite_dist_1D = input[0]
         if full_mode:
             c_dist: finite_dist_1D = input[0]
         else:
             c_dist: finite_dist_1D = input[1]
         
-        # output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
-        # output_D = self._calc_combined_2th_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
-        # test_len = int(output_E+10*output_D**0.5)
-        # # print(output_E, output_D)
-        # while True:
-        #     # print('范围', test_len)
-        #     # 通过频域关系进行计算
-        #     F_f = fft(pad_zero(f_dist, test_len))
-        #     F_c = fft(pad_zero(c_dist, test_len))
-        #     output_dist = (self.p * F_c) / (1 - (1-self.p) * F_f)
-        #     output_dist = finite_dist_1D(abs(ifft(output_dist)))
-        #     # 误差限足够小则停止
-        #     if abs(output_dist.exp-output_E)/output_E < self.e_error or test_len > self.max_dist_len:
-        #         if test_len > self.max_dist_len:
-        #             print('Warning: distribution is too long!')
-        #         output_dist.exp = output_E
-        #         output_dist.var = output_D
-        #         return output_dist
-        #     test_len *= 2
+        output_E = c_dist.exp + (self._calc_exp_var(a, k)[0]-1) * f_dist.exp  # 叠加后的期望
+        # 计算叠加后的方差
+        def calc_output_D():
+            ans_D = 0
+            # 中间所用的一阶与二阶矩
+            Ef = f_dist.exp
+            E2f = f_dist.exp ** 2 + f_dist.var
+            Ec = c_dist.exp
+            E2c = c_dist.exp ** 2 + c_dist.var
+            # C1系数
+            C1 = self._calc_coefficient_1(a, k)
+            # 临时标记指数
+            n = k-a
+            # 累加计算
+            for i in range(a+1):
+                for j in range(k-a+i):
+                    C2 = self._calc_coefficient_2(i, j, a, k)
+                    C3 = self._calc_coefficient_3(i, j, a, k)
+                    ans_ij = C2 * C3**n / (C3-1)**3 * \
+                            ((C3-1)*(-2*Ef*Ec*((n-2)*C3-n+1)+(1-C3)*E2c)+\
+                            E2f*((1-C3)*((n-2)*C3-n+1)-((n**2-5*n+6)*C3**2-2*(n**2-4*n+3)*C3+n**2-3*n+2)))
+                    ans_D += ans_ij
+            ans_D *= C1
+        output_D = calc_output_D()  # 叠加后的方差
+        test_len = int(output_E+10*output_D**0.5)
+        print(output_E, output_D)
 
-    # def _calc_combined_2th_moment(self, Ea, Eb, Da, Db):
-    #   pass
+        while True:
+            # print('范围', test_len)
+            # 通过频域关系进行计算
+            F_f = fft(pad_zero(f_dist, test_len))
+            F_c = fft(pad_zero(c_dist, test_len))
+            output_dist = 0
+            C1 = self._calc_coefficient_1(a, k)
+            for i in range(a+1):
+                for j in range(k-a+i):
+                    C2 = self._calc_coefficient_2(i, j, a, k)
+                    C3 = self._calc_coefficient_3(i, j, a, k)
+                    output_dist += (C2 / C3) *  (F_c*(C3*F_f)**(k-a)/F_f*(1-C3*F_f))
+            output_dist *= C1
+            output_dist = finite_dist_1D(abs(ifft(output_dist)))
+            # 误差限足够小则停止
+            if abs(output_dist.exp-output_E)/output_E < self.e_error or test_len > self.max_dist_len:
+                if test_len > self.max_dist_len:
+                    print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+                output_dist.exp = output_E
+                output_dist.var = output_D
+                return output_dist
+            test_len *= 2
+
 
 
 

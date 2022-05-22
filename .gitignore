@@ -6,6 +6,7 @@ __pycache__/
 *.o
 *.png
 *.svg
+test*.py
 temp.csv
 temp_plot.py
 temp_use.py

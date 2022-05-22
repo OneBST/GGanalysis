@@ -68,7 +68,7 @@ GI_fig = quantile_function(
         GI.UP_4star_specific_weapon(item_num=5, multi_dist=True),
         title='原神特定UP四星武器抽取概率',
         item_name='特定UP四星',
-        text_head='采用bbs.nga.cn/read.php?tid=26754637模型\n本算例中UP物品均不在常驻祈愿中',
+        text_head='采用bbs.nga.cn/read.php?tid=26754637模型\n本算例中UP物品均不在常驻祈愿中\n绘图曲线忽略五星与四星耦合情况',
         text_tail='@一棵平衡树',
         max_pull=600,
         mark_func=GI_weapon,
