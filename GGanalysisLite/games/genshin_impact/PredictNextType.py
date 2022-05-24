@@ -5,8 +5,8 @@ from matplotlib import pyplot as plt
 
 # 计算常驻类别概率
 def calc_type_P(pull_state, not_met):
-    c = GI_5star_common()
-    dist = c.get_dist(1, pull_state).dist
+    c = Common_5star()
+    dist = c(1, pull_state).dist
     # 计算单抽类别概率
     def pull_type_P(pull_num):
         A = 30

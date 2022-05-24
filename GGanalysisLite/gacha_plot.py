@@ -44,18 +44,20 @@ mark_font = FontProperties('SHS-Bold', size=12)
 
 class quantile_function():
     def __init__(self,
-                plot_data: list=None,
-                title='获取物品对抽数的分位函数',
-                item_name='道具',
-                save_path='figure',
-                y_base_gap=50,
-                y2x_base=4/3,
-                is_finite=True,
-                max_pull=None,
-                line_colors=None,
-                mark_func=None,
-                text_head=None,
-                text_tail=None,
+                plot_data: list=None,           # 输入数据，为包含finite_dist_1D类型的列表
+                title='获取物品对抽数的分位函数', # 图表标题
+                item_name='道具',               # 绘图中对道具名称的描述
+                save_path='figure',             # 默认保存路径
+                y_base_gap=50,                  # y轴刻度基本间隔，实际间隔为这个值的整倍数
+                y2x_base=4/3,                   # 基础高宽比
+                is_finite=True,                 # 是否能在有限次数内获得道具（不包括井）
+                direct_exchange=None,           # 是否有井
+                plot_direct_exchange=False,     # 绘图是否展示井
+                max_pull=None,                  # 绘图时截断的最高抽数
+                line_colors=None,               # 给出使用颜色的列表
+                mark_func=None,                 # 标记道具数量的名称 如1精 6命 满潜等
+                text_head=None,                 # 标记文字（前）
+                text_tail=None,                 # 标记文字（后）
                 ) -> None:
         # 经常修改的参数
         self.title = title
@@ -71,6 +73,12 @@ class quantile_function():
         self.x_gap = 1 / self.x_grids
         self.text_head = text_head
         self.text_tail = text_tail
+        self.direct_exchange = direct_exchange
+        self.plot_direct_exchange = False
+        if self.direct_exchange is not None:
+            self.is_finite = True
+            if plot_direct_exchange:
+                self.plot_direct_exchange = True
         
         # 参数的默认值
         self.xlabel = '获取概率'
@@ -86,8 +94,10 @@ class quantile_function():
         # 处理未指定数值部分 填充默认值
         if plot_data is not None:
             self.data_num = len(self.data)
+            self.exp = self.data[1].exp  # 不含井的期望
         else:
             self.data_num = 0
+            self.exp = None
         if max_pull is None:
             if plot_data is None:
                 self.max_pull = 100
@@ -101,15 +111,44 @@ class quantile_function():
             self.line_colors = line_colors
 
         # 计算cdf
-        self.cdf_data = []
-        for data in self.data:
-            # 对是否有界分布进行不同处理
-            if self.is_finite:
-                self.cdf_data.append(data.dist[:self.max_pull+1].cumsum())
+        cdf_data = []
+        for i, data in enumerate(self.data):
+            if self.is_finite: 
+                cdf_data.append(data.dist.cumsum())
             else:
-                self.cdf_data.append(pad_zero(data.dist, self.max_pull)[:self.max_pull+1].cumsum())
-        
+                cdf_data.append(pad_zero(data.dist, self.max_pull)[:self.max_pull+1].cumsum())
+        # 有井且需要画图的情况下的计算
+        if self.plot_direct_exchange:
+            calc_cdf = []
+            for i in range(len(self.data)):
+                if i == 0:
+                    calc_cdf.append(np.ones(1, dtype=float))
+                    continue
+                # 遍历以前的个数 吃井次数为 i-j 次
+                ans_cdf = np.copy(cdf_data[i][:i*self.direct_exchange+1])
+                for j in range(1, i):
+                    b_pos = self.direct_exchange*(i-j)
+                    e_pos = self.direct_exchange*(i-j+1)
+                    fill_ans = np.copy(cdf_data[j][b_pos:e_pos])
+                    ans_cdf[b_pos:e_pos] = np.pad(fill_ans, (0, self.direct_exchange-len(fill_ans)), 'constant', constant_values=1)
+                ans_cdf[i*self.direct_exchange] = 1
+                calc_cdf.append(ans_cdf)
+            self.cdf_data = calc_cdf
+        else:
+            self.cdf_data = cdf_data
 
+    # 调试时测试
+    def test_figure(self, test_pos, dpi=163):
+        # 绘图部分
+        self.fig, self.ax = self.set_fig()
+        self.fig.set_dpi(dpi)
+        # print(self.cdf_data[test_pos])
+        # print(self.data[test_pos])
+        for pos in test_pos:
+            self.ax.plot(self.cdf_data[pos][:self.max_pull+1],
+                        range(len(self.cdf_data[pos]))[:self.max_pull+1],
+                        linewidth=math.log(2.5*pos), color=self.line_colors[pos])
+        plt.show()
     # 绘制图像
     def show_figure(self, dpi=300, savefig=False):
         # 绘图部分
@@ -133,10 +172,14 @@ class quantile_function():
         if self.text_head is not None:
             description_text += self.text_head + '\n'
         # 对道具期望值的描述
-        description_text += '获取一个'+self.item_name+'期望为'+format(self.data[1].exp, '.2f')+'抽'
+        description_text += '获取一个'+self.item_name+'期望为'+format(self.exp, '.2f')+'抽'
+        if self.direct_exchange is not None:
+            description_text += '\n每'+str(self.direct_exchange)+'抽可额外兑换'+self.item_name+'\n含兑换期望为'+format(1/(1/self.exp+1/self.direct_exchange), '.2f')+'抽'
         # 对能否100%获取道具的描述
         if self.is_finite:
-            description_text += '\n获取一个'+self.item_name+'最多需要'+str(len(self.data[1])-1)+'抽'
+            max_pull = len(self.data[1])-1
+            if self.direct_exchange is None:
+                description_text += '\n获取一个'+self.item_name+'最多需要'+str(max_pull)+'抽'
         else:
             description_text += '\n无法确保在有限抽数内获取一个'+self.item_name
         # 末尾附加文字
@@ -159,7 +202,8 @@ class quantile_function():
 
     # 在坐标轴上绘制图线
     def add_data(self):
-        for data, color in zip(self.cdf_data[1:], self.line_colors[1:]):
+        plot_data = self.cdf_data
+        for data, color in zip(plot_data[1:], self.line_colors[1:]):
             self.ax.plot(data[:self.max_pull+1],
                         range(len(data))[:self.max_pull+1],
                         linewidth=2.5,
