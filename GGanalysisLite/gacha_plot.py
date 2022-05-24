@@ -183,7 +183,7 @@ class quantile_function():
             if self.direct_exchange is None:
                 description_text += '\n获取一个'+self.item_name+'最多需要'+str(max_pull)+'抽'
         else:
-            description_text += '\n无法确保在有限抽数内获取一个'+self.item_name
+            description_text += '\n无法确保在有限抽数内一定获得'+self.item_name
         # 末尾附加文字
         if self.text_tail is not None:
             description_text += '\n' + self.text_tail
