@@ -28,8 +28,8 @@ LimitedUP_6star = pity_bernoulli_model(pity_6star, 0.35)
 # 获取普通五星
 Common_5star = bernoulli_gacha_model(0.08)
 # 获取单UP五星
-Single_UP_5star = bernoulli_gacha_model(0.08/2)
+Single_UP_specific_5star = bernoulli_gacha_model(0.08/2)
 # 获取双UP五星中的特定五星
-Dual_UP_5star = bernoulli_gacha_model(0.08/2/2)
+Dual_UP_specific_5star = bernoulli_gacha_model(0.08/2/2)
 # 获取三UP五星中的特定五星
-Triple_UP_5star = bernoulli_gacha_model(0.08/2/3)
+Triple_UP_specific_5star = bernoulli_gacha_model(0.08/2/3)

@@ -56,6 +56,7 @@ class quantile_function():
                 max_pull=None,                  # 绘图时截断的最高抽数
                 line_colors=None,               # 给出使用颜色的列表
                 mark_func=None,                 # 标记道具数量的名称 如1精 6命 满潜等
+                mark_offset=-0.3,               # 标记道具的标志的偏移量
                 text_head=None,                 # 标记文字（前）
                 text_tail=None,                 # 标记文字（后）
                 ) -> None:
@@ -68,6 +69,7 @@ class quantile_function():
         self.y_base_gap = y_base_gap
         self.y2x_base=y2x_base
         self.mark_func = mark_func
+        self.mark_offset = mark_offset
         self.y_gap = self.y_base_gap
         self.x_grids = 10
         self.x_gap = 1 / self.x_grids
@@ -76,8 +78,8 @@ class quantile_function():
         self.direct_exchange = direct_exchange
         self.plot_direct_exchange = False
         if self.direct_exchange is not None:
-            self.is_finite = True
             if plot_direct_exchange:
+                self.is_finite = True
                 self.plot_direct_exchange = True
         
         # 参数的默认值
@@ -87,7 +89,7 @@ class quantile_function():
         self.mark_pos = 0.5
         self.stroke_width = 2
         self.stroke_color = 'white'
-        self.text_bias_x = -30/100
+        self.text_bias_x = -3/100 #-3/100
         self.text_bias_y = 3/100
         self.plot_path_effect = [pe.withStroke(linewidth=self.stroke_width, foreground=self.stroke_color)]
 
@@ -220,6 +222,15 @@ class quantile_function():
                         marker="o",
                         zorder=self.data_num+1,
                         path_effects=self.plot_path_effect)
+        # 带井的长尾分布
+        elif self.direct_exchange:
+            for i, color in enumerate(self.line_colors[1:]):
+                self.ax.scatter(1, (i+1)*self.direct_exchange,
+                        s=10,
+                        color=color,
+                        marker="o",
+                        zorder=self.data_num+1,
+                        path_effects=self.plot_path_effect)
         # 长尾分布
         else:
             offset = transforms.ScaledTranslation(0, 0.01, self.fig.dpi_scale_trans)
@@ -240,7 +251,7 @@ class quantile_function():
                     continue
                 dot_y = (p-data[pos-1])/(data[pos]-data[pos-1])+pos-1
                 offset_1 = transforms.ScaledTranslation(self.text_bias_x, self.text_bias_y, self.fig.dpi_scale_trans)
-                offset_2 = transforms.ScaledTranslation(2*self.text_bias_x, self.text_bias_y, self.fig.dpi_scale_trans)
+                offset_2 = transforms.ScaledTranslation(self.mark_offset+self.text_bias_x, self.text_bias_y, self.fig.dpi_scale_trans)
                 offset_3 = transforms.ScaledTranslation(1.3*self.text_bias_x, self.text_bias_y, self.fig.dpi_scale_trans)
                 transform_1 = self.ax.transData + offset_1
                 transform_2 = self.ax.transData + offset_2
@@ -255,6 +266,7 @@ class quantile_function():
                 self.ax.text(p, dot_y, str(pos),
                         fontproperties=text_font,
                         transform=transform_1,
+                        horizontalalignment='right',
                         path_effects=self.plot_path_effect)
                 # 在设置位置标注说明文字
                 if p == self.mark_pos:
@@ -262,6 +274,7 @@ class quantile_function():
                         color=color,
                         fontproperties=mark_font,
                         transform=transform_2,
+                        horizontalalignment='right',
                         path_effects=self.plot_path_effect)
                 # 在对应最后一个道具时标记%和对应竖虚线
                 if i == len(self.data)-1:
@@ -270,6 +283,7 @@ class quantile_function():
                         transform=transform_3,
                         color='gray',
                         fontproperties=mark_font,
+                        horizontalalignment='right',
                         path_effects=self.plot_path_effect)
 
     # 初始化fig，返回没有绘制线条的fig和ax
