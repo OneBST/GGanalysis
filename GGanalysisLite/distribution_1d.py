@@ -2,6 +2,12 @@ from typing import Union
 import numpy as np
 from scipy.signal import convolve
 
+# 建立线性递增模型的保底参数
+def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
+    ans = np.zeros(hard_pity+1)
+    ans[1:pity_begin] = base_p
+    ans[pity_begin:hard_pity+1] = np.arange(1, hard_pity-pity_begin+2) * step + base_p
+    return np.minimum(ans, 1)
 
 # 输入离散分布列计算期望
 def calc_expectation(dist: Union['finite_dist_1D', list, np.ndarray]) -> float:

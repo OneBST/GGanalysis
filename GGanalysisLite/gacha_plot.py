@@ -9,7 +9,7 @@ import numpy as np
 import math
 from os.path import join as osp
 import os
-from GGanalysisLite.distribution_1d import pad_zero
+from GGanalysisLite.distribution_1d import finite_dist_1D, pad_zero
 
 # 设置可能会使用的字体
 font_w1 = font_manager.FontEntry(
@@ -44,7 +44,7 @@ mark_font = FontProperties('SHS-Bold', size=12)
 
 class quantile_function():
     def __init__(self,
-                plot_data: list=None,           # 输入数据，为包含finite_dist_1D类型的列表
+                dist_data: list=None,           # 输入数据，为包含finite_dist_1D类型的列表
                 title='获取物品对抽数的分位函数', # 图表标题
                 item_name='道具',               # 绘图中对道具名称的描述
                 save_path='figure',             # 默认保存路径
@@ -64,7 +64,10 @@ class quantile_function():
         self.title = title
         self.item_name = item_name
         self.save_path = save_path
-        self.data = plot_data
+        for i, data in enumerate(dist_data):  # 转换numpy数组为有限一维分布类型
+            if isinstance(data, np.ndarray):
+                dist_data[i] = finite_dist_1D(data)
+        self.data = dist_data
         self.is_finite = is_finite
         self.y_base_gap = y_base_gap
         self.y2x_base=y2x_base
@@ -94,14 +97,14 @@ class quantile_function():
         self.plot_path_effect = [pe.withStroke(linewidth=self.stroke_width, foreground=self.stroke_color)]
 
         # 处理未指定数值部分 填充默认值
-        if plot_data is not None:
+        if dist_data is not None:
             self.data_num = len(self.data)
             self.exp = self.data[1].exp  # 不含井的期望
         else:
             self.data_num = 0
             self.exp = None
         if max_pull is None:
-            if plot_data is None:
+            if dist_data is None:
                 self.max_pull = 100
             else:
                 self.max_pull = len(self.data[-1]) - 1
@@ -194,7 +197,6 @@ class quantile_function():
                         path_effects=self.plot_path_effect,
                         horizontalalignment='left',
                         verticalalignment='top')
-        pass
 
     # 设置道具数量标注字符
     def get_item_num_mark(self, x):
@@ -286,7 +288,7 @@ class quantile_function():
                         horizontalalignment='right',
                         path_effects=self.plot_path_effect)
 
-    # 初始化fig，返回没有绘制线条的fig和ax
+    # 初始化fig，返回没有绘制线条但添加了方形网格线的fig和ax
     def set_fig(self):
         # 设置绘图大小，固定横向大小，动态纵向大小
         graph_x_space = 5       # axes横向的大小
@@ -322,8 +324,267 @@ class quantile_function():
         ax.set_xlim(-0.04, 1.04)
         ax.set_ylim(-0.4*y_gap, (y_grids+0.4)*y_gap)
         # 开启主次网格和显示
-        ax.grid(b=True, which='major', color='lightgray', linestyle='-', linewidth=1)
-        ax.grid(b=True, which='minor', color='lightgray', linestyle='-', linewidth=0.5)
+        ax.grid(visible=True, which='major', color='lightgray', linestyle='-', linewidth=1)
+        ax.grid(visible=True, which='minor', color='lightgray', linestyle='-', linewidth=0.5)
         ax.minorticks_on()
 
         return fig, ax
+
+
+# text_font = FontProperties('SHS-Medium', size=12)
+# title_font = FontProperties('SHS-Bold', size=18)
+# mark_font = FontProperties('SHS-Bold', size=12)
+
+
+
+# 给图增加分布列的绘制，当分布较为稀疏时采用柱状图绘制，较为密集时近似为连续函数绘制
+def add_dist(   ax,
+                dist:finite_dist_1D,
+                is_finite=True,
+                switch_len=100,
+                title='所需抽数分布',
+                color='C1',
+                free_space = 1/40,
+                show_xlabel=False
+            ):
+    max_pos = dist.dist.argmax()
+    max_mass = dist.dist[max_pos]
+    # 设置x刻度
+    if len(dist) <= 100:
+        if len(dist) <= 15:
+            ax.set_xticks(range(0, len(dist)))
+        elif len(dist) >=50:
+            ax.set_xticks(np.array([0, *(range(0, len(dist), 10))[1:], len(dist)-1]))
+        else:
+            ax.set_xticks(np.array([0, *(range(0, len(dist), 5))[1:], len(dist)-1]))
+    else:
+        ax.set_xticks(np.array([0, *(range(0, len(dist), int(len(dist)/50)*5))[1:], len(dist)-1]))
+    # 较稀疏时采用柱状图绘制
+    if(len(dist) <= switch_len):
+        if len(dist) <= 50:
+            edge_width = 1.5
+        else:
+            edge_width = 1
+        ax.bar( range(1, len(dist)), dist.dist[1:],
+                color=color,
+                edgecolor='black',
+                linewidth=edge_width,
+                zorder=10)
+    # 较密集时近似为连续绘制
+    else:
+        ax.plot(range(1, len(dist)), dist.dist[1:],
+                color=color,
+                linewidth=1.5,
+                path_effects=[pe.withStroke(linewidth=3, foreground='white')],
+                zorder=10)
+        ax.fill_between(range(1, len(dist)), 0, dist.dist[1:], alpha=0.5, color=color, zorder=9)
+        # 标记期望值与方差
+        exp_y = (dist.exp-int(dist.exp)) * dist.dist[int(dist.exp)] + (int(dist.exp+1)-dist.exp) * dist.dist[int(dist.exp+1)]
+        ax.axvline(x=dist.exp, c="lightgray", ls="--", lw=2, zorder=5, 
+                    path_effects=[pe.withStroke(linewidth=3, foreground="white")])
+        ax.text(    dist.exp+len(dist)/80, exp_y+max_mass*0.05, '期望 '+str(round(dist.exp, 2))+'抽',
+                    color='gray',
+                    fontproperties=mark_font,
+                    horizontalalignment='left',
+                    verticalalignment='bottom',
+                    zorder=11,
+                    path_effects=[pe.withStroke(linewidth=2, foreground="white")])
+        ax.scatter( dist.exp, exp_y, color='white', s=2, zorder=12,
+                    path_effects=[  pe.withStroke(linewidth=5, foreground="white"),
+                                    pe.withStroke(linewidth=4, foreground=color)])
+        # 绘制峰值
+        ax.text(    max_pos, max_mass*1.025, '峰值 '+str(max_pos)+'抽',
+                    color='gray',
+                    fontproperties=mark_font,
+                    horizontalalignment='center',
+                    verticalalignment='bottom',
+                    zorder=11,
+                    path_effects=[pe.withStroke(linewidth=2, foreground="white")])
+        ax.scatter( max_pos, max_mass, color='white', s=2, zorder=11,
+                    path_effects=[  pe.withStroke(linewidth=5, foreground="white"),
+                                    pe.withStroke(linewidth=4, foreground=color)])
+        # 标注末尾是否为长尾分布
+        if is_finite:
+            text_end = '最高'+str(len(dist)-1)+'抽'
+        else:
+            text_end = '长尾→'
+        ax.text(    len(dist)-1+len(dist)/80, dist.dist[-1]+max_mass*0.05, text_end,
+                    color='gray',
+                    fontproperties=mark_font,
+                    horizontalalignment='right',
+                    verticalalignment='bottom',
+                    zorder=11,
+                    path_effects=[pe.withStroke(linewidth=2, foreground="white")])
+    # 绘制网格
+    ax.grid(visible=True, which='major', color='lightgray', linestyle='-', linewidth=1)
+    # 设置范围
+    ax.set_xlim(-1-len(dist)*free_space, len(dist)+len(dist)*free_space)
+    ax.set_ylim(0, max_mass*1.15)
+    # 设置标题和标签
+    ax.set_title(title, font=mark_font)
+    if show_xlabel:
+        ax.set_xlabel('抽数', fontproperties=text_font, color='gray')
+    ax.set_ylabel('本抽概率', fontproperties=text_font, color='gray')
+    return  ax
+
+# 给图增加累积分布函数
+def add_cdf(    ax,
+                dist:finite_dist_1D,
+                is_finite=True,
+                title='累积分布函数',
+                color='C0',
+                free_space = 1/40,
+                show_xlabel=True
+            ):
+    cdf = dist.dist.cumsum()
+    # 设置x刻度
+    if len(dist) <= 100:
+        if len(dist) <= 15:
+            ax.set_xticks(range(0, len(dist)))
+        elif len(dist) >=50:
+            ax.set_xticks(np.array([0, *(range(0, len(dist), 10))[1:], len(dist)-1]))
+        else:
+            ax.set_xticks(np.array([0, *(range(0, len(dist), 5))[1:], len(dist)-1]))
+    else:
+        ax.set_xticks(np.array([0, *(range(0, len(dist), int(len(dist)/50)*5))[1:], len(dist)-1]))
+    # 绘制图线
+    ax.plot(range(len(dist)),cdf,
+            color=color,
+            linewidth=3,
+            path_effects=[pe.withStroke(linewidth=3, foreground='white')],
+            zorder=10)
+    # 绘制网格
+    ax.grid(visible=True, which='major', color='lightgray', linestyle='-', linewidth=1)
+    # 设置范围
+    ax.set_xlim(-1-len(dist)*free_space, len(dist)+len(dist)*free_space)
+    ax.set_ylim(-0.05,1.05)
+    # 设置标题和标签
+    ax.set_title(title, font=mark_font)
+    if show_xlabel:
+        ax.set_xlabel('抽数', fontproperties=text_font, color='gray')
+    ax.set_ylabel('累进概率', fontproperties=text_font, color='gray')
+    return ax
+
+class draw_distribution():
+    def __init__(   self,
+                    dist_data=None,         # 输入数据，为finite_dist_1D类型的分布列
+                    title='获取物品所需抽数分布及累进概率',
+                    dpi=300,
+                    figsize=(9, 8),
+                    is_finite=True,         # 是否为有限分布
+                ) -> None:
+        # 初始化参数
+        if isinstance(dist_data, np.ndarray):
+            dist_data = finite_dist_1D(dist_data)
+        self.data = dist_data
+        self.cdf_data = self.data.dist.cumsum()
+        self.fig, self.axs = plt.subplots(2, 1, constrained_layout=True)
+        self.title = title
+        self.dpi = dpi
+        self.figsize = figsize
+        self.ax_dist = self.axs[0]
+        self.ax_cdf = self.axs[1]
+        self.quantile_pos = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
+        self.is_finite = is_finite
+
+
+        # 参数的默认值
+        # self.mark_pos = 0.5
+        # self.stroke_width = 2
+        # self.stroke_color = 'white'
+        # self.text_bias_x = -3/100 #-3/100
+        # self.text_bias_y = 3/100
+        # self.plot_path_effect = [pe.withStroke(linewidth=self.stroke_width, foreground=self.stroke_color)]
+
+    # 设置图像参数
+    def set_fig_param(self):
+        self.fig.suptitle(self.title, font=title_font, size=20)
+        self.fig.set_size_inches(self.figsize)
+        self.fig.set_dpi(self.dpi)
+ 
+    def test_paint(self):
+        self.ax_dist = add_dist(self.ax_dist, self.data, is_finite=self.is_finite, switch_len=100)
+        self.ax_cdf = add_cdf(self.ax_cdf, self.data, is_finite=self.is_finite)
+        self.ax_dist.text(0, self.y_grids*self.y_gap,
+                        '!!!!!!!!',
+                        fontproperties=mark_font,
+                        color='#B0B0B0',
+                        path_effects=pe.withStroke(linewidth=2, foreground='white'),
+                        horizontalalignment='left',
+                        verticalalignment='top')
+        plt.show()
+
+        
+
+# 绘制分布 需要改进
+def plot_distribution(D, suptitle=None):
+    D = D.dist
+    # 输入的D为一维数组，从0开始
+    end_pull = len(D)
+
+    # 导入字体
+    suptitle_font = FontProperties('SHS-Bold', size=15)
+    
+    # 自适应偏移量
+    x_bias = end_pull / 100
+    y_bias = 1/ 100
+
+    # 绘图大小
+    plt.figure(figsize=(9, 8))
+
+    # 设置大图标题
+    if suptitle != None:
+        plt.suptitle(suptitle, fontproperties=suptitle_font)
+
+    # 上图为累积分布函数
+    plt.subplot(211)
+    DD = D.cumsum()
+    plt.plot(range(end_pull), DD)
+    plt.title('累积分布函数', fontproperties=title_font)
+    plt.xlabel('抽数', fontproperties=text_font)
+    plt.ylabel('累积概率', fontproperties=text_font)
+    attention_pos = [0.1, 0.25, 0.5, 0.75, 0.9, 1]
+    # 设置标记
+    for p in attention_pos:
+        pos = np.searchsorted(DD, p, side='left')
+        if pos >= len(DD):
+            print(pos, p)
+            continue
+        # 打点标记
+        plt.scatter(pos, DD[pos], s=5, zorder=10, color='slateblue', 
+                    path_effects=[pe.withStroke(linewidth=2, foreground="white")])  
+        # 标记%和对应竖虚线
+        plt.axvline(x=pos, c="lightgray", ls="--", lw=1, zorder=0)
+        plt.text(pos+2.5*x_bias, p-5*y_bias, str(pos)+'抽  '+str(int(p*100))+"%",
+                c='gray',
+                fontproperties=mark_font,
+                path_effects=[pe.withStroke(linewidth=2, foreground="white")])
+
+    # 下图为分布列
+    plt.subplot(212)
+    plt.plot(range(end_pull), D, c='salmon')
+    plt.fill_between(range(end_pull), D, np.zeros(end_pull), alpha=0.2, color='salmon')
+    plt.title('分布列', fontproperties=title_font)
+    plt.xlabel('抽数', fontproperties=text_font)
+    plt.ylabel('本抽概率', fontproperties=text_font)
+
+    x0 = np.arange(end_pull)
+    expectation = (x0*D).sum()
+    # 标记期望和对应竖虚线
+    plt.axvline(x=expectation, c="lightgray", ls="--", lw=1, zorder=0)
+    plt.text(expectation+1*x_bias, D.max()/2, '期望:'+str(round(expectation, 2))+'抽\n',
+            c='gray',
+            fontproperties=mark_font,
+            path_effects=[pe.withStroke(linewidth=2, foreground="white")])
+    # 标记分布峰值和对应竖虚线
+    max_pos = D.argmax()
+    y_pos_const = 0.75
+    if (max_pos-expectation)/end_pull > 0.01:
+        plt.axvline(x=max_pos, c="lightgray", ls="--", lw=1, zorder=0)
+        y_pos_const = 0.5
+    plt.text(max_pos+1*x_bias, y_pos_const*D.max(), '峰值:'+str(max_pos)+'抽',
+            c='gray',
+            fontproperties=mark_font,
+            path_effects=[pe.withStroke(linewidth=2, foreground="white")])
+    plt.tight_layout()
+    plt.show()
