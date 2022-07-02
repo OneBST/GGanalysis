@@ -1,7 +1,7 @@
 import setuptools
 
 NAME = 'GGanalysisLite'
-DESCRIPTION = 'A simple and efficient computing package for Genshin Impact gacha analysis.'
+DESCRIPTION = 'A simple and efficient computing package for gacha game analysis.'
 URL = 'https://github.com/OneBST/GGanalysisLite'
 EMAIL = 'onebst@foxmail.com'
 AUTHOR = 'OneBST'
