@@ -20,6 +20,8 @@ cd GGanalysisLite
 pip install .
 ```
 
+画图时需要安装[思源黑体](https://github.com/adobe-fonts/source-han-sans)，安装[对应版本](https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansCN.zip)后即可使用。
+
 ## 支持抽卡层
 
 1. `Pity_layer` 保底抽卡层，实现每抽获取物品的概率仅和当前至多多少抽没有获取过物品相关的抽卡模型。

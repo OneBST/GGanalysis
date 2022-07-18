@@ -10,29 +10,36 @@ import numpy as np
 import math
 from os.path import join as osp
 import os
+import sys
 from GGanalysisLite.distribution_1d import finite_dist_1D, pad_zero
+
+font_path = None
+if sys.platform == "win32":  # windows下
+    font_path = 'C:/Windows/Fonts/'
+else:  # Linux
+    font_path = '/usr/share/fonts/opentype/source-han-sans/'
 
 # 设置可能会使用的字体
 font_w1 = font_manager.FontEntry(
-    fname='C:/Windows/Fonts/SourceHanSansSC-Extralight.otf',
+    fname=font_path+'SourceHanSansSC-Extralight.otf',
     name='SHS-Extralight')
 font_w2 = font_manager.FontEntry(
-    fname='C:/Windows/Fonts/SourceHanSansSC-Light.otf',
+    fname=font_path+'SourceHanSansSC-Light.otf',
     name='SHS-Light')
 font_w3 = font_manager.FontEntry(
-    fname='C:/Windows/Fonts/SourceHanSansSC-Normal.otf',
+    fname=font_path+'SourceHanSansSC-Normal.otf',
     name='SHS-Normal')
 font_w4 = font_manager.FontEntry(
-    fname='C:/Windows/Fonts/SourceHanSansSC-Regular.otf',
+    fname=font_path+'SourceHanSansSC-Regular.otf',
     name='SHS-Regular')
 font_w5 = font_manager.FontEntry(
-    fname='C:/Windows/Fonts/SourceHanSansSC-Medium.otf',
+    fname=font_path+'SourceHanSansSC-Medium.otf',
     name='SHS-Medium')
 font_w6 = font_manager.FontEntry(
-    fname='C:/Windows/Fonts/SourceHanSansSC-Bold.otf',
+    fname=font_path+'SourceHanSansSC-Bold.otf',
     name='SHS-Bold')
 font_w7 = font_manager.FontEntry(
-    fname='C:/Windows/Fonts/SourceHanSansSC-Heavy.otf',
+    fname=font_path+'SourceHanSansSC-Heavy.otf',
     name='SHS-Heavy')
 
 font_manager.fontManager.ttflist.extend([font_w1, font_w2, font_w3, font_w4, font_w5, font_w6, font_w7])
