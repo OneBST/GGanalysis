@@ -174,7 +174,7 @@ class quantile_function():
         if savefig:
             if not os.path.exists(self.save_path):
                 os.makedirs(self.save_path)
-            self.fig.savefig(osp(self.save_path, self.title+'.png'))
+            self.fig.savefig(osp(self.save_path, self.title+'.png'), dpi=dpi)
         else:
             plt.show()
     
