@@ -67,6 +67,7 @@ class quantile_function():
                 mark_offset=-0.3,               # 标记道具的标志的偏移量
                 text_head=None,                 # 标记文字（前）
                 text_tail=None,                 # 标记文字（后）
+                mark_exp=True,                  # 是否在图中标注期望值
                 ) -> None:
         # 经常修改的参数
         self.title = title
@@ -86,6 +87,7 @@ class quantile_function():
         self.x_gap = 1 / self.x_grids
         self.text_head = text_head
         self.text_tail = text_tail
+        self.mark_exp = mark_exp
         self.direct_exchange = direct_exchange
         self.plot_direct_exchange = False
         if self.direct_exchange is not None:
@@ -93,6 +95,7 @@ class quantile_function():
                 self.is_finite = True
                 self.plot_direct_exchange = True
         
+
         # 参数的默认值
         self.xlabel = '获取概率'
         self.ylabel = '投入抽数'
@@ -185,7 +188,8 @@ class quantile_function():
         if self.text_head is not None:
             description_text += self.text_head + '\n'
         # 对道具期望值的描述
-        description_text += '获取一个'+self.item_name+'期望为'+format(self.exp, '.2f')+'抽'
+        if self.mark_exp:
+            description_text += '获取一个'+self.item_name+'期望为'+format(self.exp, '.2f')+'抽'
         if self.direct_exchange is not None:
             description_text += '\n每'+str(self.direct_exchange)+'抽可额外兑换'+self.item_name+'\n含兑换期望为'+format(1/(1/self.exp+1/self.direct_exchange), '.2f')+'抽'
         # 对能否100%获取道具的描述
