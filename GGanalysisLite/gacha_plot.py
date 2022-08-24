@@ -186,10 +186,10 @@ class quantile_function():
         description_text = ''
         # 开头附加文字
         if self.text_head is not None:
-            description_text += self.text_head + '\n'
+            description_text += self.text_head
         # 对道具期望值的描述
         if self.mark_exp:
-            description_text += '获取一个'+self.item_name+'期望为'+format(self.exp, '.2f')+'抽'
+            description_text += '\n获取一个'+self.item_name+'期望为'+format(self.exp, '.2f')+'抽'
         if self.direct_exchange is not None:
             description_text += '\n每'+str(self.direct_exchange)+'抽可额外兑换'+self.item_name+'\n含兑换期望为'+format(1/(1/self.exp+1/self.direct_exchange), '.2f')+'抽'
         # 对能否100%获取道具的描述
