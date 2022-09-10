@@ -1,4 +1,3 @@
-from numpy import empty
 from GGanalysisLite.distribution_1d import *
 from GGanalysisLite.gacha_layers import *
 from typing import Union
@@ -21,12 +20,13 @@ class common_gacha_model(gacha_model):
         # 如果没有对 _build_parameter_list 进行定义就输入参数，报错
         if args != () and kwds != {} and parameter_list is None:
             raise Exception('Parameters is not defined.')
-        # 如果 item_num 为0，则返回 [完整分布, 条件分布] 列表
+        # 如果 item_num 为 0，则返回 1 分布
         if item_num == 0:
-            return self._forward(parameter_list)
-        # 返回抽取 [1, 抽取个数] 个道具的分布列表
+            return finite_dist_1D([1])
+        # 如果 multi_dist 参数为真，返回抽取 [1, 抽取个数] 个道具的分布列表
         if multi_dist:
             return self._get_multi_dist(item_num, parameter_list)
+        # 其他情况正常返回
         return self._get_dist(item_num, parameter_list)
 
     # 用于输入参数解析，生成每层对应参数列表
@@ -62,11 +62,10 @@ class common_gacha_model(gacha_model):
             return ans_dist
         # 有输入参数则将分布逐层推进
         for parameter, layer in zip(parameter_list, self.layers):
-            # print(a[1])
             ans_dist = layer(ans_dist, *parameter[0], **parameter[1])
-            # self.test(*parameter[0], **parameter[1])
         return ans_dist
 
+# 伯努利抽卡类
 class bernoulli_gacha_model(gacha_model):
     def __init__(self, p) -> None:
         super().__init__()
@@ -79,7 +78,7 @@ class bernoulli_gacha_model(gacha_model):
         dist[0] = 0
         return finite_dist_1D(dist)
 
-    # 另一个方向的分布
+    # 计算固定抽数，获得道具数的分布
     '''
     def _get_dist(self, item_num, pulls):  # 恰好在第x抽抽到item_num个道具的概率，限制长度最高为pulls
         x = np.arange(pulls+1)
@@ -88,6 +87,7 @@ class bernoulli_gacha_model(gacha_model):
         return finite_dist_1D(dist)
     '''
 
+# 带保底抽卡类
 class pity_model(common_gacha_model):
     def __init__(self, pity_p) -> None:
         super().__init__()
@@ -97,6 +97,7 @@ class pity_model(common_gacha_model):
         parameter_list = [[[], {'pull_state':pull_state}]]
         return parameter_list
 
+# 双重保底抽卡类
 class dual_pity_model(common_gacha_model):
     def __init__(self, pity_p1, pity_p2) -> None:
         super().__init__()
@@ -110,6 +111,7 @@ class dual_pity_model(common_gacha_model):
         ]
         return parameter_list
 
+# 保底伯努利抽卡类
 class pity_bernoulli_model(common_gacha_model):
     def __init__(self, pity_p, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
@@ -123,6 +125,7 @@ class pity_bernoulli_model(common_gacha_model):
         ]
         return parameter_list
 
+# 双重保底伯努利类
 class dual_pity_bernoulli_model(common_gacha_model):
     def __init__(self, pity_p1, pity_p2, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
