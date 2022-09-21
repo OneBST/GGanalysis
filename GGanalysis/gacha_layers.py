@@ -1,4 +1,4 @@
-from GGanalysisLite.distribution_1d import *
+from GGanalysis.distribution_1d import *
 from typing import Union
 from scipy.fftpack import fft,ifft
 from scipy.special import comb

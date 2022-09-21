@@ -1,4 +1,4 @@
-from GGanalysisLite import finite_dist_1D
+from GGanalysis import finite_dist_1D
 import numpy as np
 
 # 使用finite_dist_1D类进行快速卷积
@@ -12,7 +12,7 @@ print('c的期望、方差、分布为', c.exp, c.var, c)
 print('分布在类中以numpy数组形式保存', c.dist)
 
 # 计算抽卡分布律 以原神为例
-import GGanalysisLite.games.genshin_impact as GI
+import GGanalysis.games.genshin_impact as GI
 # 原神角色池的计算
 print('角色池在垫了20抽，有大保底的情况下抽3个UP五星抽数的分布')
 dist_c = GI.UP_5star_character(item_num=3, pull_state=20, up_guarantee=1)

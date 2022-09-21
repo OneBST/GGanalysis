@@ -1,6 +1,6 @@
-from GGanalysisLite.distribution_1d import *
-from GGanalysisLite.gacha_layers import *
-from GGanalysisLite.basic_models import *
+from GGanalysis.distribution_1d import *
+from GGanalysis.gacha_layers import *
+from GGanalysis.basic_models import *
 
 '''
     注意，本模块按公示概率进行建模，但忽略了一些情况

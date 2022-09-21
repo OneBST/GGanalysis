@@ -11,13 +11,13 @@ import math
 from os.path import join as osp
 import os
 import sys
-from GGanalysisLite.distribution_1d import finite_dist_1D, pad_zero
+from GGanalysis.distribution_1d import finite_dist_1D, pad_zero
 
 font_path = None
-if sys.platform == "win32":  # windows下
+if sys.platform == 'win32':  # windows下
     font_path = 'C:/Windows/Fonts/'
 else:  # Linux
-    font_path = '/usr/share/fonts/opentype/source-han-sans/'
+    font_path = os.path.expanduser('~/.local/share/fonts/')
 
 # 设置可能会使用的字体
 font_w1 = font_manager.FontEntry(

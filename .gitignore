@@ -10,7 +10,7 @@ test*.py
 temp.csv
 temp_plot.py
 temp_use.py
-GGanalysisLite.egg-info/
+GGanalysis.egg-info/
 figure/
 
 # test files

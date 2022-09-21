@@ -1,8 +1,8 @@
-# 抽卡游戏概率分析工具包-GGanalysisLite
+# 抽卡游戏概率分析工具包-GGanalysis
 
 本工具包为快速构建抽卡游戏抽卡模型设计，通过引入“抽卡层”，以抽卡层的组合快速实现复杂的抽卡逻辑，并以较低的时间复杂度计算抽卡模型对应的分布。除了计算分布，工具包还提供一些将计算结果可视化的绘图工具，并计划加入更多的针对各类抽卡问题的计算工具和设计工具。
 
-工具包名称GGanalysisLite里的GG以前是指Genshin Impact，而现在经过重构大大扩展功能后可以指Gacha Game了。而先前的[GGanalysis](https://github.com/OneBST/GGanalysis)包仅针对原神的抽卡模型计算。
+工具包名称从GGanalysisLite改为GGanalysis，此前的GGanalysis包暂更名为GGanalysislib。
 
 ## 安装方法
 

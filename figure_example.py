@@ -1,5 +1,5 @@
-import GGanalysisLite.games.genshin_impact as GI
-from GGanalysisLite.gacha_plot import quantile_function
+import GGanalysis.games.genshin_impact as GI
+from GGanalysis.gacha_plot import quantile_function
 import matplotlib.cm as cm
 import numpy as np
 

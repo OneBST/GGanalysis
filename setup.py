@@ -1,8 +1,8 @@
 import setuptools
 
-NAME = 'GGanalysisLite'
+NAME = 'GGanalysis'
 DESCRIPTION = 'A simple and efficient computing package for gacha game analysis.'
-URL = 'https://github.com/OneBST/GGanalysisLite'
+URL = 'https://github.com/OneBST/GGanalysis'
 EMAIL = 'onebst@foxmail.com'
 AUTHOR = 'OneBST'
 REQUIRES_PYTHON = '>=3.6.0'
@@ -19,7 +19,7 @@ setuptools.setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=setuptools.find_packages(include=["GGanalysisLite*"]),
+    packages=setuptools.find_packages(include=["GGanalysis*"]),
     install_requires=REQUIRED,
     include_package_data=True,
     license='MIT',

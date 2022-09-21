@@ -1,5 +1,5 @@
-from GGanalysisLite.distribution_1d import *
-from GGanalysisLite.gacha_layers import *
+from GGanalysis.distribution_1d import *
+from GGanalysis.gacha_layers import *
 from typing import Union
 
 # 所有抽卡模型的基类，目前什么也不干

@@ -1,6 +1,6 @@
 import numpy as np
-import GGanalysisLite as ggl
-import GGanalysisLite.games.genshin_impact as GI
+import GGanalysis as ggl
+import GGanalysis.games.genshin_impact as GI
 from matplotlib import pyplot as plt
 
 # 计算常驻类别概率
