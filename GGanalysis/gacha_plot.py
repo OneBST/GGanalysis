@@ -8,7 +8,7 @@ import matplotlib.cm as cm
 import matplotlib as mpl
 import numpy as np
 import math
-from os.path import join as osp
+import os.path as osp
 import os
 import sys
 from GGanalysis.distribution_1d import finite_dist_1D, pad_zero
@@ -177,9 +177,9 @@ class quantile_function():
         self.add_end_mark()
         self.put_description_text()
         if savefig:
-            if not os.path.exists(self.save_path):
+            if not osp.exists(self.save_path):
                 os.makedirs(self.save_path)
-            self.fig.savefig(osp(self.save_path, self.title+'.png'), dpi=dpi)
+            self.fig.savefig(osp.join(self.save_path, self.title+'.png'), dpi=dpi)
         else:
             plt.show()
     
@@ -203,7 +203,7 @@ class quantile_function():
             else:
                 description_text += '\n无法确保在有限抽数内一定获得'+self.item_name
         # 末尾附加文字
-        if self.text_tail is not None:
+        if self.text_tail is not None and self.text_tail is not '':
             description_text += '\n' + self.text_tail
         self.ax.text(0, self.y_grids*self.y_gap,
                         description_text,
