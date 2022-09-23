@@ -203,8 +203,9 @@ class quantile_function():
             else:
                 description_text += '\n无法确保在有限抽数内一定获得'+self.item_name
         # 末尾附加文字
-        if self.text_tail is not None and self.text_tail is not '':
+        if self.text_tail is not None:
             description_text += '\n' + self.text_tail
+        description_text =  description_text.rstrip()
         self.ax.text(0, self.y_grids*self.y_gap,
                         description_text,
                         fontproperties=mark_font,
