@@ -68,6 +68,7 @@ class quantile_function():
                 text_head=None,                 # 标记文字（前）
                 text_tail=None,                 # 标记文字（后）
                 mark_exp=True,                  # 是否在图中标注期望值
+                mark_max_pull=True,             # 是否在图中标注最多需要抽数
                 ) -> None:
         # 经常修改的参数
         self.title = title
@@ -88,6 +89,7 @@ class quantile_function():
         self.text_head = text_head
         self.text_tail = text_tail
         self.mark_exp = mark_exp
+        self.mark_max_pull = mark_max_pull
         self.direct_exchange = direct_exchange
         self.plot_direct_exchange = False
         if self.direct_exchange is not None:
@@ -193,12 +195,13 @@ class quantile_function():
         if self.direct_exchange is not None:
             description_text += '\n每'+str(self.direct_exchange)+'抽可额外兑换'+self.item_name+'\n含兑换期望为'+format(1/(1/self.exp+1/self.direct_exchange), '.2f')+'抽'
         # 对能否100%获取道具的描述
-        if self.is_finite:
-            max_pull = len(self.data[1])-1
-            if self.direct_exchange is None:
-                description_text += '\n获取一个'+self.item_name+'最多需要'+str(max_pull)+'抽'
-        else:
-            description_text += '\n无法确保在有限抽数内一定获得'+self.item_name
+        if self.mark_max_pull:
+            if self.is_finite:
+                max_pull = len(self.data[1])-1
+                if self.direct_exchange is None:
+                    description_text += '\n获取一个'+self.item_name+'最多需要'+str(max_pull)+'抽'
+            else:
+                description_text += '\n无法确保在有限抽数内一定获得'+self.item_name
         # 末尾附加文字
         if self.text_tail is not None:
             description_text += '\n' + self.text_tail

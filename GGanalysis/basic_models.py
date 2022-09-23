@@ -36,13 +36,13 @@ class common_gacha_model(gacha_model):
     # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
     def _get_multi_dist(self, end_pos: int, parameter_list: list=None):
         input_dist = self._forward(parameter_list)
-        ans_matrix = [finite_dist_1D([1]), input_dist[1]]
+        ans_list = [finite_dist_1D([1]), input_dist[1]]
         for i in range(1, end_pos):
             # 添加新的一层并设定方差与期望
-            ans_matrix.append(ans_matrix[i] * input_dist[0])
-            ans_matrix[i+1].exp = input_dist[1].exp + input_dist[0].exp * i
-            ans_matrix[i+1].var = input_dist[1].var + input_dist[0].var * i
-        return ans_matrix
+            ans_list.append(ans_list[i] * input_dist[0])
+            ans_list[i+1].exp = input_dist[1].exp + input_dist[0].exp * i
+            ans_list[i+1].var = input_dist[1].var + input_dist[0].var * i
+        return ans_list
 
     # 返回单个分布
     def _get_dist(self, item_num: int, parameter_list: list=None):

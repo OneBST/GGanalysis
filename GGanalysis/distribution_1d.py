@@ -1,3 +1,4 @@
+import re
 from typing import Union
 import numpy as np
 from scipy.signal import convolve
@@ -85,7 +86,7 @@ class finite_dist_1D:  # 随机事件为有限个数的分布
         self.dist = np.array(dist)  # 转化为numpy.ndarray类型
         
     def __getattr__(self, key):  # 访问未计算的属性时进行计算
-        # if 'array' in key:  # 不返回numpy数组，强制使用类中定义运算，这里可能需要修改 和numpy相关的就蛋疼
+        # 基本统计属性
         if key in ['exp', 'var', 'p_sum']:
             self.calc_dist_attribution()
             if key == 'exp':
@@ -94,8 +95,13 @@ class finite_dist_1D:  # 随机事件为有限个数的分布
                 return self.var
             if key == 'p_sum':
                 return self.p_sum
-        # 还是决定注释掉，不自动进行numpy变换，需要手工.dist
-        # return super().__getattr__(key)
+        # 熵相关属性
+        if key in ['entropy_rate', 'randomness_rate']:
+            self.calc_entropy_attribution()
+            if key == 'entropy_rate':
+                return self.entropy_rate
+            if key == 'randomness_rate':
+                return self.randomness_rate
     
     def __iter__(self): 
         return iter(self.dist)
@@ -106,13 +112,24 @@ class finite_dist_1D:  # 随机事件为有限个数的分布
 
     def calc_dist_attribution(self) -> None:
         self.p_sum = sum(self.dist)
-        if abs(self.p_sum-1) > 1e-12:  # 不是标准分布
+        if abs(self.p_sum-1) > 1e-12:  # 概率和不为1
             self.exp = float('nan')
             self.var = float('nan')
             return
         use_pulls = np.arange(self.__len__())
         self.exp = sum(use_pulls * self.dist)
         self.var = sum((use_pulls-self.exp) ** 2 * self.dist)
+
+    def calc_entropy_attribution(self) -> None:
+        if abs(self.p_sum-1) > 1e-12:  # 概率和不为1
+            self.entropy_rate = float('nan')
+            self.randomness_rate = float('nan')
+            return
+        # 避免0的对数
+        temp = np.zeros(len(self.dist))
+        temp[0] = 1
+        self.entropy_rate = -sum(self.dist * np.log2(self.dist+temp)) / self.exp
+        self.randomness_rate = self.entropy_rate / (-1/self.exp * np.log2(1/self.exp) - (1-1/self.exp) * np.log2(1-1/self.exp))
 
     def p_normalization(self):  # 分布概率归一
         self.dist = self.dist/sum(self.dist)
