@@ -1,4 +1,5 @@
 from hmac import trans_36
+from turtle import begin_fill
 from matplotlib import pyplot as plt
 from matplotlib import font_manager
 from matplotlib.font_manager import FontProperties  # 字体管理器
@@ -350,6 +351,8 @@ class quantile_function():
 class draw_distribution():
     def __init__(   self,
                     dist_data=None,         # 输入数据，为finite_dist_1D类型的分布列
+                    current_pulls=None,
+                    future_pulls=None,
                     title='获取物品所需抽数分布及累进概率',
                     dpi=300,
                     is_finite=True,         # 是否为有限分布
@@ -358,6 +361,8 @@ class draw_distribution():
         if isinstance(dist_data, np.ndarray):
             dist_data = finite_dist_1D(dist_data)
         self.data = dist_data
+        self.current_pulls = current_pulls
+        self.future_pulls = future_pulls
         self.cdf_data = self.data.dist.cumsum()
         self.title = title
         self.dpi = dpi
@@ -462,10 +467,14 @@ class draw_distribution():
                     self, ax,
                     title='所需抽数分布',
                     show_title=True,
-                    color='C1',
+                    main_color='royalblue',
+                    current_color='limegreen',
+                    future_color='orange',
                     show_xlabel=False
                 ):
         dist = self.data
+        color_exp = main_color
+        color_peak = main_color
         # 较稀疏时采用柱状图绘制
         if(len(dist) <= self.switch_len):
             if len(dist) <= 50:
@@ -473,7 +482,7 @@ class draw_distribution():
             else:
                 edge_width = 1
             ax.bar( range(1, len(dist)), dist.dist[1:],
-                    color=color,
+                    color=main_color,
                     edgecolor='black',
                     linewidth=edge_width,
                     zorder=10)
@@ -487,12 +496,66 @@ class draw_distribution():
                         path_effects=self.plot_path_effect)
         # 较密集时近似为连续绘制
         else:
-            ax.plot(range(1, len(dist)), dist.dist[1:],
-                    color=color,
+            def draw_color_region(begin, end, fill_color):
+                ax.plot(range(begin, end), dist.dist[begin: end],
+                    color=fill_color,
                     linewidth=1.5,
                     path_effects=[pe.withStroke(linewidth=3, foreground='white')],
                     zorder=10)
-            ax.fill_between(range(1, len(dist)), 0, dist.dist[1:], alpha=0.5, color=color, zorder=9)
+                ax.fill_between(range(begin, end), 0, dist.dist[begin: end], alpha=0.5, color=fill_color, zorder=9)
+                
+            begin_pulls = 1
+            if self.current_pulls:
+                draw_color_region(begin_pulls, min(len(dist)-1,self.current_pulls+1), current_color)
+                # 曲线上分界处打点
+                ax.axvline(x=self.current_pulls, c="lightgray", ls="--", lw=2, zorder=5, 
+                            path_effects=[pe.withStroke(linewidth=3, foreground="white")])
+                ax.text(    self.current_pulls, dist[min(len(dist)-1,self.current_pulls)]+self.max_mass*0.05,
+                            '当前 '+str(self.current_pulls)+'抽\n'+str(round(sum(dist[1:min(self.current_pulls, len(dist))])*100))+'%',
+                            color='gray',
+                            fontproperties=mark_font,
+                            horizontalalignment='left',
+                            verticalalignment='bottom',
+                            zorder=12,
+                            path_effects=self.plot_path_effect)
+                self.add_point(ax, self.current_pulls, dist[min(len(dist)-1,self.current_pulls)], current_color)
+                # 设置颜色
+                if self.max_pos <= self.current_pulls and self.max_pos >= begin_pulls:
+                    color_peak = current_color
+                if dist.exp <= self.current_pulls and dist.exp >= begin_pulls:
+                    color_exp = current_color
+
+                begin_pulls = min(len(dist), self.current_pulls)
+            if self.future_pulls and begin_pulls <= self.future_pulls:
+                draw_color_region(begin_pulls, min(len(dist),self.future_pulls+1), future_color)
+                # 曲线上分界处打点
+                ax.axvline(x=self.future_pulls, c="lightgray", ls="--", lw=2, zorder=5, 
+                            path_effects=[pe.withStroke(linewidth=3, foreground="white")])
+                ax.text(    self.future_pulls, dist[min(len(dist)-1, self.future_pulls)]+self.max_mass*0.05,
+                            '未来 '+str(self.future_pulls)+'抽\n'+str(round(sum(dist[1:min(self.future_pulls, len(dist))])*100))+'%',
+                            color='gray',
+                            fontproperties=mark_font,
+                            horizontalalignment='left',
+                            verticalalignment='bottom',
+                            zorder=12,
+                            path_effects=self.plot_path_effect)
+                self.add_point(ax, self.future_pulls,  dist[min(len(dist)-1, self.future_pulls)], future_color)
+                # 设置颜色
+                if self.max_pos <= self.future_pulls and self.max_pos >= begin_pulls:
+                    color_peak = future_color
+                if dist.exp <= self.future_pulls and dist.exp >= begin_pulls:
+                    color_exp = future_color
+
+                begin_pulls = min(len(dist), self.future_pulls)
+            draw_color_region(begin_pulls, len(dist), main_color)
+
+            # 旧代码
+            # ax.plot(range(1, len(dist)), dist.dist[1:],
+            #         color=main_color,
+            #         linewidth=1.5,
+            #         path_effects=[pe.withStroke(linewidth=3, foreground='white')],
+            #         zorder=10)
+            # ax.fill_between(range(1, len(dist)), 0, dist.dist[1:], alpha=0.5, color=main_color, zorder=9)
             # 标记期望值与方差
             exp_y = (int(dist.exp)+1-dist.exp) * dist.dist[int(dist.exp)] + (dist.exp-int(dist.exp)) * dist.dist[int(dist.exp+1)]
             ax.axvline(x=dist.exp, c="lightgray", ls="--", lw=2, zorder=5, 
@@ -505,7 +568,7 @@ class draw_distribution():
                         zorder=11,
                         path_effects=self.plot_path_effect)
             # 曲线上期望处打点
-            self.add_point(ax, dist.exp, exp_y, color)
+            self.add_point(ax, dist.exp, exp_y, color_exp)
             # 判断是否有足够空间绘制峰值
             if abs(self.max_pos - dist.exp) / len(dist) > 0.05:
                 # 绘制峰值
@@ -517,11 +580,11 @@ class draw_distribution():
                             zorder=11,
                             path_effects=self.plot_path_effect)
                 # 峰值处打点
-                self.add_point(ax, self.max_pos, self.max_mass, color)
+                self.add_point(ax, self.max_pos, self.max_mass, color_peak)
             # 标注末尾是否为长尾分布
             if self.is_finite is False:
                 ax.scatter( len(dist)-1, self.data.dist[len(dist)-1],
-                            s=80, color=color, marker=">", zorder=11)
+                            s=80, color=main_color, marker=">", zorder=11)
         # 绘制网格
         ax.grid(visible=True, which='major', color='lightgray', linestyle='-', linewidth=1)
         # 设置y范围
@@ -538,6 +601,10 @@ class draw_distribution():
             show_text += '\n获取道具最多需要'+str(len(dist)-1)+'抽'
         else:
             show_text += '\n无法保证在有限抽内获得道具'
+        if self.current_pulls:
+            show_text += '\n当前手上有'+str(self.current_pulls)+'抽'
+        if self.future_pulls:
+            show_text += '\n预计未来有'+str(self.future_pulls)+'抽'
         ax.text(0, self.max_mass*1.08,
                 show_text,
                 fontproperties=mark_font,
@@ -553,21 +620,21 @@ class draw_distribution():
                     ax,
                     title='累积分布函数',
                     show_title=True,
-                    color='C0',
+                    main_color='C0',
                     show_xlabel=True
                 ):
         dist = self.data
         cdf = dist.dist.cumsum()
         # 绘制图线
         ax.plot(range(1, len(dist)),cdf[1:],
-                color=color,
+                color=main_color,
                 linewidth=3,
                 path_effects=[pe.withStroke(linewidth=3, foreground='white')],
                 zorder=10)
         # 标注末尾是否为长尾分布
         if self.is_finite is False:
             ax.scatter( len(cdf)-1, cdf[len(dist)-1],
-                        s=80, color=color, marker=">", zorder=11)
+                        s=80, color=main_color, marker=">", zorder=11)
         # 绘制网格
         ax.grid(visible=True, which='major', color='lightgray', linestyle='-', linewidth=1)
         # 绘制分位点及标注文字
@@ -581,7 +648,7 @@ class draw_distribution():
                     path_effects=[pe.withStroke(linewidth=3, foreground="white")])
             ax.plot([pos, pos], [-1, cdf[pos]], c="lightgray", linewidth=2, linestyle="--", zorder=5, 
                     path_effects=[pe.withStroke(linewidth=3, foreground="white")])
-            self.add_point(ax, pos, cdf[pos], color)
+            self.add_point(ax, pos, cdf[pos], main_color)
             ax.text(pos, cdf[pos], str(pos)+'抽 '+str(round(p*100))+'%',
                     fontproperties=mark_font,
                     color='gray',
