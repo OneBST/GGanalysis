@@ -1,5 +1,3 @@
-from hmac import trans_36
-from turtle import begin_fill
 from matplotlib import pyplot as plt
 from matplotlib import font_manager
 from matplotlib.font_manager import FontProperties  # 字体管理器
@@ -353,16 +351,21 @@ class draw_distribution():
                     dist_data=None,         # 输入数据，为finite_dist_1D类型的分布列
                     current_pulls=None,
                     future_pulls=None,
+                    max_pull=None,
                     title='获取物品所需抽数分布及累进概率',
                     dpi=300,
+                    show_description=True,
                     is_finite=True,         # 是否为有限分布
                 ) -> None:
         # 初始化参数
         if isinstance(dist_data, np.ndarray):
             dist_data = finite_dist_1D(dist_data)
+        if max_pull is not None:
+            dist_data.dist = dist_data.dist[:max_pull+1]
         self.data = dist_data
         self.current_pulls = current_pulls
         self.future_pulls = future_pulls
+        self.show_description = show_description
         self.cdf_data = self.data.dist.cumsum()
         self.title = title
         self.dpi = dpi
@@ -605,14 +608,15 @@ class draw_distribution():
             show_text += '\n当前手上有'+str(self.current_pulls)+'抽'
         if self.future_pulls:
             show_text += '\n预计未来有'+str(self.future_pulls)+'抽'
-        ax.text(0, self.max_mass*1.08,
-                show_text,
-                fontproperties=mark_font,
-                color='#B0B0B0',
-                path_effects=self.plot_path_effect,
-                horizontalalignment='left',
-                verticalalignment='top',
-                zorder=11)
+        if self.show_description:
+            ax.text(0, self.max_mass*1.08,
+                    show_text,
+                    fontproperties=mark_font,
+                    color='#B0B0B0',
+                    path_effects=self.plot_path_effect,
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    zorder=11)
         
     # 给图增加累积分布函数
     def add_cdf(    
@@ -673,12 +677,13 @@ class draw_distribution():
             show_text += '获取道具最多需要'+str(len(dist)-1)+'抽'
         else:
             show_text += '无法保证在有限抽内获得道具'
-        ax.text(0, 1.033,
-                show_text,
-                fontproperties=mark_font,
-                color='#B0B0B0',
-                path_effects=self.plot_path_effect,
-                horizontalalignment='left',
-                verticalalignment='top',
-                zorder=11)
+        if self.show_description:
+            ax.text(0, 1.033,
+                    show_text,
+                    fontproperties=mark_font,
+                    color='#B0B0B0',
+                    path_effects=self.plot_path_effect,
+                    horizontalalignment='left',
+                    verticalalignment='top',
+                    zorder=11)
 
