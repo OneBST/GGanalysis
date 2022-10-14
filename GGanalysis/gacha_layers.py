@@ -4,6 +4,7 @@ from scipy.fftpack import fft,ifft
 from scipy.special import comb
 from scipy.stats import binom
 import numpy as np
+import warnings
 
 # 抽卡层的基类，定义了抽卡层的基本行为
 class Gacha_layer:
@@ -94,8 +95,8 @@ class Bernoulli_layer(Gacha_layer):
             c_dist: finite_dist_1D = input[1]
         output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
         output_D = self._calc_combined_2nd_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
-        test_len = int(output_E+10*output_D**0.5)
         # print(output_E, output_D)
+        test_len = int(output_E+10*output_D**0.5)
         while True:
             # print('范围', test_len)
             # 通过频域关系进行计算
@@ -217,6 +218,17 @@ class Coupon_Collector_layer(Gacha_layer):
             k = self.target_types
         else:
             k = self.types
+        # 如果目标种类为1时，计算会出现问题（方差出现负数），需要特殊处理
+        # 这里的处理是否恰当，还需要研判，没有检查方差计算部分，可能是n=1是公式没考虑的特殊情况
+        if k == 1:
+            warnings.warn(
+                'Note target_types equals to 1, there no need to add this layer!', 
+                DeprecationWarning)
+            if full_mode:
+                return input[0]
+            else:
+                return input[1]
+        # 初始就有的种类
         a = initial_types
         # 作为第一层时，给出初始分布
         if input is None:
@@ -284,8 +296,8 @@ class Coupon_Collector_layer(Gacha_layer):
             # print('calcE', ans_temp)
             return ans_2moment
         output_D = calc_combined_output_2nd_moment() - output_E**2  # 叠加后的方差
+        # print('Check:', output_E, output_D, calc_combined_output_2nd_moment())
         test_len = int(output_E+10*output_D**0.5)
-        # print(output_E, output_D, test_len)
         while True:
             # print('范围', test_len)
             # 通过频域关系进行计算

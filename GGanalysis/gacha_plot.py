@@ -388,7 +388,14 @@ class draw_distribution():
         self.plot_path_effect = [pe.withStroke(linewidth=2, foreground="white")]
 
     # 绘制分布及累积分布图
-    def draw_two_graph(self, savefig=False, figsize=(9, 8)):
+    def draw_two_graph(
+            self,
+            savefig=False,
+            figsize=(9, 8), 
+            main_color='royalblue',
+            current_color='limegreen',
+            future_color='orange',
+            ):
         # 两张图的创建
         self.fig, self.axs = plt.subplots(2, 1, constrained_layout=True)
         self.ax_dist = self.axs[0]
@@ -397,7 +404,7 @@ class draw_distribution():
         # 两张图的绘制
         self.set_xticks(self.ax_dist)
         self.set_xticks(self.ax_cdf)
-        self.add_dist(self.ax_dist)
+        self.add_dist(self.ax_dist, main_color=main_color, current_color=current_color, future_color=future_color)
         self.add_cdf(self.ax_cdf)
         if savefig:
             plt.savefig(self.title+'.png', dpi=self.dpi)

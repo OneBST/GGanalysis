@@ -110,9 +110,9 @@ class finite_dist_1D:  # 随机事件为有限个数的分布
     def __getitem__(self, sliced):
         return self.dist[sliced]
 
-    def calc_dist_attribution(self) -> None:
+    def calc_dist_attribution(self, p_error=1e-12) -> None:
         self.p_sum = sum(self.dist)
-        if abs(self.p_sum-1) > 1e-12:  # 概率和不为1
+        if abs(self.p_sum-1) > p_error:  # 概率和不为1
             self.exp = float('nan')
             self.var = float('nan')
             return
