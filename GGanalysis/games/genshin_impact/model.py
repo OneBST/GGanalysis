@@ -88,6 +88,9 @@ class genshin_5star_EP_weapon(common_gacha_model):
         self.layers.append(Pity_layer(pity_w5star))
         self.layers.append(Markov_layer(M))
 
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, fate_point = 0, *args: any, **kwds: any) -> Union[finite_dist_1D, list]:
+        return super().__call__(item_num, multi_dist, pull_state, up_guarantee, fate_point, *args, **kwds)
+
     def _build_parameter_list(self, pull_state: int=0, up_guarantee: int=0, fate_point: int=0) -> list:
         if fate_point >= 2:
             begin_pos = 4

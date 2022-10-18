@@ -93,6 +93,9 @@ class pity_model(common_gacha_model):
         super().__init__()
         self.layers.append(Pity_layer(pity_p))
     
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, *args: any, **kwds: any) -> Union[finite_dist_1D, list]:
+        return super().__call__(item_num, multi_dist, pull_state, *args, **kwds)
+
     def _build_parameter_list(self, pull_state: int=0) -> list:
         parameter_list = [[[], {'pull_state':pull_state}]]
         return parameter_list
@@ -103,6 +106,9 @@ class dual_pity_model(common_gacha_model):
         super().__init__()
         self.layers.append(Pity_layer(pity_p1))
         self.layers.append(Pity_layer(pity_p2))
+
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, *args: any, **kwds: any) -> Union[finite_dist_1D, list]:
+        return super().__call__(item_num, multi_dist, pull_state, up_guarantee, *args, **kwds)
 
     def _build_parameter_list(self, pull_state: int=0, up_guarantee: int=0) -> list:
         parameter_list = [
@@ -118,6 +124,9 @@ class pity_bernoulli_model(common_gacha_model):
         self.layers.append(Pity_layer(pity_p))
         self.layers.append(Bernoulli_layer(p, e_error, max_dist_len))
     
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state=0, *args: any, **kwds: any) -> Union[finite_dist_1D, list]:
+        return super().__call__(item_num, multi_dist, pull_state, *args, **kwds)
+
     def _build_parameter_list(self, pull_state: int=0) -> list:
         parameter_list = [
             [[], {'pull_state':pull_state}],
@@ -133,6 +142,9 @@ class dual_pity_bernoulli_model(common_gacha_model):
         self.layers.append(Pity_layer(pity_p2))
         self.layers.append(Bernoulli_layer(p, e_error, max_dist_len))
     
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, *args: any, **kwds: any) -> Union[finite_dist_1D, list]:
+        return super().__call__(item_num, multi_dist, pull_state, up_guarantee, *args, **kwds)
+
     def _build_parameter_list(self, pull_state: int=0, up_guarantee: int=0) -> list:
         parameter_list = [
             [[], {'pull_state':pull_state}],
