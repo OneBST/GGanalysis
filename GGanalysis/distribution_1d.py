@@ -1,4 +1,3 @@
-import re
 from typing import Union
 import numpy as np
 from scipy.signal import convolve
@@ -11,16 +10,16 @@ def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
     return np.minimum(ans, 1)
 
 # 输入离散分布列计算期望
-def calc_expectation(dist: Union['finite_dist_1D', list, np.ndarray]) -> float:
-    if isinstance(dist, finite_dist_1D):
+def calc_expectation(dist: Union['FiniteDist', list, np.ndarray]) -> float:
+    if isinstance(dist, FiniteDist):
         dist = dist.dist
     else:
         dist = np.array(dist)
     return sum(np.arange(len(dist)) * dist)
 
 # 输入离散分布列计算方差
-def calc_variance(dist: Union['finite_dist_1D', list, np.ndarray]) -> float:
-    if isinstance(dist, finite_dist_1D):
+def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
+    if isinstance(dist, FiniteDist):
         dist = dist.dist
     else:
         dist = np.array(dist)
@@ -29,14 +28,14 @@ def calc_variance(dist: Union['finite_dist_1D', list, np.ndarray]) -> float:
     return sum((use_pulls - exp) ** 2 * dist)
 
 # 将保底概率参数转化为分布列
-def p2dist(pity_p: Union[list, np.ndarray]) -> 'finite_dist_1D':
+def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
     # 输入保底参数列表，位置0的概率应为0
     temp = 1
     dist = [0]
     for i in range(1, len(pity_p)):
         dist.append(temp * pity_p[i])
         temp *= (1-pity_p[i])
-    return finite_dist_1D(dist)
+    return FiniteDist(dist)
 
 # 将邻接表变为邻接矩阵
 def table2matrix(state_num, state_trans):
@@ -76,10 +75,13 @@ def cut_dist(dist, cut_pos):
     # 进行了切除后进行归一化
     ans = dist[cut_pos:].copy()
     ans[0] = 0
-    return finite_dist_1D(ans/sum(ans))
+    return FiniteDist(ans/sum(ans))
 
-# 基础类 有限长一维分布律
-class finite_dist_1D:  # 随机事件为有限个数的分布
+
+class FiniteDist(object):  # 随机事件为有限个数的分布
+    """
+    基础类 有限长一维分布律
+    """
     def __init__(self, dist: Union[list, np.ndarray] = [1]) -> None:
         if len(np.shape(dist)) > 1:
             raise Exception('Not 1D distribution.')
@@ -135,28 +137,28 @@ class finite_dist_1D:  # 随机事件为有限个数的分布
         self.dist = self.dist/sum(self.dist)
         self.calc_dist_attribution()
 
-    def __add__(self, other: 'finite_dist_1D') -> 'finite_dist_1D':
+    def __add__(self, other: 'FiniteDist') -> 'FiniteDist':
         target_len = max(len(self), len(other))
-        return finite_dist_1D(pad_zero(self.dist, target_len) + pad_zero(other.dist, target_len))
-    def __radd__(self, other: 'finite_dist_1D') -> 'finite_dist_1D':
+        return FiniteDist(pad_zero(self.dist, target_len) + pad_zero(other.dist, target_len))
+    def __radd__(self, other: 'FiniteDist') -> 'FiniteDist':
         return self + other
 
-    def __mul__(self, other: Union['finite_dist_1D', float, int, np.float64, np.int32]) -> 'finite_dist_1D':
-        if isinstance(other, finite_dist_1D):
-            return finite_dist_1D(convolve(self.dist, other.dist))
+    def __mul__(self, other: Union['FiniteDist', float, int, np.float64, np.int32]) -> 'FiniteDist':
+        if isinstance(other, FiniteDist):
+            return FiniteDist(convolve(self.dist, other.dist))
         else:
-            return finite_dist_1D(self.dist * other)
-    def __rmul__(self, other: Union['finite_dist_1D', float, int, np.float64, np.int32]) -> 'finite_dist_1D':
+            return FiniteDist(self.dist * other)
+    def __rmul__(self, other: Union['FiniteDist', float, int, np.float64, np.int32]) -> 'FiniteDist':
         return self * other
 
-    def __truediv__(self, other: Union[float, int]) -> 'finite_dist_1D':
-        ans = finite_dist_1D()
+    def __truediv__(self, other: Union[float, int]) -> 'FiniteDist':
+        ans = FiniteDist()
         ans.dist = self.dist / other
         return ans
-    def __pow__(self, times_: int) -> 'finite_dist_1D':
+    def __pow__(self, times_: int) -> 'FiniteDist':
         ans = np.ones(1)
         if times_ == 0:
-            return finite_dist_1D(ans)
+            return FiniteDist(ans)
         if times_ == 1:
             return self
         t = times_
@@ -168,7 +170,7 @@ class finite_dist_1D:  # 随机事件为有限个数的分布
             if t == 0:
                 break
             temp = convolve(temp, temp)
-        return finite_dist_1D(ans)
+        return FiniteDist(ans)
 
     def __str__(self) -> str:
         return f"finite 1D dist {self.dist}"

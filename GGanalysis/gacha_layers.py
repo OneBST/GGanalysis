@@ -7,23 +7,23 @@ import numpy as np
 import warnings
 
 # 抽卡层的基类，定义了抽卡层的基本行为
-class Gacha_layer:
+class GachaLayer(object):
     def __init__(self) -> None:
         # 此处记录的是初始化信息，不会随forward更新
-        self.dist = finite_dist_1D([1])
+        self.dist = FiniteDist([1])
         self.exp = 0
         self.var = 0
     def __call__(self, input: tuple=None, *args: any, **kwds: any) -> tuple:
         # 返回一个元组 (完整分布, 条件分布)
         return self._forward(input, 1), self._forward(input, 0, *args, **kwds)
-    def _forward(self, input, full_mode, *args, **kwds) -> finite_dist_1D:
+    def _forward(self, input, full_mode, *args, **kwds) -> FiniteDist:
         # 根据full_mode在这项里进行完整分布或条件分布的计算，返回一个分布
         pass
     def __str__(self) -> str:
         return "Gacha Layer\n"
 
 # 保底抽卡层
-class Pity_layer(Gacha_layer):
+class PityLayer(GachaLayer):
     def __init__(self, pity_p: Union[list, np.ndarray]) -> None:
         super().__init__()
         self.pity_p = pity_p
@@ -32,20 +32,20 @@ class Pity_layer(Gacha_layer):
         self.var = self.dist.var
     def __str__(self) -> str:
         return f"Pity Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
-    def _forward(self, input, full_mode, pull_state=0) -> finite_dist_1D:
+    def _forward(self, input, full_mode, pull_state=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
             return cut_dist(self.dist, pull_state)
         # 处理累加分布情况
         # f_dist 为完整分布 c_dist 为条件分布 根据工作模式不同进行切换
-        f_dist: finite_dist_1D = input[0]
+        f_dist: FiniteDist = input[0]
         if full_mode:
-            c_dist: finite_dist_1D = input[0]
+            c_dist: FiniteDist = input[0]
         else:
-            c_dist: finite_dist_1D = input[1]
+            c_dist: FiniteDist = input[1]
         # 处理条件叠加分布
         overlay_dist = cut_dist(self.dist, pull_state)
-        output_dist = finite_dist_1D([0])  # 获得一个0分布
+        output_dist = FiniteDist([0])  # 获得一个0分布
         output_E = 0  # 叠加后的期望
         output_D = 0  # 叠加后的方差
         for i in range(1, len(overlay_dist)):
@@ -59,7 +59,7 @@ class Pity_layer(Gacha_layer):
         return output_dist
 
 # 伯努利抽卡层
-class Bernoulli_layer(Gacha_layer):
+class BernoulliLayer(GachaLayer):
     def __init__(self, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         self.p = p  # 伯努利试验概率
@@ -69,7 +69,7 @@ class Bernoulli_layer(Gacha_layer):
         self.var = (p**2-2*p+1)/((1-p)*p**2)
     def __str__(self) -> str:
         return f"Bernoulli Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
-    def _forward(self, input, full_mode) -> finite_dist_1D:
+    def _forward(self, input, full_mode) -> FiniteDist:
         # 作为第一层（不过一般不会当做第一层吧）
         if input is None:
             test_len = int(self.exp * 10)
@@ -82,17 +82,17 @@ class Bernoulli_layer(Gacha_layer):
                 if calc_error < self.e_error or test_len > self.max_dist_len:
                     if test_len > self.max_dist_len:
                         print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
-                    dist = finite_dist_1D(dist)
+                    dist = FiniteDist(dist)
                     dist.exp = self.exp
                     dist.var = self.var
                     return dist
                 test_len *= 2
         # 作为后续输入层
-        f_dist: finite_dist_1D = input[0]
+        f_dist: FiniteDist = input[0]
         if full_mode:
-            c_dist: finite_dist_1D = input[0]
+            c_dist: FiniteDist = input[0]
         else:
-            c_dist: finite_dist_1D = input[1]
+            c_dist: FiniteDist = input[1]
         output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
         output_D = self._calc_combined_2nd_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
         # print(output_E, output_D)
@@ -103,7 +103,7 @@ class Bernoulli_layer(Gacha_layer):
             F_f = fft(pad_zero(f_dist.dist, test_len))
             F_c = fft(pad_zero(c_dist.dist, test_len))
             output_dist = (self.p * F_c) / (1 - (1-self.p) * F_f)
-            output_dist = finite_dist_1D(abs(ifft(output_dist)))
+            output_dist = FiniteDist(abs(ifft(output_dist)))
             # 误差限足够小则停止
             calc_error = abs(output_dist.exp-output_E)/output_E
             if calc_error < self.e_error or test_len > self.max_dist_len:
@@ -121,7 +121,7 @@ class Bernoulli_layer(Gacha_layer):
     
 
 # 马尔科夫抽卡层,对于不能在有限次数内移动到目标态的情况采用截断的方法处理
-class Markov_layer(Gacha_layer):
+class MarkovLayer(GachaLayer):
     def __init__(self, M: np.ndarray, p_error=1e-8) -> None:
         super().__init__()
         # 输入矩阵中，零状态为末态
@@ -145,22 +145,22 @@ class Markov_layer(Gacha_layer):
                 break
             dist.append(X[0])
             X[0] = 0
-        return finite_dist_1D(dist)
+        return FiniteDist(dist)
 
-    def _forward(self, input, full_mode, begin_pos=0) -> finite_dist_1D:
+    def _forward(self, input, full_mode, begin_pos=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
             return self._get_conditional_dist(begin_pos)
         # 处理累加分布情况
         # f_dist 为完整分布 c_dist 为条件分布 根据工作模式不同进行切换
-        f_dist: finite_dist_1D = input[0]
+        f_dist: FiniteDist = input[0]
         if full_mode:
-            c_dist: finite_dist_1D = input[0]
+            c_dist: FiniteDist = input[0]
         else:
-            c_dist: finite_dist_1D = input[1]
+            c_dist: FiniteDist = input[1]
         # 处理条件叠加分布
         overlay_dist = self._get_conditional_dist(begin_pos)
-        output_dist = finite_dist_1D([0])  # 获得一个0分布
+        output_dist = FiniteDist([0])  # 获得一个0分布
         output_E = 0  # 叠加后的期望
         output_D = 0  # 叠加后的方差
         for i in range(1, len(overlay_dist)):
@@ -176,7 +176,7 @@ class Markov_layer(Gacha_layer):
 
 # 集齐道具层写完了，但是还没有测试
 # 集齐道具层，一般用于最后一层 如果想要实现集齐k种（不足总种类）后继续进入下一层的模型，需要在初始化时给出 target_types
-class Coupon_Collector_layer(Gacha_layer):
+class CouponCollectorLayer(GachaLayer):
     def __init__(self, item_types, target_types=None, e_error=1e-6, max_dist_len=1e5) -> None:
         super().__init__()
         self.types = item_types # 道具种类
@@ -210,7 +210,7 @@ class Coupon_Collector_layer(Gacha_layer):
     def _calc_coefficient_3(self, i, j, initial_types, target_types):
         return (target_types-initial_types+i-j-1) / self.types
 
-    def _forward(self, input, full_mode, initial_types=0, target_types=None) -> finite_dist_1D:
+    def _forward(self, input, full_mode, initial_types=0, target_types=None) -> FiniteDist:
         # 便于和推导统一的标记，同时自动识别应该如何处理
         if target_types is not None:
             k = target_types
@@ -249,7 +249,7 @@ class Coupon_Collector_layer(Gacha_layer):
                 if calc_error < self.e_error or test_len > self.max_dist_len:
                     if test_len > self.max_dist_len:
                         print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
-                    dist = finite_dist_1D(dist)
+                    dist = FiniteDist(dist)
                     dist.exp = output_E
                     dist.var = output_D
                     return dist
@@ -257,11 +257,11 @@ class Coupon_Collector_layer(Gacha_layer):
 
         # 作为后续输入层
         # f_dist 为完整分布 c_dist 为条件分布 根据工作模式不同进行切换
-        f_dist: finite_dist_1D = input[0]
+        f_dist: FiniteDist = input[0]
         if full_mode:
-            c_dist: finite_dist_1D = input[0]
+            c_dist: FiniteDist = input[0]
         else:
-            c_dist: finite_dist_1D = input[1]
+            c_dist: FiniteDist = input[1]
         
         output_E = c_dist.exp + (self._calc_exp_var(a, k)[0]-1) * f_dist.exp  # 叠加后的期望
         # 计算叠加后的方差
@@ -318,7 +318,7 @@ class Coupon_Collector_layer(Gacha_layer):
             output_dist = output_dist * C1 * F_c / F_f
             # return output_dist
             # print('out_0', output_dist[0], output_dist[1], output_dist[2])
-            output_dist = finite_dist_1D(abs(ifft(output_dist)))
+            output_dist = FiniteDist(abs(ifft(output_dist)))
             
             # 误差限足够小则停止
             calc_error = abs(output_dist.exp-output_E)/output_E

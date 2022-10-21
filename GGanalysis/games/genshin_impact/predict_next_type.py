@@ -1,5 +1,4 @@
 import numpy as np
-import GGanalysis as ggl
 import GGanalysis.games.genshin_impact as GI
 from matplotlib import pyplot as plt
 
@@ -7,7 +6,7 @@ from matplotlib import pyplot as plt
 def calc_type_P(pull_state, not_met):
     # c = ggl.Pity5starCommon()
     # dist = c.conditional_distribution(1, pull_state)
-    dist = GI.Common_5star(1, pull_state=pull_state)
+    dist = GI.common_5star(1, pull_state=pull_state)
     # 计算单抽类别概率
     def pull_type_P(pull_num):
         A = 30

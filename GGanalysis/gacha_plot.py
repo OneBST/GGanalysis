@@ -10,7 +10,7 @@ import math
 import os.path as osp
 import os
 import sys
-from GGanalysis.distribution_1d import finite_dist_1D, pad_zero
+from GGanalysis.distribution_1d import FiniteDist, pad_zero
 
 font_path = None
 if sys.platform == 'win32':  # windows下
@@ -49,7 +49,7 @@ title_font = FontProperties('SHS-Bold', size=18)
 mark_font = FontProperties('SHS-Bold', size=12)
 
 
-class quantile_function():
+class QuantileFunction(object):
     def __init__(self,
                 dist_data: list=None,           # 输入数据，为包含finite_dist_1D类型的列表
                 title='获取物品对抽数的分位函数', # 图表标题
@@ -75,7 +75,7 @@ class quantile_function():
         self.save_path = save_path
         for i, data in enumerate(dist_data):  # 转换numpy数组为有限一维分布类型
             if isinstance(data, np.ndarray):
-                dist_data[i] = finite_dist_1D(data)
+                dist_data[i] = FiniteDist(data)
         self.data = dist_data
         self.is_finite = is_finite
         self.y_base_gap = y_base_gap
@@ -346,7 +346,7 @@ class quantile_function():
         return fig, ax
 
 
-class draw_distribution():
+class DrawDistribution(object):
     def __init__(   self,
                     dist_data=None,         # 输入数据，为finite_dist_1D类型的分布列
                     current_pulls=None,
@@ -359,7 +359,7 @@ class draw_distribution():
                 ) -> None:
         # 初始化参数
         if isinstance(dist_data, np.ndarray):
-            dist_data = finite_dist_1D(dist_data)
+            dist_data = FiniteDist(dist_data)
         if max_pull is not None:
             dist_data.dist = dist_data.dist[:max_pull+1]
         self.data = dist_data

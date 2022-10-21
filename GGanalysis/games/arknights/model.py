@@ -17,19 +17,19 @@ pity_6star[51:99] = np.arange(1, 49) * 0.02 + 0.02
 pity_6star[99] = 1
 
 # 获取普通六星
-Common_6star = pity_model(pity_6star)
+common_6star = PityModel(pity_6star)
 # 获取单UP六星
-Single_UP_6star = pity_bernoulli_model(pity_6star, 1/2)
+single_up_6star = PityBernoulliModel(pity_6star, 1/2)
 # 获取双UP六星中的特定六星
-Dual_UP_specific_6star = pity_bernoulli_model(pity_6star, 1/4)    
+dual_up_specific_6star = PityBernoulliModel(pity_6star, 1/4)    
 # 获取限定UP六星中的限定六星
-LimitedUP_6star = pity_bernoulli_model(pity_6star, 0.35)
+limited_up_6star = PityBernoulliModel(pity_6star, 0.35)
 
 # 获取普通五星
-Common_5star = bernoulli_gacha_model(0.08)
+common_5star = BernoulliGachaModel(0.08)
 # 获取单UP五星
-Single_UP_specific_5star = bernoulli_gacha_model(0.08/2)
+single_up_specific_5star = BernoulliGachaModel(0.08/2)
 # 获取双UP五星中的特定五星
-Dual_UP_specific_5star = bernoulli_gacha_model(0.08/2/2)
+dual_up_specific_5star = BernoulliGachaModel(0.08/2/2)
 # 获取三UP五星中的特定五星
-Triple_UP_specific_5star = bernoulli_gacha_model(0.08/2/3)
+triple_up_specific_5star = BernoulliGachaModel(0.08/2/3)
