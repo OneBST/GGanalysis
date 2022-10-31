@@ -133,7 +133,8 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         self.entropy_rate = -sum(self.dist * np.log2(self.dist+temp)) / self.exp
         self.randomness_rate = self.entropy_rate / (-1/self.exp * np.log2(1/self.exp) - (1-1/self.exp) * np.log2(1-1/self.exp))
 
-    def p_normalization(self):  # 分布概率归一
+    def p_normalization(self) -> None:
+        # 分布概率归一
         self.dist = self.dist/sum(self.dist)
         self.calc_dist_attribution()
 

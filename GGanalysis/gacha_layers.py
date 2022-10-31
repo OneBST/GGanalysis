@@ -6,8 +6,8 @@ from scipy.stats import binom
 import numpy as np
 import warnings
 
-# 抽卡层的基类，定义了抽卡层的基本行为
 class GachaLayer(object):
+    # 抽卡层的基类，定义了抽卡层的基本行为
     def __init__(self) -> None:
         # 此处记录的是初始化信息，不会随forward更新
         self.dist = FiniteDist([1])
@@ -22,8 +22,8 @@ class GachaLayer(object):
     def __str__(self) -> str:
         return "Gacha Layer\n"
 
-# 保底抽卡层
 class PityLayer(GachaLayer):
+    # 保底抽卡层
     def __init__(self, pity_p: Union[list, np.ndarray]) -> None:
         super().__init__()
         self.pity_p = pity_p
@@ -58,8 +58,8 @@ class PityLayer(GachaLayer):
         output_dist.var = output_D
         return output_dist
 
-# 伯努利抽卡层
 class BernoulliLayer(GachaLayer):
+    # 伯努利抽卡层
     def __init__(self, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         self.p = p  # 伯努利试验概率
@@ -119,9 +119,8 @@ class BernoulliLayer(GachaLayer):
         p = self.p
         return (p*(p*(Db+Eb**2)+(1-p)*(Da+Ea**2))+2*(1-p)*Ea*(p*Eb+(1-p)*Ea))/(p**2)
     
-
-# 马尔科夫抽卡层,对于不能在有限次数内移动到目标态的情况采用截断的方法处理
 class MarkovLayer(GachaLayer):
+    # 马尔科夫抽卡层,对于不能在有限次数内移动到目标态的情况采用截断的方法处理
     def __init__(self, M: np.ndarray, p_error=1e-8) -> None:
         super().__init__()
         # 输入矩阵中，零状态为末态
@@ -173,10 +172,9 @@ class MarkovLayer(GachaLayer):
         output_dist.var = output_D
         return output_dist
 
-
-# 集齐道具层写完了，但是还没有测试
-# 集齐道具层，一般用于最后一层 如果想要实现集齐k种（不足总种类）后继续进入下一层的模型，需要在初始化时给出 target_types
 class CouponCollectorLayer(GachaLayer):
+    # 集齐道具层写完了，但是还没有测试
+    # 集齐道具层，一般用于最后一层 如果想要实现集齐k种（不足总种类）后继续进入下一层的模型，需要在初始化时给出 target_types
     def __init__(self, item_types, target_types=None, e_error=1e-6, max_dist_len=1e5) -> None:
         super().__init__()
         self.types = item_types # 道具种类
@@ -330,11 +328,5 @@ class CouponCollectorLayer(GachaLayer):
                 return output_dist
             test_len *= 2
 
-
 if __name__ == "__main__":
-    # 原神武器池参数
-    a = np.zeros(78)
-    a[1:63] = 0.007
-    a[63:77] = np.arange(1, 15) * 0.07 + 0.007
-    a[77] = 1
-    
+    pass

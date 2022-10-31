@@ -48,7 +48,6 @@ text_font = FontProperties('SHS-Medium', size=12)
 title_font = FontProperties('SHS-Bold', size=18)
 mark_font = FontProperties('SHS-Bold', size=12)
 
-
 class QuantileFunction(object):
     def __init__(self,
                 dist_data: list=None,           # 输入数据，为包含finite_dist_1D类型的列表
@@ -344,7 +343,6 @@ class QuantileFunction(object):
         ax.minorticks_on()
 
         return fig, ax
-
 
 class DrawDistribution(object):
     def __init__(   self,

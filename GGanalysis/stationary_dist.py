@@ -1,12 +1,14 @@
 import numpy as np
 
-# 计算转移矩阵对应平稳分布
-'''
-    转移矩阵如下，分布为列向量
-    |1 0.5|     |x|
-    |0 0.5|     |y|
-'''
 def calc_stationary_distribution(M):
+    '''
+    计算转移矩阵对应平稳分布
+
+    转移矩阵如下，平稳分布为列向量
+    |1 0.5|   |x|
+    |0 0.5|   |y|
+    所得平稳分布为转移矩阵特征值1对应的特征向量
+    '''
     matrix_shape = np.shape(M)
     if matrix_shape[0] == matrix_shape[1]:
         pass
@@ -52,7 +54,7 @@ class PriorityPitySystem(object):
         # 获得不考虑相互影响情况下的保底概率
         return self.item_p_list[item_type][min(p_pos, self.pity_pos_max[item_type])]
 
-    def get_state(self, state_num):
+    def get_state(self, state_num) -> list:
         """
         根据状态编号获得保底情况
         """
@@ -62,7 +64,7 @@ class PriorityPitySystem(object):
             state_num = state_num // i
         return pity_state[::-1]
 
-    def get_number(self, pity_state):
+    def get_number(self, pity_state) -> int:
         """
         根据保底情况获得状态编号
         """
@@ -73,7 +75,7 @@ class PriorityPitySystem(object):
             last *= i
         return number
 
-    def get_next_state(self, pity_state, get_item=None):
+    def get_next_state(self, pity_state, get_item=None) -> list:
         """
         返回下一个状态
         
@@ -92,7 +94,7 @@ class PriorityPitySystem(object):
                 next_state.append(min(self.pity_state_list[i]-1, pity_state[i]+1))
         return next_state
 
-    def get_transfer_matrix(self):
+    def get_transfer_matrix(self) -> np.ndarray:
         """
         根据当前的设置生成转移矩阵
         """
@@ -113,9 +115,9 @@ class PriorityPitySystem(object):
             M[self.get_number(next_state)][i] = left_p
         return  M
     
-    def get_stationary_p(self):
+    def get_stationary_p(self) -> list:
         """
-        返回每种道具的综合概率
+        以列表形式返回每种道具的综合概率
         """
         stationary_p = np.zeros(len(self.item_p_list))
         for i in range(self.max_state):
@@ -127,7 +129,7 @@ class PriorityPitySystem(object):
                     break
         return stationary_p
 
-    def get_type_distribution(self, type):
+    def get_type_distribution(self, type) -> np.ndarray:
         """
         获取对于某一类道具花费抽数的分布（平稳分布的情况）
         """
