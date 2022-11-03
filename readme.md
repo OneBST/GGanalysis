@@ -15,8 +15,8 @@ pip install numpy scipy matplotlib
 工具包目前还在开发中，如想安装本工具包可以打开终端输入以下指令，安装完成后下载文件可以删除。
 
 ```shell
-git clone https://github.com/OneBST/GGanalysisLite.git
-cd GGanalysisLite
+git clone https://github.com/OneBST/GGanalysis.git
+cd GGanalysis
 pip install .
 ```
 
