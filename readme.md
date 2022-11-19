@@ -31,7 +31,31 @@ pip install .
 
 ## 使用方法
 
-构建抽卡模型和计算分布见项目下的 [example.py](https://github.com/OneBST/GGanalysisLite/blob/main/example.py)
+**使用定义好的抽卡模型计算抽卡所需抽数分布**
+
+``` python
+# 计算抽卡所需抽数分布律 以原神为例
+import GGanalysis.games.genshin_impact as GI
+# 原神角色池的计算
+print('角色池在垫了20抽，有大保底的情况下抽3个UP五星抽数的分布')
+dist_c = GI.up_5star_character(item_num=3, pull_state=20, up_guarantee=1)
+```
+
+**使用转移矩阵方法计算复合类型保底的概率**
+
+``` python
+# 以明日方舟为例，计算明日方舟六星、五星、四星、三星物品耦合后，各类物品的综合概率
+import GGanalysis as gg
+import GGanalysis.games.arknights as AK
+# 按优先级将道具概率表组成列表
+item_p_list = [AK.pity_6star, AK.pity_5star, [0, 0.5], [0, 0.4]]
+AK_probe = gg.PriorityPitySystem(item_p_list, extra_state=1, remove_pity=True)
+# 打印结果，转移矩阵的计算可能比较慢
+print(AK_probe.get_stationary_p())
+# [0.02890628 0.08948246 0.49993432 0.38167693]
+```
+
+更详细的构建抽卡模型和计算分布见项目下的 [example.py](https://github.com/OneBST/GGanalysisLite/blob/main/example.py)
 
 使用绘图程序绘制分为函数见项目下的 [figure_example.py](https://github.com/OneBST/GGanalysisLite/blob/main/figure_example.py)
 

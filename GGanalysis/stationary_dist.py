@@ -29,8 +29,10 @@ def calc_stationary_distribution(M):
 class PriorityPitySystem(object):
     """
     不同道具按照优先级排序的保底系统
+    若道具为固定概率p，则传入列表填为 [0, p]
     """
     def __init__(self, item_p_list: list, extra_state = 1, remove_pity = False) -> None:
+        # TODO extra_state 设置为0会产生问题，需要纠正
         self.item_p_list = item_p_list  # 保底参数列表 按高优先级到低优先级排序
         self.item_types = len(item_p_list)  # 一共有多少种道具
         self.remove_pity = remove_pity
@@ -88,9 +90,11 @@ class PriorityPitySystem(object):
             else:  # 没有获得此类物品
                 # 若有高优先级清除低优先级保底的情况
                 if self.remove_pity and get_item is not None:
+                    # 本次为低优先级物品
                     if i > get_item:
                         next_state.append(0)
                         continue
+                # 没有高优先级清除低优先级保底的情况
                 next_state.append(min(self.pity_state_list[i]-1, pity_state[i]+1))
         return next_state
 
@@ -98,7 +102,6 @@ class PriorityPitySystem(object):
         """
         根据当前的设置生成转移矩阵
         """
-        # TODO 修改代码使其能应对 extra_state 不为1，且可能高优先级吞掉低优先级的情况
         M = np.zeros((self.max_state, self.max_state))  # 状态编号从0开始，0也是其中一种状态
 
         for i in range(self.max_state):
@@ -126,6 +129,7 @@ class PriorityPitySystem(object):
             for j, item_state in enumerate(current_state):
                 if item_state == 0:
                     stationary_p[j] += self.stationary_distribution[i]
+                    # 高优先级优先，不计入低优先级物品
                     break
         return stationary_p
 
@@ -134,7 +138,7 @@ class PriorityPitySystem(object):
         获取对于某一类道具花费抽数的分布（平稳分布的情况）
         """
         ans = np.zeros(self.pity_state_list[type]+1)
-        print('shape', ans.shape)
+        # print('shape', ans.shape)
         for i in range(self.max_state):
             left_p = 1
             current_state = self.get_state(i)

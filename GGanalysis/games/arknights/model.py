@@ -15,6 +15,12 @@ pity_6star = np.zeros(100)
 pity_6star[1:51] = 0.02
 pity_6star[51:99] = np.arange(1, 49) * 0.02 + 0.02
 pity_6star[99] = 1
+# 设置五星概率递增表（五星保底会被六星挤掉，所以需要做一点近似）
+pity_5star = np.zeros(42, dtype=float)
+pity_5star[:16] = 0.08
+pity_5star[16:21] = np.arange(1, 6) * 0.02 + 0.08
+pity_5star[21:41] = np.arange(1, 21) * 0.04 + 0.18
+pity_5star[41] = 1
 
 # 获取普通六星
 common_6star = PityModel(pity_6star)
