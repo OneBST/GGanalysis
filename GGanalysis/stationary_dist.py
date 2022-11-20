@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import comb
 
 def calc_stationary_distribution(M):
     '''
@@ -25,6 +26,32 @@ def calc_stationary_distribution(M):
     # 解线性方程求解
     ans = np.linalg.solve(C, X)
     return ans
+
+def iteration_multi_item_rarity(stationary_p, base_p, iteration_times=1, pull_numbers=10):
+    '''
+    计算不断进行 pull_numbers 连抽情况下，连抽中出现 n 个道具的概率
+    注意，pull_numbers 要小于概率开始上升的抽数，否则这个函数不适用
+    计算思想相当简单，对于每次连抽，开头第一个道具遇到的垫抽情况的分布都是相同的，而后续道具获取概率是固定的
+    虽然没有严格证明，但是可以想到完全可以使第一个道具的概率提高到一定值来等效达到平稳分布后的情况，这样等效后两者应该是一致的
+    按照这一思想一直迭代，直到综合概率相符
+    '''
+    # 设置初始数值
+    first_p = stationary_p
+    state_rate = np.zeros(11, dtype=np.double)
+    # 迭代计算
+    for iter in range(iteration_times):
+        for i in range(1, pull_numbers):
+            state_rate[i] = comb(pull_numbers, i) * first_p * base_p ** (i - 1) * (1 - first_p) * (1 - base_p) ** (pull_numbers - 1 - i)
+        state_rate[pull_numbers] = first_p * base_p ** (pull_numbers - 1)
+        state_rate[0] = 1 - sum(state_rate[1:])
+        now_p = sum(state_rate * np.arange(pull_numbers+1) / pull_numbers)
+
+        first_p = stationary_p / now_p * first_p
+    # 迭代不收敛警告
+    if abs(now_p/stationary_p-1) / stationary_p > 0.000001:
+        print('WARNING! Iteration is not convergent!')
+
+    return state_rate
 
 class PriorityPitySystem(object):
     """

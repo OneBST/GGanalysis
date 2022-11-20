@@ -55,6 +55,15 @@ print(AK_probe.get_stationary_p())
 # [0.02890628 0.08948246 0.49993432 0.38167693]
 ```
 
+**使用迭代方法计算原神10连抽至平稳分布后进行10连抽获得k个五星道具概率**
+
+``` python
+import GGanalysis as gg
+import GGanalysis.games.genshin_impact as GI
+# 获得平稳后进行10连抽获得k个五星道具的分布
+ans = gg.iteration_multi_item_rarity(1/GI.common_5star_weapon(1).exp, GI.pity_w5star[1], 100)
+```
+
 更详细的构建抽卡模型和计算分布见项目下的 [example.py](https://github.com/OneBST/GGanalysisLite/blob/main/example.py)
 
 使用绘图程序绘制分为函数见项目下的 [figure_example.py](https://github.com/OneBST/GGanalysisLite/blob/main/figure_example.py)
@@ -64,3 +73,5 @@ print(AK_probe.get_stationary_p())
 目前工具包支持的抽卡层仅适用于满足马尔科夫性质的抽卡模型，即给定现在状态及过去所有状态的情况下，未来抽卡的结果仅仅依赖于当前状态，与过去的状态是独立的。不过好消息是，游戏的抽卡系统基本都满足这样的性质。
 
 当前工具包能实现的抽卡模型是有限的，仅能实现能被给出的四种抽卡层组合出来的模型。对于类似“300井”等，在一定抽数后直接为玩家提供道具的模型，在本工具包框架下仅需简单修改即可。而对于类似不放回抽样的奖品堆模式、集齐碎片兑换模式等，还待之后继续扩展功能。
+
+同时迭代方法计算n连抽获得多个道具概率尚未经过严格数学证明，使用时需要注意。
