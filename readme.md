@@ -39,6 +39,7 @@ import GGanalysis.games.genshin_impact as GI
 # 原神角色池的计算
 print('角色池在垫了20抽，有大保底的情况下抽3个UP五星抽数的分布')
 dist_c = GI.up_5star_character(item_num=3, pull_state=20, up_guarantee=1)
+print('期望为', dist_c.exp, '方差为', dist_c.var, '分布为', dist_c.dist)
 ```
 
 **使用转移矩阵方法计算复合类型保底的概率**
