@@ -20,25 +20,25 @@ else:  # Linux
 
 # 设置可能会使用的字体
 font_w1 = font_manager.FontEntry(
-    fname=font_path+'SourceHanSansSC-Extralight.otf',
+    fname=osp.join(font_path,'SourceHanSansSC-Extralight.otf'),
     name='SHS-Extralight')
 font_w2 = font_manager.FontEntry(
-    fname=font_path+'SourceHanSansSC-Light.otf',
+    fname=osp.join(font_path+'SourceHanSansSC-Light.otf'),
     name='SHS-Light')
 font_w3 = font_manager.FontEntry(
-    fname=font_path+'SourceHanSansSC-Normal.otf',
+    fname=osp.join(font_path,'SourceHanSansSC-Normal.otf'),
     name='SHS-Normal')
 font_w4 = font_manager.FontEntry(
-    fname=font_path+'SourceHanSansSC-Regular.otf',
+    fname=osp.join(font_path,'SourceHanSansSC-Regular.otf'),
     name='SHS-Regular')
 font_w5 = font_manager.FontEntry(
-    fname=font_path+'SourceHanSansSC-Medium.otf',
+    fname=osp.join(font_path,'SourceHanSansSC-Medium.otf'),
     name='SHS-Medium')
 font_w6 = font_manager.FontEntry(
-    fname=font_path+'SourceHanSansSC-Bold.otf',
+    fname=osp.join(font_path,'SourceHanSansSC-Bold.otf'),
     name='SHS-Bold')
 font_w7 = font_manager.FontEntry(
-    fname=font_path+'SourceHanSansSC-Heavy.otf',
+    fname=osp.join(font_path,'SourceHanSansSC-Heavy.otf'),
     name='SHS-Heavy')
 
 font_manager.fontManager.ttflist.extend([font_w1, font_w2, font_w3, font_w4, font_w5, font_w6, font_w7])

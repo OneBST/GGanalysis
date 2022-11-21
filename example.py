@@ -28,8 +28,9 @@ print('在前述条件下抽3个UP五星角色，1个特定UP武器所需抽数�
 dist_c_w = dist_c * dist_w
 print('期望为', dist_c_w.exp, '方差为', dist_c_w.var)
 # 需要画图则打开注释
-# plt.plot(dist_c_w)
-# plt.show()
+from GGanalysis.gacha_plot import DrawDistribution
+fig = DrawDistribution(dist_c_w, title='获取3个UP五星角色及1个特定UP武器所需抽数', dpi=72)
+fig.draw_two_graph()
 
 # 对比玩家运气
 dist_c = GI.up_5star_character(item_num=10)
