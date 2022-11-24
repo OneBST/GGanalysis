@@ -2,23 +2,29 @@ from typing import Union
 import numpy as np
 from scipy.signal import convolve
 
-# 建立线性递增模型的保底参数
 def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
+    '''
+    建立线性递增模型的保底参数
+    '''
     ans = np.zeros(hard_pity+1)
     ans[1:pity_begin] = base_p
     ans[pity_begin:hard_pity+1] = np.arange(1, hard_pity-pity_begin+2) * step + base_p
     return np.minimum(ans, 1)
 
-# 输入离散分布列计算期望
 def calc_expectation(dist: Union['FiniteDist', list, np.ndarray]) -> float:
+    '''
+    输入离散分布列计算期望
+    '''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
     else:
         dist = np.array(dist)
     return sum(np.arange(len(dist)) * dist)
 
-# 输入离散分布列计算方差
 def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
+    '''
+    输入离散分布列计算方差
+    '''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
     else:
@@ -27,8 +33,10 @@ def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     exp = sum(use_pulls * dist)
     return sum((use_pulls - exp) ** 2 * dist)
 
-# 将保底概率参数转化为分布列
 def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
+    '''
+    将保底概率参数转化为分布列
+    '''
     # 输入保底参数列表，位置0的概率应为0
     temp = 1
     dist = [0]
@@ -37,11 +45,24 @@ def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
         temp *= (1-pity_p[i])
     return FiniteDist(dist)
 
-# 将邻接表变为邻接矩阵
+def p2exp(pity_p: Union[list, np.ndarray]):
+    '''
+    对于列表，认为是概率提升表，返回对应期望
+    '''
+    return calc_expectation(p2dist(pity_p))
+
+def p2var(pity_p: Union[list, np.ndarray]):
+    '''
+    对于列表，认为是概率提升表，返回对应方差
+    '''
+    return calc_variance(p2dist(pity_p))
+
 def table2matrix(state_num, state_trans):
     '''
-    # 构造 state_num 和 state_trans 示例
-    # Epitomized Path & Fate Points
+    将邻接表变为邻接矩阵
+
+    构造 state_num 和 state_trans 示例
+    Epitomized Path & Fate Points
     state_num = {'get':0, 'fate1UP':1, 'fate1':2, 'fate2':3}
     state_trans = [
         ['get', 'get', 0.375],
@@ -61,14 +82,18 @@ def table2matrix(state_num, state_trans):
         M[b][a] = p
     return M
 
-# 给 numpy 数组末尾补零至指定长度
 def pad_zero(dist, target_len):
+    '''
+    给 numpy 数组末尾补零至指定长度
+    '''
     if target_len <= len(dist):
         return dist
     return np.pad(dist, (0, target_len-len(dist)), 'constant', constant_values=0)
 
-# 切除分布尾部并重新进行概率归一化
 def cut_dist(dist, cut_pos):
+    '''
+    切除分布尾部并重新进行概率归一化
+    '''
     # cut_pos为0则没有进行切除
     if cut_pos == 0:
         return dist

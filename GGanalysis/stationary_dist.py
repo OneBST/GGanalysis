@@ -32,12 +32,16 @@ def iteration_multi_item_rarity(stationary_p, base_p, iteration_times=1, pull_nu
     计算不断进行 pull_numbers 连抽情况下，连抽中出现 n 个道具的概率
     注意，pull_numbers 要小于概率开始上升的抽数，否则这个函数不适用
     计算思想相当简单，对于每次连抽，开头第一个道具遇到的垫抽情况的分布都是相同的，而后续道具获取概率是固定的
-    虽然没有严格证明，但是可以想到完全可以使第一个道具的概率提高到一定值来等效达到平稳分布后的情况，这样等效后两者应该是一致的
+    虽然这一想法只是近似，但是完全可以使第一个道具的概率提高到一定值来近似平稳分布后的情况
+    这样当保底抽数较高，每次连抽数量较多时误差很低
     按照这一思想一直迭代，直到综合概率相符
+
+    这样做有一定误差，不过我已经想到了一个绝妙的新方法来解决这个问题
+    不过现在没空整合进来了，过几天再说
     '''
     # 设置初始数值
     first_p = stationary_p
-    state_rate = np.zeros(11, dtype=np.double)
+    state_rate = np.zeros(pull_numbers+1, dtype=np.double)
     # 迭代计算
     for iter in range(iteration_times):
         for i in range(1, pull_numbers):
