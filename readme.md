@@ -62,7 +62,7 @@ print(AK_probe.get_stationary_p())
 import GGanalysis as gg
 import GGanalysis.games.genshin_impact as GI
 # 获得平稳后进行10连抽获得k个五星道具的分布
-ans = gg.iteration_multi_item_rarity(1/GI.common_5star_weapon(1).exp, GI.pity_w5star[1], 100)
+ans = gg.multi_item_rarity(GI.pity_5star, GI.common_5star, 10)
 ```
 
 更详细的构建抽卡模型和计算分布见项目下的 [example.py](https://github.com/OneBST/GGanalysisLite/blob/main/example.py)
