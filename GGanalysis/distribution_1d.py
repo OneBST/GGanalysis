@@ -80,6 +80,12 @@ def table2matrix(state_num, state_trans):
         a = state_num[name_a]
         b = state_num[name_b]
         M[b][a] = p
+    # 检查每个节点出口概率和是否为1, 但这个并不是特别广义
+    '''
+    for index, element in enumerate(np.sum(M, axis=0)):
+        if element != 1:
+            raise Warning('The sum of probabilities is not 1 at position '+str(index))
+    '''
     return M
 
 def pad_zero(dist, target_len):
