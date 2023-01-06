@@ -102,6 +102,19 @@ import GGanalysis.games.genshin_impact as GI
 ans = gg.multi_item_rarity(GI.pity_5star, 10)
 ```
 
+**绘制简略的概率质量函数图及累积质量函数图**
+
+``` python
+# 绘图前需要安装 matplotlib 以及需要的字体包
+import GGanalysis.games.genshin_impact as GI
+# 获得原神抽一个UP五星角色+定轨抽特定UP五星武器的分布
+dist = GI.up_5star_character(item_num=1) * GI.up_5star_ep_weapon(item_num=1)
+# 导入绘图模块
+from GGanalysis.gacha_plot import DrawDistribution
+fig = DrawDistribution(dist, dpi=72, show_description=True)
+fig.draw_two_graph()
+```
+
 更详细的构建抽卡模型和计算分布见项目下的 [example.py](https://github.com/OneBST/GGanalysisLite/blob/main/example.py)
 
 使用绘图程序绘制分为函数见项目下的 [figure_example.py](https://github.com/OneBST/GGanalysisLite/blob/main/figure_example.py)

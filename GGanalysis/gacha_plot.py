@@ -354,10 +354,12 @@ class DrawDistribution(object):
                     dpi=300,
                     show_description=True,
                     is_finite=True,         # 是否为有限分布
+                    end_add="@一棵平衡树",   # 末尾添加的标记
                 ) -> None:
         # 初始化参数
         if isinstance(dist_data, np.ndarray):
             dist_data = FiniteDist(dist_data)
+        # TODO 这里的粗暴的截断方法使得显示max_pull时会根据截断位置来显示，需要改进
         if max_pull is not None:
             dist_data.dist = dist_data.dist[:max_pull+1]
         self.data = dist_data
@@ -367,7 +369,8 @@ class DrawDistribution(object):
         self.cdf_data = self.data.dist.cumsum()
         self.title = title
         self.dpi = dpi
-        
+        self.end_add = end_add
+
         # 绘图分位点
         self.quantile_pos = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
         self.is_finite = is_finite
@@ -393,6 +396,7 @@ class DrawDistribution(object):
             main_color='royalblue',
             current_color='limegreen',
             future_color='orange',
+            dpi=None,
             ):
         # 两张图的创建
         self.fig, self.axs = plt.subplots(2, 1, constrained_layout=True)
@@ -404,10 +408,12 @@ class DrawDistribution(object):
         self.set_xticks(self.ax_cdf)
         self.add_dist(self.ax_dist, main_color=main_color, current_color=current_color, future_color=future_color)
         self.add_cdf(self.ax_cdf)
+        if dpi == None:
+            dpi == self.dpi
         if savefig:
-            plt.savefig(self.title+'.png', dpi=self.dpi)
+            plt.savefig(self.title+'.png', dpi=dpi)
         else:
-            plt.show()
+            plt.show(dpi=dpi)
 
     def draw_dist(self, savefig=False, figsize=(9, 5)):
         # 一张图的创建
@@ -470,7 +476,7 @@ class DrawDistribution(object):
             ax.set_xticks(np.array([0, *(range(0, dist_len, int(dist_len/50)*5))[1:], dist_len-1]))
         ax.set_xlim(self.x_left_lim, self.x_right_lim)
 
-    # 给图增加分布列的绘制，当分布较为稀疏时采用柱状图绘制，较为密集时近似为连续函数绘制
+    # 给图增加分布列的绘制，当分布较为稀疏时采用柱状图绘制，较为密集时近似为连续函数绘制（或者叫 pmf 概率质量函数）
     def add_dist(  
                     self, ax,
                     title='所需抽数分布',
@@ -613,6 +619,9 @@ class DrawDistribution(object):
             show_text += '\n当前手上有'+str(self.current_pulls)+'抽'
         if self.future_pulls:
             show_text += '\n预计未来有'+str(self.future_pulls)+'抽'
+        if self.end_add:
+            show_text += '\n'+self.end_add
+        
         if self.show_description:
             ax.text(0, self.max_mass*1.08,
                     show_text,
@@ -623,7 +632,7 @@ class DrawDistribution(object):
                     verticalalignment='top',
                     zorder=11)
         
-    # 给图增加累积分布函数
+    # 给图增加累积质量函数
     def add_cdf(    
                     self,
                     ax,
@@ -682,6 +691,8 @@ class DrawDistribution(object):
             show_text += '获取道具最多需要'+str(len(dist)-1)+'抽'
         else:
             show_text += '无法保证在有限抽内获得道具'
+        if self.end_add:
+            show_text += '\n'+self.end_add
         if self.show_description:
             ax.text(0, 1.033,
                     show_text,
