@@ -413,7 +413,7 @@ class DrawDistribution(object):
         if savefig:
             plt.savefig(self.title+'.png', dpi=dpi)
         else:
-            plt.show(dpi=dpi)
+            plt.show()
 
     def draw_dist(self, savefig=False, figsize=(9, 5)):
         # 一张图的创建
