@@ -98,7 +98,7 @@ def pad_zero(dist, target_len):
 
 def cut_dist(dist, cut_pos):
     '''
-    切除分布尾部并重新进行概率归一化
+    切除分布头部并重新进行概率归一化
     '''
     # cut_pos为0则没有进行切除
     if cut_pos == 0:

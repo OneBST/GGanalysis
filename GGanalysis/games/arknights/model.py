@@ -5,10 +5,23 @@ from GGanalysis.basic_models import *
 '''
     注意，本模块按公示概率进行建模，但忽略了一些情况
         如不纳入对300保底的考虑，获取1个物品的分布不会在第300抽处截断
-        这么做的原因是，模型只支持一抽最多获取1个物品，若在第300抽处
-        刚好抽到物品，等于一抽抽到两个物品，无法处理。对于这个问题，建议
-        结合抽数再加一步分析，进行一次后处理
+        这么做的原因是，模型只支持一抽最多获取1个物品，若在第300抽处刚好抽到物品
+        等于一抽抽到两个物品，无法处理。
+        对于这个问题，建议结合抽数再加一步分析，进行一次后处理（如使用 QuantileFunction 中的 direct_exchange 项）
 '''
+
+__all__ = [
+    'pity_6star',
+    'pity_5star',
+    'common_6star',
+    'single_up_6star',
+    'dual_up_specific_6star',
+    'limited_up_6star',
+    'common_5star',
+    'single_up_specific_5star',
+    'dual_up_specific_5star',
+    'triple_up_specific_5star',
+]
 
 # 设置六星概率递增表
 pity_6star = np.zeros(100)

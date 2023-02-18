@@ -12,6 +12,7 @@ temp_plot.py
 temp_use.py
 GGanalysis.egg-info/
 figure/
+build/
 
 # test files
 test.py
