@@ -112,10 +112,10 @@ up_5star_ep_weapon = Genshin5starEPWeaponModel()
 
 
 class GenshinCommon5starInUPpoolModel(CommonGachaModel):
-    def __init__(self, up_rate=0.5, stander_item=7, dp_lenth=500, max_dist_len=1e5) -> None:
+    def __init__(self, up_rate=0.5, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.layers.append(PityLayer(pity_5star))
-        self.layers.append(GenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, max_dist_len))
+        self.layers.append(GenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, need_type, max_dist_len))
     def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, is_last_UP=False, *args: any, **kwds: any) -> Union[FiniteDist, list]:
         return super().__call__(item_num, multi_dist, pull_state, is_last_UP, *args, **kwds)
 
@@ -127,11 +127,12 @@ class GenshinCommon5starInUPpoolModel(CommonGachaModel):
 
 class GenshinCommon5starInUPpoolLayer(GachaLayer):
     # 原神常驻歪UP层 修改自 PityLayer
-    def __init__(self, up_rate=0.5, stander_item=7, dp_lenth=500, max_dist_len=1e5) -> None:
+    def __init__(self, up_rate=0.5, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.up_rate = up_rate
         self.stander_item = stander_item
         self.dp_lenth = dp_lenth  # DP的截断位置，越长计算误差越小，500时误差可以忽略了
+        self.need_type = min(need_type, self.stander_item)  # 需要的五星类型
         self.max_dist_len = max_dist_len # 返回单道具的长度极限，切断后可以省计算量
 
     def calc_5star_number_dist(self, is_last_UP=False):
@@ -144,8 +145,8 @@ class GenshinCommon5starInUPpoolLayer(GachaLayer):
             M[0][1] = 1  # 从才获取了非UP开始
         for i in range(1, self.dp_lenth+1):
             M[i][0] = self.up_rate * M[i-1][0] + M[i-1][1]
-            M[i][1] = (1 - self.up_rate) * (self.stander_item-1)/self.stander_item * M[i-1][0]
-            M[i][2] = (1 - self.up_rate) * 1/self.stander_item * M[i-1][0]
+            M[i][1] = (1 - self.up_rate) * (self.stander_item-self.need_type)/self.stander_item * M[i-1][0]
+            M[i][2] = (1 - self.up_rate) * self.need_type/self.stander_item * M[i-1][0]
         # 截断位置补概率，保证归一化
         M[0][2] = 0
         M[self.dp_lenth][2] = 1 - np.sum(M[:self.dp_lenth, 2])
@@ -192,5 +193,5 @@ class GenshinCommon5starInUPpoolLayer(GachaLayer):
             output_dist.dist = output_dist.dist[:int(self.max_dist_len)]
         return output_dist
     
-stander_5star_character_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.5, stander_item=7, dp_lenth=300)
-stander_5star_weapon_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.75, stander_item=10, dp_lenth=800)
+stander_5star_character_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.5, stander_item=7, dp_lenth=300, need_type=1)
+stander_5star_weapon_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.75, stander_item=10, dp_lenth=800, need_type=1)

@@ -56,7 +56,7 @@ class QuantileFunction(object):
                 save_path='figure',             # 默认保存路径
                 y_base_gap=50,                  # y轴刻度基本间隔，实际间隔为这个值的整倍数
                 y2x_base=4/3,                   # 基础高宽比
-                is_finite=True,                 # 是否能在有限次数内获得道具（不包括井）
+                is_finite=True,                 # 是否能在有限次数内达到目标（不包括井）
                 direct_exchange=None,           # 是否有井
                 plot_direct_exchange=False,     # 绘图是否展示井
                 max_pull=None,                  # 绘图时截断的最高抽数
@@ -614,7 +614,7 @@ class DrawDistribution(object):
         if self.is_finite:
             show_text += '\n获取道具最多需要'+str(len(dist)-1)+'抽'
         else:
-            show_text += '\n无法保证在有限抽内获得道具'
+            show_text += '\n无法保证在有限抽内达到目标'
         if self.current_pulls:
             show_text += '\n当前手上有'+str(self.current_pulls)+'抽'
         if self.future_pulls:
@@ -690,7 +690,7 @@ class DrawDistribution(object):
         if self.is_finite:
             show_text += '获取道具最多需要'+str(len(dist)-1)+'抽'
         else:
-            show_text += '无法保证在有限抽内获得道具'
+            show_text += '无法保证在有限抽内达到目标'
         if self.end_add:
             show_text += '\n'+self.end_add
         if self.show_description:
