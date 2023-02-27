@@ -113,7 +113,10 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     """
     基础类 有限长一维分布律
     """
-    def __init__(self, dist: Union[list, np.ndarray] = [1]) -> None:
+    def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1]) -> None:
+        if isinstance(dist, FiniteDist):
+            self.dist = dist
+            return
         if len(np.shape(dist)) > 1:
             raise Exception('Not 1D distribution.')
         self.dist = np.array(dist)  # 转化为numpy.ndarray类型
@@ -176,6 +179,7 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         return self + other
 
     def __mul__(self, other: Union['FiniteDist', float, int, np.float64, np.int32]) -> 'FiniteDist':
+        # TODO 研究是否需要对空随机变量进行特判
         if isinstance(other, FiniteDist):
             return FiniteDist(convolve(self.dist, other.dist))
         else:
