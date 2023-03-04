@@ -44,6 +44,27 @@ dual_up_specific_6star = PityBernoulliModel(pity_6star, 1/4)
 # 获取限定UP六星中的限定六星
 limited_up_6star = PityBernoulliModel(pity_6star, 0.35)
 
+# 方舟限定池同时获取限定六星及陪跑六星
+class AK_Limit_Model(CommonGachaModel):
+    def __init__(self, pity_p1, p, collect_item=2, e_error = 1e-8, max_dist_len=1e5) -> None:
+        super().__init__()
+        self.layers.append(PityLayer(pity_p1))
+        self.layers.append(BernoulliLayer(p, e_error, max_dist_len))
+        self.layers.append(CouponCollectorLayer(2, collect_item))
+
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, pull_state, up_guarantee, *args, **kwds)
+
+    def _build_parameter_list(self, pull_state: int=0, up_guarantee: int=0) -> list:
+        parameter_list = [
+            [[], {'pull_state':pull_state}],
+            [[], {}],
+            [[], {}]
+        ]
+        return parameter_list
+# 同时获取两个UP六星
+both_up_6star = AK_Limit_Model(pity_6star, 0.7, collect_item=2)
+
 # 实际上五星综合概率为8.948% 但由于和概率上升相耦合，这里取公示的8%作为低值估算
 # 获取普通五星
 common_5star = BernoulliGachaModel(0.08)
@@ -53,3 +74,4 @@ single_up_specific_5star = BernoulliGachaModel(0.08/2)
 dual_up_specific_5star = BernoulliGachaModel(0.08/2/2)
 # 获取三UP五星中的特定五星
 triple_up_specific_5star = BernoulliGachaModel(0.08/2/3)
+
