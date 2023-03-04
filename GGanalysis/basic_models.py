@@ -70,10 +70,13 @@ class BernoulliGachaModel(GachaModel):
     def __init__(self, p) -> None:
         super().__init__()
         self.p = p  # 伯努利试验概率
-    
-    # 返回抽物品个数的分布
-    def __call__(self, item_num: int=1, max_pull: int=10) -> FiniteDist:
-        x = np.arange(max_pull+1)
+
+    def __call__(self, item_num: int, calc_pull: int) -> FiniteDist:
+        '''
+            返回抽物品个数的分布
+            这里 calc_pull 表示了计算的最高抽数，高于此不计算
+        '''
+        x = np.arange(calc_pull+1)
         dist = self.p * (binom.pmf(item_num-1, x-1, self.p))
         dist[0] = 0
         return FiniteDist(dist)

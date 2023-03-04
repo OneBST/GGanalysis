@@ -44,6 +44,7 @@ dual_up_specific_6star = PityBernoulliModel(pity_6star, 1/4)
 # 获取限定UP六星中的限定六星
 limited_up_6star = PityBernoulliModel(pity_6star, 0.35)
 
+# 实际上五星综合概率为8.948% 但由于和概率上升相耦合，这里取公示的8%作为低值估算
 # 获取普通五星
 common_5star = BernoulliGachaModel(0.08)
 # 获取单UP五星

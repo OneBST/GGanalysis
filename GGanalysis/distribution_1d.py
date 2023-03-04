@@ -88,7 +88,7 @@ def table2matrix(state_num, state_trans):
     '''
     return M
 
-def pad_zero(dist, target_len):
+def pad_zero(dist:np.ndarray, target_len):
     '''
     给 numpy 数组末尾补零至指定长度
     '''
@@ -108,18 +108,19 @@ def cut_dist(dist, cut_pos):
     ans[0] = 0
     return FiniteDist(ans/sum(ans))
 
-
 class FiniteDist(object):  # 随机事件为有限个数的分布
     """
     基础类 有限长一维分布律
     """
     def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1]) -> None:
+        # 注意，构造dist时一定要重新创建新的内存空间进行深拷贝
         if isinstance(dist, FiniteDist):
-            self.dist = dist
+            self.dist = np.array(dist.dist, dtype=float)
             return
         if len(np.shape(dist)) > 1:
             raise Exception('Not 1D distribution.')
-        self.dist = np.array(dist)  # 转化为numpy.ndarray类型
+        self.dist = np.array(dist, dtype=float)  # 转化为numpy.ndarray类型
+        self.dist = np.trim_zeros(self.dist, 'b')  # 去除尾部的零
         
     def __getattr__(self, key):  # 访问未计算的属性时进行计算
         # 基本统计属性
@@ -175,8 +176,6 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     def __add__(self, other: 'FiniteDist') -> 'FiniteDist':
         target_len = max(len(self), len(other))
         return FiniteDist(pad_zero(self.dist, target_len) + pad_zero(other.dist, target_len))
-    def __radd__(self, other: 'FiniteDist') -> 'FiniteDist':
-        return self + other
 
     def __mul__(self, other: Union['FiniteDist', float, int, np.float64, np.int32]) -> 'FiniteDist':
         # TODO 研究是否需要对空随机变量进行特判
@@ -188,9 +187,7 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         return self * other
 
     def __truediv__(self, other: Union[float, int]) -> 'FiniteDist':
-        ans = FiniteDist()
-        ans.dist = self.dist / other
-        return ans
+        return FiniteDist(self.dist / other)
     def __pow__(self, times_: int) -> 'FiniteDist':
         ans = np.ones(1)
         if times_ == 0:
