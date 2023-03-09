@@ -113,6 +113,8 @@ class BernoulliLayer(GachaLayer):
             F_c = fft(pad_zero(c_dist.dist, test_len))
             output_dist = (self.p * F_c) / (1 - (1-self.p) * F_f)
             output_dist = FiniteDist(abs(ifft(output_dist)))
+            # 解决输出位置0处不是0的问题
+            output_dist[0] = 0
             # 误差限足够小则停止
             calc_error = abs(output_dist.exp-output_E)/output_E
             if calc_error < self.e_error or test_len > self.max_dist_len:
@@ -326,7 +328,8 @@ class CouponCollectorLayer(GachaLayer):
             # return output_dist
             # print('out_0', output_dist[0], output_dist[1], output_dist[2])
             output_dist = FiniteDist(abs(ifft(output_dist)))
-            
+            # 解决输出位置0处不是0的问题
+            output_dist[0] = 0
             # 误差限足够小则停止
             calc_error = abs(output_dist.exp-output_E)/output_E
             if calc_error < self.e_error or test_len > self.max_dist_len:
