@@ -33,6 +33,19 @@ def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     exp = sum(use_pulls * dist)
     return sum((use_pulls - exp) ** 2 * dist)
 
+def dist2cdf(dist: np.array) -> np.array:
+    '''简单封装一下numpy的cumsum'''
+    return np.cumsum(dist)
+
+def cdf2dist(cdf: np.ndarray) -> np.ndarray:
+    '''将cdf转化为分布'''
+    if len(cdf) == 1:
+        # 长度为1 返回必然事件分布
+        return FiniteDist([1])
+    pdf = np.array(cdf)
+    pdf[1:] -= pdf[:-1].copy()
+    return pdf
+
 def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
     '''
     将保底概率参数转化为分布列
@@ -109,9 +122,7 @@ def cut_dist(dist, cut_pos):
     return FiniteDist(ans/sum(ans))
 
 class FiniteDist(object):  # 随机事件为有限个数的分布
-    """
-    基础类 有限长一维分布律
-    """
+    '''基础类 有限长一维分布律'''
     def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1]) -> None:
         # 注意，构造dist时一定要重新创建新的内存空间进行深拷贝
         if isinstance(dist, FiniteDist):
@@ -120,7 +131,9 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         if len(np.shape(dist)) > 1:
             raise Exception('Not 1D distribution.')
         self.dist = np.array(dist, dtype=float)  # 转化为numpy.ndarray类型
-        self.dist = np.trim_zeros(self.dist, 'b')  # 去除尾部的零
+        self.dist = np.trim_zeros(self.dist, 'b')  # 去除尾部的零 TODO 想想怎么处理空分布比较好
+        if len(self.dist) == 0:
+            self.dist = np.zeros(1, dtype=float)
         
     def __getattr__(self, key):  # 访问未计算的属性时进行计算
         # 基本统计属性
@@ -147,9 +160,9 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     def __getitem__(self, sliced):
         return self.dist[sliced]
 
-    def calc_dist_attribution(self, p_error=1e-12) -> None:
+    def calc_dist_attribution(self, p_error=1e-6) -> None:
         self.p_sum = sum(self.dist)
-        if abs(self.p_sum-1) > p_error:  # 概率和不为1
+        if abs(self.p_sum-1) > p_error:  # 高于阈值认为概率和不为1
             self.exp = float('nan')
             self.var = float('nan')
             return

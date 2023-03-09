@@ -1,1 +1,1 @@
-from .model import *
+from .gacha_model import *
