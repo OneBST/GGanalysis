@@ -1,5 +1,5 @@
 from GGanalysis.scored_item import ScoredItem, ScoredItemSet
-from GGanalysis.games.genshin_impact.artifact_data import p_sub_stat, test_weight
+from GGanalysis.games.genshin_impact.artifact_data import *
 from itertools import permutations
 from functools import lru_cache
 from copy import deepcopy
@@ -8,12 +8,16 @@ import numpy as np
     原神圣遗物类
     部分代码修改自 https://github.com/ideless/reliq
 '''
+__all__ = [
+    'GenshinArtifact',
+    'GenshinArtifactSet'
+]
 
 # 副词条档位
 MINOR_RANKS = [7, 8, 9, 10]
 # 权重倍数乘数，必须为整数，越大计算越慢精度越高
 RANK_MULTI = 1 
-
+# 全局圣遗物副词条权重
 STATS_WEIGHTS = {}
 def set_using_weight(new_weight: dict):
     '''更换采用权重时要刷新缓存，注意得分权重必须小于等于1'''
@@ -23,7 +27,7 @@ def set_using_weight(new_weight: dict):
     get_init_state.cache_clear()
     get_state_level_up.cache_clear()
 
-def get_total_weight(weights: dict):
+def dict_weight_sum(weights: dict):
     '''获得同字典中所有键的和'''
     ans = 0
     for key in weights.keys():
@@ -31,9 +35,9 @@ def get_total_weight(weights: dict):
     return ans
 
 def get_combinations_p(stats_p: dict, select_num=4):
-    '''获得不同副词条组合的概率'''
+    '''获得拥有4个副词条的五星圣遗物不同副词条组合的概率'''
     ans = {}
-    weight_all = get_total_weight(stats_p)
+    weight_all = dict_weight_sum(stats_p)
     for perm in permutations(list(stats_p.keys()), select_num):
         # 枚举并计算该排列的出现概率
         p, s = 1, weight_all
@@ -50,7 +54,7 @@ def get_combinations_p(stats_p: dict, select_num=4):
 
 @lru_cache(maxsize=65536)
 def get_init_state(stat_comb, default_weight=0) -> ScoredItem:
-    '''这个函数计算初始4词条得分分布，及每个词条的条件期望'''
+    '''获得拥有4个副词条的五星圣遗物初始得分分布，及得分下每个副词条的条件期望'''
     score_dist = np.zeros(40*RANK_MULTI+1)
     sub_stat_exp = {}
     for m in stat_comb:
@@ -93,7 +97,7 @@ def get_init_state(stat_comb, default_weight=0) -> ScoredItem:
 
 @lru_cache(maxsize=65536)
 def get_state_level_up(stat_comb, default_weight=0) -> ScoredItem:
-    '''这个函数计算4词条下升一级的分数分布及每个每个分数下副词条的期望'''
+    '''这个函数计算4词条下升1级的分数分布及每个每个分数下副词条的期望'''
     score_dist = np.zeros(10*RANK_MULTI+1)
     sub_stat_exp = {}
     for m in stat_comb:
@@ -124,19 +128,34 @@ def get_state_level_up(stat_comb, default_weight=0) -> ScoredItem:
 
 class GenshinArtifact(ScoredItem):
     '''原神圣遗物类'''
-    def __init__(self, main_stat: str='', sub_stats_p: dict={}, stats_weight: dict={}) -> None:
+    def __init__(self, 
+                 type: str='flower',                            # 道具类型
+                 type_p=1/5,                                    # 每次获得道具是是类型道具概率
+                 main_stat: str=None,                           # 主词条属性
+                 sub_stats_select_weight: dict=P_SUB_STAT,      # 副词条抽取权重
+                 stats_score: dict=DEFAULT_STAT_SCORE,          # 词条评分权重
+                 drop_source: str='domains_drop',               # 圣遗物掉落来源，和初始词条数相关
+                 ) -> None:
+        # 计算获得主词条概率
+        self.type = type
+        if main_stat is not None:
+            self.main_stat = main_stat
+        else:
+            self.main_stat = DEFAULT_MAIN_STAT[self.type]
+        drop_p = type_p * P_MAIN_STAT[self.type][self.main_stat] / dict_weight_sum(P_MAIN_STAT[self.type])
         # 确定可选副词条
-        self.main_stat = main_stat
-        self.sub_stats_p = deepcopy(sub_stats_p)
-        if self.main_stat in self.sub_stats_p:
-            del self.sub_stats_p[self.main_stat]
-        # 权重改变时应清除缓存
-        self.stats_weight = stats_weight
-        if self.stats_weight != STATS_WEIGHTS:
-            set_using_weight(self.stats_weight)
+        self.sub_stats_weight = deepcopy(sub_stats_select_weight)
+        if self.main_stat in self.sub_stats_weight:
+            del self.sub_stats_weight[self.main_stat]
+        # 确定副词条四件概率
+        self.p_4sub = P_DROP_STATE[drop_source]
+        # 词条权重改变时应清除缓存
+        self.stats_score = stats_score
+        if self.stats_score != STATS_WEIGHTS:
+            set_using_weight(self.stats_score)
         # 计算副词条组合概率
         ans = ScoredItem()
-        self.sub_stats_combinations = get_combinations_p(stats_p=self.sub_stats_p, select_num=4)
+        self.sub_stats_combinations = get_combinations_p(stats_p=self.sub_stats_weight, select_num=4)
         # 遍历所有情况累加
         for stat_comb in list(self.sub_stats_combinations.keys()):
             temp_base = get_init_state(stat_comb)
@@ -144,51 +163,120 @@ class GenshinArtifact(ScoredItem):
             # 初始3词条和初始四词条的情况
             temp_3 = temp_base * temp_level_up * temp_level_up * temp_level_up * temp_level_up
             temp_4 = temp_3 * temp_level_up
-            ans += (0.8 * temp_3 + 0.2 * temp_4) * self.sub_stats_combinations[stat_comb]
-        self.score_dist = ans.score_dist
-        self.sub_stats_exp = ans.sub_stats_exp
+            ans += ((1-self.p_4sub) * temp_3 + self.p_4sub * temp_4) * self.sub_stats_combinations[stat_comb]
+        super().__init__(ans.score_dist, ans.sub_stats_exp, drop_p)
 
+# 导入所需的最优组合组件
+from GGanalysis.scored_item_tools import select_best_combination, remove_worst_combination, get_mix_dist
 class GenshinArtifactSet(ScoredItemSet):
-    def __init__(self, item_set=...) -> None:
+    def __init__(self,
+                 main_stat: dict=DEFAULT_MAIN_STAT,
+                 stats_score: dict=DEFAULT_STAT_SCORE,
+                 drop_source: str='domains_drop',
+                 ) -> None:
+        # 初始化道具
+        self.main_stat = main_stat
+        self.stats_score = stats_score
+        self.drop_source = drop_source
+        item_set = {}
+        for type in ARTIFACT_TYPES:
+            item_set[type] = GenshinArtifact(type=type, type_p=1/10, main_stat=main_stat[type], stats_score=stats_score, drop_source=drop_source)
         super().__init__(item_set)
+
+    def select_best_2piece(self, n=1) -> ScoredItem:
+        '''选择刷取n次后的最优2件套'''
+        item_set = self.repeat(n)
+        ans = select_best_combination(item_set, 2)
+        return ans
+    
+    def select_best_4piece(self, n=1) -> ScoredItem:
+        '''选择刷取n次后的最优4件套'''
+        item_set = self.repeat(n)
+        ans = remove_worst_combination(item_set)
+        return ans
+    
+    def get_4piece_under_condition(self, n, base_n=1500, base_p=1) -> ScoredItem:
+        '''
+        计算在一定基础概率分布下，刷4件套+基础分布散件的分数分布
+        use_n 表示当前刷特定本的件数
+        base_n 表示可用套装散件占刷出散件的比例
+        type_p 用于表示每次掉落中有多大比例是适用于基础概率分布中的
+        '''
+        base_drop_p = {}
+        for type in ARTIFACT_TYPES:
+            base_drop_p[type] = base_p * (1/5) * P_MAIN_STAT[type][self.main_stat[type]] / dict_weight_sum(P_MAIN_STAT[type])
+        # 因为是按照字母序返回的列表，所以是对齐的，直接调用函数即可
+        return get_mix_dist(self.repeat(n), self.repeat(base_n, p=base_drop_p))
+
 
 if __name__ == '__main__':
     pass
     '''
     # 测速代码
     import time
-    from my_implementation_ideles_conv_sub_stats import combine_score_items
     s = time.time()
-    for i in range(1):
+    for i in range(10):
         get_init_state.cache_clear()
         get_state_level_up.cache_clear()
-        # test = GenshinArtifact('hp', p_sub_stat, test_weight)
-        flower = GenshinArtifact('hp', p_sub_stat, test_weight)
-        plume = GenshinArtifact('atk', p_sub_stat, test_weight)
-        sands = GenshinArtifact('atkp', p_sub_stat, test_weight)
-        goblet = GenshinArtifact('pyroDB', p_sub_stat, test_weight)
-        circlet = GenshinArtifact('cr', p_sub_stat, test_weight)
-        set = [flower, plume, sands, goblet, circlet]
-        temp = flower * plume * sands * goblet * circlet
+        artifact_set = GenshinArtifactSet()
+        item_set_score = artifact_set.combine_set()
     t = time.time()
     print(t-s)
     '''
     '''
-    # 套装备选4+1绘图
+    # 基本正确性检验代码
     from matplotlib import pyplot as plt
-    test = GenshinArtifact('hp', p_sub_stat, test_weight)
-    test = test.repeat(1000, 1/5)
-    ans = np.outer(test.score_dist.dist, test.score_dist.dist)
-    plt.matshow(ans)
-    # print(sum(test.score_dist.dist), test.score_dist.dist[0])
-    # plt.plot(test.score_dist.dist, color='C1')
+    # flower = GenshinArtifact(type='flower')
+    # plt.plot(flower.score_dist.dist, color='C1')
+    # plt.plot(flower.repeat(1).score_dist.dist, color='C0')
+    # plt.show()
+    artifact_set = GenshinArtifactSet()
+    item_set_score = artifact_set.combine_set(n=1)
+    plt.plot(item_set_score.score_dist.dist, color='C1')
     plt.show()
     '''
+    '''
+    # 测试非整数分数权重
+    TEST_STAT_SCORE = {
+            'hp': 0,
+            'atk': 0,
+            'def': 0,
+            'hpp': 0,
+            'atkp': 0.5,
+            'defp': 0,
+            'em': 0,
+            'er': 0,
+            'cr': 1,
+            'cd': 1,
+    }
+    from matplotlib import pyplot as plt
+    from GGanalysis.scored_item import check_subexp_sum
+    flower = GenshinArtifact(type='flower', stats_score=TEST_STAT_SCORE)
+    score = check_subexp_sum(flower, TEST_STAT_SCORE)
+    print(score)
+    print('atkp', flower.sub_stats_exp['atkp'])
+    print('cr', flower.sub_stats_exp['cr'])
+    print('cd', flower.sub_stats_exp['cd'])
+    plt.plot(flower.score_dist.dist, color='C1')
+    plt.show()
+    '''
+    # 检查4+1正确性
+    # 按照年/12的方式平均，这种情况下一个月可以刷291.54件圣遗物（期望），取290为一个月的数量，3480为一年的数量
+    # 但是玩家一年也不会全部体力都去刷圣遗物，取1500作为散件指标吧
+    from matplotlib import pyplot as plt
+    artifact_set = GenshinArtifactSet()
+    planed_item = 290
+    extra_item = 0
+    item_set_score_5 = artifact_set.combine_set(n=planed_item)
+    item_set_score_4plus1 = artifact_set.get_4piece_under_condition(n=planed_item, base_n=1500)
+    print(sum(item_set_score_4plus1.score_dist.dist))
+    print(item_set_score_4plus1.exp)
+    plt.plot(item_set_score_5.score_dist.dist, color='C0')
+    plt.plot(item_set_score_4plus1.score_dist.dist, color='C1')
+    plt.show()
 
-    # ans_p = 0
-    # test = get_combinations_p(P_MINOR, 4)
-    # for key in test.keys():
-    #     if 'atkp' in key or 'cr' in key or 'cd' in key:
-    #         ans_p += test[key]
-    # print(ans_p, 1-ans_p)
+    # TODO 加入相对当前的提升，超过提升部分才纳入计算（或者说把目前的分数作为base，低于或等于这个分数的都合并到一起）
 
+    # TODO 参考ideless的方法增加筛选策略
+
+    # TODO 增加在现有圣遗物基础上的提升计算

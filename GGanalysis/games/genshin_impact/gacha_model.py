@@ -12,10 +12,10 @@ from GGanalysis.gacha_layers import *
 from GGanalysis.basic_models import *
 
 __all__ = [
-    'pity_5star',
-    'pity_4star',
-    'pity_w5star',
-    'pity_w4star',
+    'PITY_5STAR',
+    'PITY_4STAR',
+    'PITY_W5STAR',
+    'PITY_W4STAR',
     'common_5star',
     'common_4star',
     'up_5star_character',
@@ -33,40 +33,40 @@ __all__ = [
 ]
 
 # 原神普通五星保底概率表
-pity_5star = np.zeros(91)
-pity_5star[1:74] = 0.006
-pity_5star[74:90] = np.arange(1, 17) * 0.06 + 0.006
-pity_5star[90] = 1
+PITY_5STAR = np.zeros(91)
+PITY_5STAR[1:74] = 0.006
+PITY_5STAR[74:90] = np.arange(1, 17) * 0.06 + 0.006
+PITY_5STAR[90] = 1
 # 原神普通四星保底概率表
-pity_4star = np.zeros(11)
-pity_4star[1:9] = 0.051
-pity_4star[9] = 0.051 + 0.51
-pity_4star[10] = 1
+PITY_4STAR = np.zeros(11)
+PITY_4STAR[1:9] = 0.051
+PITY_4STAR[9] = 0.051 + 0.51
+PITY_4STAR[10] = 1
 # 原神武器池五星保底概率表
-pity_w5star = np.zeros(78)
-pity_w5star[1:63] = 0.007
-pity_w5star[63:77] = np.arange(1, 15) * 0.07 + 0.007
-pity_w5star[77] = 1
+PITY_W5STAR = np.zeros(78)
+PITY_W5STAR[1:63] = 0.007
+PITY_W5STAR[63:77] = np.arange(1, 15) * 0.07 + 0.007
+PITY_W5STAR[77] = 1
 # 原神武器池四星保底概率表
-pity_w4star = np.zeros(10)
-pity_w4star[1:8] = 0.06
-pity_w4star[8] = 0.06 + 0.6
-pity_w4star[9] = 1
+PITY_W4STAR = np.zeros(10)
+PITY_W4STAR[1:8] = 0.06
+PITY_W4STAR[8] = 0.06 + 0.6
+PITY_W4STAR[9] = 1
 
 # 定义获取星级物品的模型
-common_5star = PityModel(pity_5star)
-common_4star = PityModel(pity_4star)
+common_5star = PityModel(PITY_5STAR)
+common_4star = PityModel(PITY_4STAR)
 # 定义原神角色池模型
-up_5star_character = DualPityModel(pity_5star, [0, 0.5, 1])
-up_4star_character = DualPityModel(pity_4star, [0, 0.5, 1])
-up_4star_specific_character = DualPityBernoulliModel(pity_4star, [0, 0.5, 1], 1/3)
+up_5star_character = DualPityModel(PITY_5STAR, [0, 0.5, 1])
+up_4star_character = DualPityModel(PITY_4STAR, [0, 0.5, 1])
+up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/3)
 # 定义原神武器池模型
-common_5star_weapon = PityModel(pity_w5star)
-common_4star_weapon = PityModel(pity_w4star)
-up_5star_weapon = DualPityModel(pity_w5star, [0, 0.75, 1])
-up_5star_specific_weapon = DualPityBernoulliModel(pity_w5star, [0, 0.75, 1], 1/2)
-up_4star_weapon = DualPityModel(pity_w4star, [0, 0.75, 1])
-up_4star_specific_weapon = DualPityBernoulliModel(pity_w4star, [0, 0.75, 1], 1/5)
+common_5star_weapon = PityModel(PITY_W5STAR)
+common_4star_weapon = PityModel(PITY_W4STAR)
+up_5star_weapon = DualPityModel(PITY_W5STAR, [0, 0.75, 1])
+up_5star_specific_weapon = DualPityBernoulliModel(PITY_W5STAR, [0, 0.75, 1], 1/2)
+up_4star_weapon = DualPityModel(PITY_W4STAR, [0, 0.75, 1])
+up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/5)
 
 # 定轨获取特定UP五星武器
 class Genshin5starEPWeaponModel(CommonGachaModel):
@@ -86,7 +86,7 @@ class Genshin5starEPWeaponModel(CommonGachaModel):
             ['fate2', 'get', 1]
         ]
         M = table2matrix(self.state_num, state_trans)
-        self.layers.append(PityLayer(pity_w5star))
+        self.layers.append(PityLayer(PITY_W5STAR))
         self.layers.append(MarkovLayer(M))
 
     def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, fate_point = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
@@ -114,7 +114,7 @@ up_5star_ep_weapon = Genshin5starEPWeaponModel()
 class GenshinCommon5starInUPpoolModel(CommonGachaModel):
     def __init__(self, up_rate=0.5, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
-        self.layers.append(PityLayer(pity_5star))
+        self.layers.append(PityLayer(PITY_5STAR))
         self.layers.append(GenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, need_type, max_dist_len))
     def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, is_last_UP=False, *args: any, **kwds: any) -> Union[FiniteDist, list]:
         return super().__call__(item_num, multi_dist, pull_state, is_last_UP, *args, **kwds)

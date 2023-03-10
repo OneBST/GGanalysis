@@ -11,8 +11,9 @@ from GGanalysis.basic_models import *
 '''
 
 __all__ = [
-    'pity_6star',
-    'pity_5star',
+    'PITY_6STAR',
+    'PITY_5STAR',
+    'P_5STAR_AVG',
     'common_6star',
     'single_up_6star',
     'dual_up_specific_6star',
@@ -24,25 +25,27 @@ __all__ = [
 ]
 
 # 设置六星概率递增表
-pity_6star = np.zeros(100)
-pity_6star[1:51] = 0.02
-pity_6star[51:99] = np.arange(1, 49) * 0.02 + 0.02
-pity_6star[99] = 1
+PITY_6STAR = np.zeros(100)
+PITY_6STAR[1:51] = 0.02
+PITY_6STAR[51:99] = np.arange(1, 49) * 0.02 + 0.02
+PITY_6STAR[99] = 1
 # 设置五星概率递增表（五星保底会被六星挤掉，所以需要做一点近似）
-pity_5star = np.zeros(42, dtype=float)
-pity_5star[:16] = 0.08
-pity_5star[16:21] = np.arange(1, 6) * 0.02 + 0.08
-pity_5star[21:41] = np.arange(1, 21) * 0.04 + 0.18
-pity_5star[41] = 1
+PITY_5STAR = np.zeros(42, dtype=float)
+PITY_5STAR[:16] = 0.08
+PITY_5STAR[16:21] = np.arange(1, 6) * 0.02 + 0.08
+PITY_5STAR[21:41] = np.arange(1, 21) * 0.04 + 0.18
+PITY_5STAR[41] = 1
+# 设置五星综合概率，用于近似计算
+P_5STAR_AVG = 0.08948
 
 # 获取普通六星
-common_6star = PityModel(pity_6star)
+common_6star = PityModel(PITY_6STAR)
 # 获取单UP六星
-single_up_6star = PityBernoulliModel(pity_6star, 1/2)
+single_up_6star = PityBernoulliModel(PITY_6STAR, 1/2)
 # 获取双UP六星中的特定六星
-dual_up_specific_6star = PityBernoulliModel(pity_6star, 1/4)    
+dual_up_specific_6star = PityBernoulliModel(PITY_6STAR, 1/4)    
 # 获取限定UP六星中的限定六星
-limited_up_6star = PityBernoulliModel(pity_6star, 0.35)
+limited_up_6star = PityBernoulliModel(PITY_6STAR, 0.35)
 
 # 方舟限定池同时获取限定六星及陪跑六星
 class AK_Limit_Model(CommonGachaModel):
@@ -63,15 +66,15 @@ class AK_Limit_Model(CommonGachaModel):
         ]
         return parameter_list
 # 同时获取两个UP六星
-both_up_6star = AK_Limit_Model(pity_6star, 0.7, collect_item=2)
+both_up_6star = AK_Limit_Model(PITY_6STAR, 0.7, collect_item=2)
 
-# 实际上五星综合概率为8.948% 但由于和概率上升相耦合，这里取公示的8%作为低值估算
+# 五星公示概率为的8%，实际上综合概率为8.948% 这里按照综合概率近似计算
 # 获取普通五星
-common_5star = BernoulliGachaModel(0.08)
+common_5star = BernoulliGachaModel(P_5STAR_AVG)
 # 获取单UP五星
-single_up_specific_5star = BernoulliGachaModel(0.08/2)
+single_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG/2)
 # 获取双UP五星中的特定五星
-dual_up_specific_5star = BernoulliGachaModel(0.08/2/2)
+dual_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG/2/2)
 # 获取三UP五星中的特定五星
-triple_up_specific_5star = BernoulliGachaModel(0.08/2/3)
+triple_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG/2/3)
 
