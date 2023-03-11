@@ -10,7 +10,14 @@ import numpy as np
 '''
 __all__ = [
     'GenshinArtifact',
-    'GenshinArtifactSet'
+    'GenshinArtifactSet',
+    'ARTIFACT_TYPES',
+    'STAT_NAME',
+    'W_MAIN_STAT',
+    'W_SUB_STAT',
+    'DEFAULT_MAIN_STAT',
+    'DEFAULT_STAT_SCORE',
+    'DEFAULT_STAT_COLOR',
 ]
 
 # 副词条档位
@@ -132,7 +139,7 @@ class GenshinArtifact(ScoredItem):
                  type: str='flower',                            # 道具类型
                  type_p=1/5,                                    # 每次获得道具是是类型道具概率
                  main_stat: str=None,                           # 主词条属性
-                 sub_stats_select_weight: dict=P_SUB_STAT,      # 副词条抽取权重
+                 sub_stats_select_weight: dict=W_SUB_STAT,      # 副词条抽取权重
                  stats_score: dict=DEFAULT_STAT_SCORE,          # 词条评分权重
                  drop_source: str='domains_drop',               # 圣遗物掉落来源，和初始词条数相关
                  ) -> None:
@@ -142,7 +149,7 @@ class GenshinArtifact(ScoredItem):
             self.main_stat = main_stat
         else:
             self.main_stat = DEFAULT_MAIN_STAT[self.type]
-        drop_p = type_p * P_MAIN_STAT[self.type][self.main_stat] / dict_weight_sum(P_MAIN_STAT[self.type])
+        drop_p = type_p * W_MAIN_STAT[self.type][self.main_stat] / dict_weight_sum(W_MAIN_STAT[self.type])
         # 确定可选副词条
         self.sub_stats_weight = deepcopy(sub_stats_select_weight)
         if self.main_stat in self.sub_stats_weight:
@@ -204,9 +211,9 @@ class GenshinArtifactSet(ScoredItemSet):
         '''
         base_drop_p = {}
         for type in ARTIFACT_TYPES:
-            base_drop_p[type] = base_p * (1/5) * P_MAIN_STAT[type][self.main_stat[type]] / dict_weight_sum(P_MAIN_STAT[type])
+            base_drop_p[type] = base_p * (1/5) * W_MAIN_STAT[type][self.main_stat[type]] / dict_weight_sum(W_MAIN_STAT[type])
         # 因为是按照字母序返回的列表，所以是对齐的，直接调用函数即可
-        return get_mix_dist(self.repeat(n), self.repeat(base_n, p=base_drop_p))
+        return get_mix_dist(self.repeat(n), self.repeat(base_n+int(n/2), p=base_drop_p))
 
 
 if __name__ == '__main__':

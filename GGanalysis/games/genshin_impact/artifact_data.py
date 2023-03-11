@@ -1,24 +1,35 @@
 '''
 原神圣遗物数值表
-类型别名如下
-    数值生命值      hp
-    数值攻击力      atk
-    数值防御力      def
-    百分比生命值    hpp
-    百分比攻击力    atkp
-    百分比防御力    defp
-    元素精通        em
-    元素充能效率    er
-    暴击率          cr
-    暴击伤害        cd
-    治疗加成        hb
 ''' 
 ARTIFACT_TYPES = ['flower', 'plume', 'sands', 'goblet', 'circlet']
+
+# 类型别名对照表
+STAT_NAME = {
+    'hp': '数值生命值',
+    'hpp': '百分比生命值',
+    'atk': '数值攻击力',
+    'atkp': '百分比攻击力',
+    'def': '数值防御力',
+    'defp': '百分比防御力',
+    'pyroDB': '火元素伤害加成',
+    'hydroDB': '水元素伤害加成',
+    'anemoDB': '风元素伤害加成',
+    'electroDB': '雷元素伤害加成',
+    'dendroDB': '草元素伤害加成',
+    'cryoDB': '冰元素伤害加成',
+    'geoDB': '岩元素伤害加成',
+    'physicalDB': '物理伤害加成',
+    'em': '元素精通',
+    'er': '元素充能效率',
+    'cr': '暴击率',
+    'cd': '暴击伤害',
+    'hb': '治疗加成',     
+}
 
 # 所有主词条掉落权重表
 # 掉落权重取自 tesiacoil 的整理
 # 主词条 https://wiki.biligame.com/ys/掉落系统学/常用数据#主词条
-P_MAIN_STAT = {
+W_MAIN_STAT = {
     'flower': {'hp': 1000},
     'plume': {'atk': 1000},
     'sands': {
@@ -35,7 +46,7 @@ P_MAIN_STAT = {
         'pyroDB': 200,
         'electroDB': 200,
         'cryoDB': 200,
-        'hydroD B': 200,
+        'hydroDB': 200,
         'dendroDB': 200,
         'anemoDB': 200,
         'geoDB': 200,
@@ -56,7 +67,7 @@ P_MAIN_STAT = {
 # 所有副词条权重表
 # 掉落权重取自 tesiacoil 的整理
 # 副词条 https://wiki.biligame.com/ys/掉落系统学/常用数据#副词条
-P_SUB_STAT = {
+W_SUB_STAT = {
     'hp': 150,
     'atk': 150,
     'def': 150,
@@ -87,11 +98,11 @@ MAIN_STAT_MAX = {
     'em': 186.5,
     'er': 0.518,
     'pyroDB': 0.466,
-    'electroDB': 0.466,
-    'cryoDB': 0.466,
-    'hydroD B': 0.466,
-    'dendroDB': 0.466,
+    'hydroDB': 0.466,
     'anemoDB': 0.466,
+    'electroDB': 0.466,
+    'dendroDB': 0.466,
+    'cryoDB': 0.466,
     'geoDB': 0.466,
     'physicalDB': 0.583,
     'cr': 31.1,
@@ -142,4 +153,27 @@ DEFAULT_MAIN_STAT = {
     'sands': 'atkp',
     'goblet': 'pyroDB',
     'circlet': 'cr',
+}
+
+# 默认颜色
+DEFAULT_STAT_COLOR = {
+    'hp': '#4e8046',
+    'hpp': '#65a65b',
+    'atk': '#8c4646',
+    'atkp': '#b35959',
+    'def': '#8c8c3f',
+    'defp': '#b2b350',
+    'pyroDB': '#d96857',
+    'hydroDB': '#6c77d9',
+    'anemoDB': '#4dbf99',
+    'electroDB': '#c566cc',
+    'dendroDB': '#59b364',
+    'cryoDB': '#6cd5d9',
+    'geoDB': '#bfb560',
+    'physicalDB': '#7a8c99',
+    'em': '#a15ba6',
+    'er': '#665ba6',
+    'cr': '#f29224',
+    'cd': '#f24124',
+    'hb': '#79a63a',     
 }
