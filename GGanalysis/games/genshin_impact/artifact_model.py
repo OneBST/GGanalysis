@@ -180,6 +180,7 @@ class GenshinArtifactSet(ScoredItemSet):
                  main_stat: dict=DEFAULT_MAIN_STAT,
                  stats_score: dict=DEFAULT_STAT_SCORE,
                  drop_source: str='domains_drop',
+                 type_p=1/10,  # 掉落对应套装部位的概率
                  ) -> None:
         # 初始化道具
         self.main_stat = main_stat
@@ -187,7 +188,7 @@ class GenshinArtifactSet(ScoredItemSet):
         self.drop_source = drop_source
         item_set = {}
         for type in ARTIFACT_TYPES:
-            item_set[type] = GenshinArtifact(type=type, type_p=1/10, main_stat=main_stat[type], stats_score=stats_score, drop_source=drop_source)
+            item_set[type] = GenshinArtifact(type=type, type_p=type_p, main_stat=main_stat[type], stats_score=stats_score, drop_source=drop_source)
         super().__init__(item_set)
 
     def select_best_2piece(self, n=1) -> ScoredItem:
