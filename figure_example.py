@@ -1,5 +1,5 @@
 import GGanalysis.games.genshin_impact as GI
-from GGanalysis.gacha_plot import QuantileFunction
+from GGanalysis.gacha_fig import QuantileFunction
 import matplotlib.cm as cm
 import numpy as np
 import time

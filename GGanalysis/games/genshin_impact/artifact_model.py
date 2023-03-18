@@ -276,7 +276,7 @@ if __name__ == '__main__':
     planed_item = 290
     extra_item = 0
     item_set_score_5 = artifact_set.combine_set(n=planed_item)
-    item_set_score_4plus1 = artifact_set.get_4piece_under_condition(n=planed_item, base_n=1500)
+    item_set_score_4plus1 = artifact_set.get_4piece_under_condition(n=planed_item)
     print(sum(item_set_score_4plus1.score_dist.dist))
     print(item_set_score_4plus1.exp)
     plt.plot(item_set_score_5.score_dist.dist, color='C0')

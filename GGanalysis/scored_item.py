@@ -14,8 +14,8 @@ class ScoredItem():
     '''词条型道具'''
     def __init__(self, score_dist: Union[FiniteDist, np.ndarray, list]=FiniteDist([0]), sub_stats_exp: dict={}, drop_p=1) -> None:
         '''使用分数分布和副词条期望完成初始化，可选副词条方差'''
-        self.score_dist = FiniteDist(score_dist)
-        self.sub_stats_exp = sub_stats_exp
+        self.score_dist = FiniteDist(score_dist)    # 得分分布
+        self.sub_stats_exp = sub_stats_exp          # 每种副词条的期望
         self.drop_p = drop_p
         if self.drop_p < 0 or self.drop_p > 1:
             raise ValueError("drop_p should between 0 and 1!")
@@ -41,6 +41,13 @@ class ScoredItem():
         for key in self.sub_stats_exp.keys():
             self.sub_stats_exp[key] = self.sub_stats_exp[key] * mask
 
+    def check_subexp_sum(self) -> np.ndarray:
+        '''检查副词条的加权和'''
+        ans = np.zeros(len(self))
+        for key in self.sub_stats_exp.keys():
+            ans[:len(self.sub_stats_exp[key])] += self.sub_stats_exp[key] * self.stats_score[key]
+        return ans
+
     def repeat(self, n: int=1, p=None) -> 'ScoredItem':
         '''重复n次获取道具尝试，每次有p概率获得道具后获得的最大值分布'''
         if n == 0:
@@ -63,6 +70,8 @@ class ScoredItem():
             if key == 'var':
                 self.var = self.score_dist.var
                 return self.var
+        if key == 'stats_score':    # 词条得分，其值应位于0-1之间，默认为空
+            return {}
 
     def __getitem__(self, sliced):
         '''根据sliced形成遮罩，返回sliced选中区间的值，其他位置设置为0'''
@@ -123,19 +132,52 @@ class ScoredItem():
     def __str__(self) -> str:
         return f"Score Dist {self.score_dist.dist} Sub Exp {self.sub_stats_exp}"
 
-def check_subexp_sum(item: ScoredItem, weight: dict) -> np.ndarray:
-    '''检查副词条的加权和'''
-    ans = np.zeros(len(item))
-    for key in item.sub_stats_exp.keys():
-        ans[:len(item.sub_stats_exp[key])] += item.sub_stats_exp[key] * weight[key]
-    return ans
-
 def combine_items(item_list: list[ScoredItem]):
     '''返回列表内道具的混合'''
     ans = ScoredItem([1], {})
     for item in item_list:
         ans *= item
     return ans
+
+def max_item(a: ScoredItem, b: ScoredItem):
+    '''
+    返回两个道具混合后的最优分布，如果两者相等，副词条采用a而不是b
+    '''
+    cdf_a = dist2cdf(a.score_dist)
+    cdf_b = dist2cdf(b.score_dist)
+    min_len = min(len(a), len(b))
+    max_len = max(len(a), len(b))
+    ans_score = np.zeros(max_len, dtype=float)
+    ans_sub_stats_exp = {}
+    key_set = set(a.sub_stats_exp.keys())
+    key_set.update(b.sub_stats_exp.keys())
+    for key in key_set:
+        ans_sub_stats_exp[key] = np.zeros(max_len, dtype=float)
+
+    # a >= b 情况
+    for i in range(min_len):
+        p = cdf_b[i] * a.score_dist.dist[i]
+        ans_score[i] += p
+        for key in key_set:
+            ans_sub_stats_exp[key][i] += a.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[i] * p
+    # b > a 情况
+    for i in range(1, min_len):
+        p = cdf_a[i-1] * b.score_dist.dist[i]
+        ans_score[i] += p
+        for key in key_set:
+            ans_sub_stats_exp[key][i] += b.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[i] * p
+    # 副词条归一化
+    for key in key_set:
+        ans_sub_stats_exp[key] = np.divide(ans_sub_stats_exp[key], ans_score, out=np.zeros_like(ans_score), where=ans_score!=0)
+    # 处理剩下部分
+    if len(a) > len(b):
+        c = a
+    else:
+        c = b
+    ans_score[min_len:] = c.score_dist.dist[min_len:]
+    for key in key_set:
+        ans_sub_stats_exp[key][min_len:] = c.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[min_len:]
+    return ScoredItem(score_dist=ans_score, sub_stats_exp=ans_sub_stats_exp)
 
 class ScoredItemSet():
     '''由词条型道具组成的套装'''
@@ -147,12 +189,12 @@ class ScoredItemSet():
         '''添加名为 item_name 的道具'''
         self.item_set[item_name] = item
 
-    def combine_set(self, select_items: list[str]=None, n=1, multi_p=None):
+    def combine_set(self, select_items: list[str]=None, n=1):
         '''计算获取n次道具后套装中道具的最佳得分分布'''
         ans = ScoredItem([1])
         if select_items is None:
             for key in self.item_set.keys():
-                ans *= self.item_set[key].repeat(n, self.item_set[key].drop_p * multi_p)
+                ans *= self.item_set[key].repeat(n, self.item_set[key].drop_p)
         else:
             for key in select_items:
                 ans *= self.item_set[key].repeat(n)

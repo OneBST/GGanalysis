@@ -33,8 +33,10 @@ def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     exp = sum(use_pulls * dist)
     return sum((use_pulls - exp) ** 2 * dist)
 
-def dist2cdf(dist: np.array) -> np.array:
+def dist2cdf(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
     '''简单封装一下numpy的cumsum'''
+    if isinstance(dist, FiniteDist):
+        return np.cumsum(dist.dist)
     return np.cumsum(dist)
 
 def cdf2dist(cdf: np.ndarray) -> np.ndarray:
