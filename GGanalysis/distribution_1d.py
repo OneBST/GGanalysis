@@ -133,7 +133,6 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         if len(np.shape(dist)) > 1:
             raise Exception('Not 1D distribution.')
         self.dist = np.array(dist, dtype=float)  # 转化为numpy.ndarray类型
-        self.dist = np.trim_zeros(self.dist, 'b')  # 去除尾部的零 TODO 想想怎么处理空分布比较好
         if len(self.dist) == 0:
             self.dist = np.zeros(1, dtype=float)
         
