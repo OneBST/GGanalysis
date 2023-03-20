@@ -1,4 +1,4 @@
-from GGanalysis.scored_item import *
+from GGanalysis.ScoredItem.scored_item import *
 '''
     为词条评分类道具开发的组合评估工具
 '''
