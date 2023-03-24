@@ -156,7 +156,9 @@ class QuantileFunction(object):
             description_text += '\n每'+str(self.direct_exchange)+'抽可额外兑换'+self.item_name+'\n含兑换期望为'+format(1/(1/self.exp+1/self.direct_exchange), '.2f')+'抽'
         # 对能否100%获取道具的描述
         if self.mark_max_pull:
-            if self.is_finite:
+            if self.is_finite is None:
+                pass
+            elif self.is_finite:
                 max_pull = len(self.data[1])-1
                 if self.direct_exchange is None:
                     description_text += '\n获取一个'+self.item_name+'最多需要'+str(max_pull)+'抽'
@@ -192,7 +194,9 @@ class QuantileFunction(object):
     # 添加表示有界分布或长尾分布的标记
     def add_end_mark(self):
         # 有界分布
-        if self.is_finite:
+        if self.is_finite is None:
+            pass
+        elif self.is_finite:
             for data, color in zip(self.cdf_data[1:], self.line_colors[1:]):
                 self.ax.scatter(1, len(data)-1,
                         s=10,

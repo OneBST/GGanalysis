@@ -1,8 +1,8 @@
 '''
-    注意，本模块对四星概率进行了近似处理
-        1. 仅考虑不存在五星物品时的情况，没有考虑四星物品被五星物品挤到下一抽的可能
-        2. 对于UP四星物品，没有考虑UP四星从常驻中也有概率获取的可能性
-    计算所得四星综合概率会略高于实际值，获取UP四星的概率略低于实际值，但影响非常微弱可以忽略
+    注意，本模块对4星概率进行了近似处理
+        1. 仅考虑不存在5星物品时的情况，没有考虑4星物品被5星物品挤到下一抽的可能
+        2. 对于UP4星物品，没有考虑UP4星从常驻中也有概率获取的可能性
+    计算所得4星综合概率会略高于实际值，获取UP4星的概率略低于实际值，但影响非常微弱可以忽略
     
     同时由于复杂性，原神的平稳机制没有纳入计算，其影响也很低。如果想了解平稳机制的影响，可以使用 GGanalysislib 工具包
     见 https://github.com/OneBST/GGanalysis
@@ -32,22 +32,22 @@ __all__ = [
     'stander_5star_weapon_in_up',
 ]
 
-# 原神普通五星保底概率表
+# 原神普通5星保底概率表
 PITY_5STAR = np.zeros(91)
 PITY_5STAR[1:74] = 0.006
 PITY_5STAR[74:90] = np.arange(1, 17) * 0.06 + 0.006
 PITY_5STAR[90] = 1
-# 原神普通四星保底概率表
+# 原神普通4星保底概率表
 PITY_4STAR = np.zeros(11)
 PITY_4STAR[1:9] = 0.051
 PITY_4STAR[9] = 0.051 + 0.51
 PITY_4STAR[10] = 1
-# 原神武器池五星保底概率表
+# 原神武器池5星保底概率表
 PITY_W5STAR = np.zeros(78)
 PITY_W5STAR[1:63] = 0.007
 PITY_W5STAR[63:77] = np.arange(1, 15) * 0.07 + 0.007
 PITY_W5STAR[77] = 1
-# 原神武器池四星保底概率表
+# 原神武器池4星保底概率表
 PITY_W4STAR = np.zeros(10)
 PITY_W4STAR[1:8] = 0.06
 PITY_W4STAR[8] = 0.06 + 0.6
@@ -68,7 +68,7 @@ up_5star_specific_weapon = DualPityBernoulliModel(PITY_W5STAR, [0, 0.75, 1], 1/2
 up_4star_weapon = DualPityModel(PITY_W4STAR, [0, 0.75, 1])
 up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/5)
 
-# 定轨获取特定UP五星武器
+# 定轨获取特定UP5星武器
 class Genshin5starEPWeaponModel(CommonGachaModel):
     def __init__(self) -> None:
         super().__init__()
@@ -132,11 +132,11 @@ class GenshinCommon5starInUPpoolLayer(GachaLayer):
         self.up_rate = up_rate
         self.stander_item = stander_item
         self.dp_lenth = dp_lenth  # DP的截断位置，越长计算误差越小，500时误差可以忽略了
-        self.need_type = min(need_type, self.stander_item)  # 需要的五星类型
+        self.need_type = min(need_type, self.stander_item)  # 需要的5星类型
         self.max_dist_len = max_dist_len # 返回单道具的长度极限，切断后可以省计算量
 
     def calc_5star_number_dist(self, is_last_UP=False):
-        # DP数组 表示抽第i个五星时
+        # DP数组 表示抽第i个5星时
         # 恰好抽到UP物品、非目标其他物品、目标其他物品的概率
         M = np.zeros((self.dp_lenth+1, 3), dtype=float)
         if is_last_UP: # 从才获取了UP开始，下一个就可以是非UP

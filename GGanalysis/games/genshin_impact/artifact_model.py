@@ -223,7 +223,6 @@ from GGanalysis.ScoredItem.scored_item_tools import (
     select_best_combination,
 )
 
-
 class GenshinArtifactSet(ScoredItemSet):
     def __init__(
         self,
