@@ -111,7 +111,7 @@ def pad_zero(dist:np.ndarray, target_len):
         return dist
     return np.pad(dist, (0, target_len-len(dist)), 'constant', constant_values=0)
 
-def cut_dist(dist, cut_pos):
+def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos):
     '''
     切除分布头部并重新进行概率归一化
     '''
@@ -121,7 +121,7 @@ def cut_dist(dist, cut_pos):
     # 进行了切除后进行归一化
     ans = dist[cut_pos:].copy()
     ans[0] = 0
-    return FiniteDist(ans/sum(ans))
+    return ans/sum(ans)
 
 class FiniteDist(object):  # 随机事件为有限个数的分布
     '''基础类 有限长一维分布律'''

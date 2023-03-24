@@ -1,4 +1,4 @@
-from GGanalysis.scored_item import ScoredItem, ScoredItemSet
+from GGanalysis.ScoredItem.scored_item import ScoredItem, ScoredItemSet
 from GGanalysis.games.genshin_impact.artifact_data import *
 from itertools import permutations
 from functools import lru_cache
@@ -174,7 +174,7 @@ class GenshinArtifact(ScoredItem):
         super().__init__(ans.score_dist, ans.sub_stats_exp, drop_p)
 
 # 导入所需的最优组合组件
-from GGanalysis.scored_item_tools import select_best_combination, remove_worst_combination, get_mix_dist
+from GGanalysis.ScoredItem.scored_item_tools import select_best_combination, remove_worst_combination, get_mix_dist
 class GenshinArtifactSet(ScoredItemSet):
     def __init__(self,
                  main_stat: dict=DEFAULT_MAIN_STAT,
