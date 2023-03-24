@@ -113,7 +113,7 @@ def pad_zero(dist:np.ndarray, target_len):
 
 def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos):
     '''
-    切除分布头部并重新进行概率归一化
+    切除分布并重新进行概率归一化，默认切除头部
     '''
     # cut_pos为0则没有进行切除
     if cut_pos == 0:
