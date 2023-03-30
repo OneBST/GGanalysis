@@ -124,7 +124,15 @@ def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos):
     return ans/sum(ans)
 
 class FiniteDist(object):  # 随机事件为有限个数的分布
-    '''基础类 有限长一维分布律'''
+    '''有限长一维分布
+
+    - ``dist`` : 用列表、numpy数组、FiniteDist表示在自然数位置的分布。默认为全部概率集中在0位置，即离散卷积运算的幺元。
+    - ``exp`` ：这个一维分布的期望
+    - ``var`` ：这个一维分布的方差
+    - ``p_sum`` ：这个一维分布所有位置的概率的和
+    - ``entropy_rate`` ：这个一维分布的熵率，即分布的熵除其期望，意义为平均每次尝试的信息量
+    - ``randomness_rate`` ：此处定义的随机度为此分布熵率和概率为 :math:`\\frac{1}{exp}`. 的伯努利信源的熵率的比值，越低则说明信息量越低
+    '''
     def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1]) -> None:
         # 注意，构造dist时一定要重新创建新的内存空间进行深拷贝
         if isinstance(dist, FiniteDist):
@@ -156,12 +164,18 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     
     def __iter__(self): 
         return iter(self.dist)
-    def __setitem__(self, sliced, value: Union[int, float]) -> None:
+    def __setitem__(self, sliced, value: Union[int, float, np.ndarray]) -> None:
+        '''将numpy设置切片值的方法应用于 ``dist`` 直接设置分布值'''
         self.dist[sliced] = value
     def __getitem__(self, sliced):
+        '''将numpy切片的方法应用于 ``dist`` 直接取得numpy数组切片'''
         return self.dist[sliced]
 
     def calc_dist_attribution(self, p_error=1e-6) -> None:
+        '''计算分布的基本属性 ``exp`` ``var`` ``p_sum``
+
+        - ``p_error`` ： 容许 ``p_sum`` 和 1 之间的差距，默认为 1e-6
+        '''
         self.p_sum = sum(self.dist)
         if abs(self.p_sum-1) > p_error:  # 高于阈值认为概率和不为1
             self.exp = float('nan')
@@ -171,8 +185,12 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         self.exp = sum(use_pulls * self.dist)
         self.var = sum((use_pulls-self.exp) ** 2 * self.dist)
 
-    def calc_entropy_attribution(self) -> None:
-        if abs(self.p_sum-1) > 1e-12:  # 概率和不为1
+    def calc_entropy_attribution(self, p_error=1e-6) -> None:
+        '''计算分布熵相关属性 ``entropy_rate`` ``randomness_rate``
+
+        - ``p_error`` ： 容许 ``p_sum`` 和 1 之间的差距，默认为 1e-6
+        '''
+        if abs(self.p_sum-1) > p_error:  # 概率和不为1
             self.entropy_rate = float('nan')
             self.randomness_rate = float('nan')
             return
@@ -188,10 +206,19 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         self.calc_dist_attribution()
 
     def __add__(self, other: 'FiniteDist') -> 'FiniteDist':
+        '''定义的 + 运算符
+
+        返回两个分布值的和，以0位置对齐
+        '''
         target_len = max(len(self), len(other))
         return FiniteDist(pad_zero(self.dist, target_len) + pad_zero(other.dist, target_len))
 
     def __mul__(self, other: Union['FiniteDist', float, int, np.float64, np.int32]) -> 'FiniteDist':
+        '''定义的 * 运算符
+
+        如果两个对象都为 FiniteDist 返回两个分布的卷积
+        如果其中一个对象为 FiniteDist ，另一个对象为数字，返回分布数乘数字后的 FiniteDist 对象
+        '''
         # TODO 研究是否需要对空随机变量进行特判
         if isinstance(other, FiniteDist):
             return FiniteDist(convolve(self.dist, other.dist))
@@ -201,8 +228,16 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         return self * other
 
     def __truediv__(self, other: Union[float, int]) -> 'FiniteDist':
+        '''定义的 / 运算符
+
+        返回分布数除数字后的 FiniteDist 对象
+        '''
         return FiniteDist(self.dist / other)
     def __pow__(self, times_: int) -> 'FiniteDist':
+        '''定义的 ** 运算符
+        
+        返回分布为 times_ 个自身分布相卷积的 FiniteDist 对象
+        '''
         ans = np.ones(1)
         if times_ == 0:
             return FiniteDist(ans)
