@@ -183,7 +183,7 @@ single_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG/2)
 # 获取双UP5星中的特定5星
 dual_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG/2/2)
 # 获取三UP5星中的特定5星
-triple_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG/2/3)
+triple_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG*0.6/3)
 
 # ★★★★★★
 # 注意有定向选调的情况只处理了第一个，接下来的没有处理，是有缺陷的，之后需要重写DP
