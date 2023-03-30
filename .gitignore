@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+
+# temp files
+*.o
+*.png
+*.svg
+test*.py
+temp.csv
+temp_plot.py
+temp_use.py
+GGanalysis.egg-info/
+doctrees/
+figure/
+build/
+
+# test files
+test.py
+temp.py
+.DS_Store
+GGanalysislib/
+
+# vs code setting
+.vscode/
