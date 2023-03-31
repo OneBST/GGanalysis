@@ -75,12 +75,17 @@ class BernoulliLayer(GachaLayer):
         self.e_error = e_error  # 期望的误差限制
         self.max_dist_len = max_dist_len
         self.exp = 1/p
-        self.var = (p**2-2*p+1)/((1-p)*p**2)
+        if p == 1:
+            self.var = 0
+        else:
+            self.var = (p**2-2*p+1)/((1-p)*p**2)
     def __str__(self) -> str:
         return f"Bernoulli Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
     def _forward(self, input, full_mode) -> FiniteDist:
         # 作为第一层（不过一般不会当做第一层吧）
         if input is None:
+            if self.p == 1:
+                return FiniteDist([0, 1])
             test_len = int(self.exp * 10)
             while True:
                 x = np.arange(test_len+1)
@@ -102,6 +107,9 @@ class BernoulliLayer(GachaLayer):
             c_dist: FiniteDist = input[0]
         else:
             c_dist: FiniteDist = input[1]
+        # 概率为 1 等价于什么也没干
+        if self.p == 1:
+            return c_dist
         output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
         output_D = self._calc_combined_2nd_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
         # print(output_E, output_D)

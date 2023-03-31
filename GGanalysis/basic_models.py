@@ -31,7 +31,10 @@ class CommonGachaModel(GachaModel):
 
     # 用于输入参数解析，生成每层对应参数列表
     def _build_parameter_list(self, *args: any, **kwds: any) -> list:
-        return None
+        parameter_list = []
+        for i in range(len(self.layers)):
+            parameter_list.append([[], {}])
+        return parameter_list
 
     # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
     def _get_multi_dist(self, end_pos: int, parameter_list: list=None):
