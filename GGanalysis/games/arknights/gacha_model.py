@@ -43,11 +43,13 @@ P_5STAR_AVG = 0.08948
 
 class AK_Limit_Model(CommonGachaModel):
     '''方舟限定池同时获取限定6星及陪跑6星模型'''
-    def __init__(self, pity_p1, p, collect_item=2, e_error = 1e-8, max_dist_len=1e5) -> None:
+    def __init__(self, pity_p1, p, total_item_types=2, collect_item=None, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
+        if collect_item is None:
+            collect_item = total_item_types
         self.layers.append(PityLayer(pity_p1))
         self.layers.append(BernoulliLayer(p, e_error, max_dist_len))
-        self.layers.append(CouponCollectorLayer(2, collect_item))
+        self.layers.append(CouponCollectorLayer(total_item_types, collect_item))
 
     def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
         return super().__call__(item_num, multi_dist, pull_state, up_guarantee, *args, **kwds)
@@ -199,7 +201,7 @@ dual_up_specific_6star = AKHardPityModel(dual_up_specific_6star_old(1), p2dist(P
 # 获取限定UP6星中的限定6星
 limited_up_6star = PityBernoulliModel(PITY_6STAR, 0.35)
 # 同时获取限定池中两个UP6星（没有考虑井，不适用于有定向选调的卡池）
-both_up_6star = AK_Limit_Model(PITY_6STAR, 0.7, collect_item=2)
+both_up_6star = AK_Limit_Model(PITY_6STAR, 0.7, total_item_types=2, collect_item=2)
 
 
 if __name__ == '__main__':
