@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="索引" href="../genindex.html" /><link rel="search" title="搜索" href="../search.html" /><link rel="next" title="配置环境并安装工具包" href="environment_installation.html" /><link rel="prev" title="欢迎使用 GGanalysis 工具包!" href="../index.html" />
+<link rel="index" title="索引" href="../genindex.html" /><link rel="search" title="搜索" href="../search.html" /><link rel="next" title="基本概念" href="basic_concepts.html" /><link rel="prev" title="快速使用" href="index.html" />
 
     <!-- Generated with Sphinx 6.1.3 and Furo 2023.03.27 -->
-        <title>快速使用 - GGanalysis</title>
+        <title>配置环境并安装工具包 - GGanalysis</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -158,8 +158,8 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">快速上手</span></p>
 <ul class="current">
-<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">快速使用</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="environment_installation.html">配置环境并安装工具包</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">快速使用</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">配置环境并安装工具包</a></li>
 <li class="toctree-l2"><a class="reference internal" href="basic_concepts.html">基本概念</a></li>
 <li class="toctree-l2"><a class="reference internal" href="use_predefined_model.html">使用预定义的抽卡模型</a></li>
 <li class="toctree-l2"><a class="reference internal" href="custom_gacha_model.html">自定义抽卡模型</a></li>
@@ -210,25 +210,62 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
           <section id="id1">
-<h1>快速使用<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">目录</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="environment_installation.html">配置环境并安装工具包</a></li>
-<li class="toctree-l1"><a class="reference internal" href="basic_concepts.html">基本概念</a></li>
-<li class="toctree-l1"><a class="reference internal" href="use_predefined_model.html">使用预定义的抽卡模型</a></li>
-<li class="toctree-l1"><a class="reference internal" href="custom_gacha_model.html">自定义抽卡模型</a></li>
-<li class="toctree-l1"><a class="reference internal" href="stationary_distribution.html">平稳分布时概率的计算工具</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_visualization.html">快速可视化</a></li>
-</ul>
+<h1>配置环境并安装工具包<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
+<section id="python">
+<h2>安装 Python<a class="headerlink" href="#python" title="此标题的永久链接">#</a></h2>
+<p>工具包需要 <code class="docutils literal notranslate"><span class="pre">python&gt;=3.8</span></code>，可以从 <a class="reference external" href="https://www.python.org/">官方网站</a> 下载并安装。</p>
+<p>也可以将使用环境置于 Anaconda 环境中， <a class="reference external" href="https://www.anaconda.com//">Anaconda下载</a> <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html/">Miniconda下载</a>。</p>
+<div class="admonition attention">
+<p class="admonition-title">注意</p>
+<p>只使用抽卡概率计算相关工具时可以采用更老的 Python 版本（不推荐）。
+Python 3.8 之前的版本不支持类型提示，在导入圣遗物计算相关包时会报错，可以选择手动修改报错部分类型提示代码解决问题。</p>
 </div>
+</section>
+<section id="id3">
+<h2>安装依赖包<a class="headerlink" href="#id3" title="此标题的永久链接">#</a></h2>
+<p>GGanalysis 依赖的 Python 包如下：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="https://numpy.org/">numpy</a></p></li>
+<li><p><a class="reference external" href="https://scipy.org/">scipy</a></p></li>
+<li><p><a class="reference external" href="https://matplotlib.org/">matplotlib</a></p></li>
+</ul>
+</div></blockquote>
+<p>可以选择参考以下代码手动安装依赖包，或者直接参考下节中安装 GGanalysis 包的过程，一切正常的话依赖包会自动安装。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib
+</pre></div>
+</div>
+</section>
+<section id="gganalysis">
+<h2>安装 GGanalysis<a class="headerlink" href="#gganalysis" title="此标题的永久链接">#</a></h2>
+<p>在本地机器安装了 <code class="docutils literal notranslate"><span class="pre">git</span></code> 的情况下，可以直接使用 <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span></code> 命令，并使用 <code class="docutils literal notranslate"><span class="pre">pip</span></code> 安装。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/OneBST/GGanalysis.git
+<span class="nb">cd</span><span class="w"> </span>GGanalysis
+<span class="c1"># 如果不需要编辑工具包内代码，直接执行以下命令，安装完成后 git 下载文件可删除</span>
+pip<span class="w"> </span>install<span class="w"> </span>.
+<span class="c1"># 如果需要编辑工具包内代码，加入 -e 选项，运行时直接引用当前位置的包，对代码的修改会实时反应</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p>如果没有安装 <code class="docutils literal notranslate"><span class="pre">git</span></code> ，可以点击 <a class="reference external" href="https://github.com/OneBST/GGanalysis/archive/refs/heads/main.zip">这个链接</a> 下载压缩包。
+解压后按照以上流程操作。（注意需要将 <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">GGanalysis</span></code> 改为 <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">GGanalysis-main</span></code>）</p>
+</section>
+<section id="id5">
+<h2>安装画图使用字体<a class="headerlink" href="#id5" title="此标题的永久链接">#</a></h2>
+<div class="admonition attention">
+<p class="admonition-title">注意</p>
+<p>安装画图程序所需字体是不是必须的。如果只需要使用 GGanalysis 工具包进行概率计算，则可以略过此步骤。</p>
+</div>
+<p>GGanalysis 工具包使用 <a class="reference external" href="https://github.com/adobe-fonts/source-han-sans">思源黑体</a> ，
+请下载工具包使用的 <a class="reference external" href="https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip">特定版本字体</a> 并安装。</p>
+</section>
 </section>
 
         </article>
@@ -236,23 +273,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="environment_installation.html">
+          <a class="next-page" href="basic_concepts.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">配置环境并安装工具包</div>
+                <div class="title">基本概念</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../index.html">
+          <a class="prev-page" href="index.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Home</div>
+                <div class="title">快速使用</div>
                 
               </div>
             </a>
@@ -274,8 +311,30 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">配置环境并安装工具包</a><ul>
+<li><a class="reference internal" href="#python">安装 Python</a></li>
+<li><a class="reference internal" href="#id3">安装依赖包</a></li>
+<li><a class="reference internal" href="#gganalysis">安装 GGanalysis</a></li>
+<li><a class="reference internal" href="#id5">安装画图使用字体</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

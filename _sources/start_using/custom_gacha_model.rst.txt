@@ -15,7 +15,7 @@
 通过预定义模板自定义抽卡模型
 -----------------------------
 
-**GGanalysis** 中已经预定义好了结合保底抽卡模型和伯努利抽卡模型的模板模型 :class:`~GGanalysis.PityBernoulliModel` ，将当前参数传入其中即可获得对应模型。
+GGanalysis 中已经预定义好了结合保底抽卡模型和伯努利抽卡模型的模板模型 :class:`~GGanalysis.PityBernoulliModel` ，将当前参数传入其中即可获得对应模型。
 
 .. code:: Python
     
@@ -32,7 +32,7 @@
 组合抽卡层自定义抽卡模型
 ------------------------
 
-**GGanalysis** 也支持更细粒度的定制抽卡模型。可以继承 :class:`~GGanalysis.CommonGachaModel` 并组合不同抽卡层来设计自己的抽卡模型。
+GGanalysis 也支持更细粒度的定制抽卡模型。可以继承 :class:`~GGanalysis.CommonGachaModel` 并组合不同抽卡层来设计自己的抽卡模型。
 
 同样是解决上述抽卡问题，可以参照以下代码在自定义的抽卡模型中将保底抽卡层和伯努利抽卡层按顺序结合起来，就可以建立获取指定类别的道具的模型了。
 
