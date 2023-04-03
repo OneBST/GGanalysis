@@ -11,7 +11,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     
     
 
@@ -136,7 +135,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -173,6 +172,21 @@
 </ul>
 </li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">支持的游戏</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../games/index.html">支持的游戏</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../games/genshin_impact/index.html">原神</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../games/genshin_impact/gacha_models.html">原神抽卡模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../games/genshin_impact/artifact_models.html">原神圣遗物模型</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../games/arknights/index.html">明日方舟</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../games/arknights/gacha_models.html">明日方舟抽卡模型</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 
 </div>
 </div>
@@ -200,7 +214,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -208,17 +222,16 @@
         <article role="main">
           <section id="id1">
 <h1>自定义抽卡模型<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
-<p>可以继承 <code class="xref py py-class docutils literal notranslate"><span class="pre">CommonGachaModel</span></code> 并组合不同抽卡层来设计自己的抽卡模型。</p>
 <div class="note admonition">
-<p class="admonition-title">抽卡系统例子</p>
-<p>假设有一个游戏有这样的抽卡系统：每抽有 10% 概率获得道具， 90% 概率获得垃圾。
-当连续 3 抽都没有获得道具时，获得道具的概率上升到 60%，
-当连续 4 抽都没有获得道具时，获得道具的概率上升到 100%。
-道具中一共有 5 种不同类别，每种类别均分概率。</p>
+<p class="admonition-title">抽卡问题例子</p>
+<p>假设有一个游戏有这样的抽卡系统：每抽有 10% 概率获得道具， 90% 概率获得垃圾。当连续 3 抽都没有获得道具时，获得道具的概率上升到 60%，连续 4 抽都没有获得道具时，获得道具的概率上升到 100%。</p>
+<p>道具中一共有 5 种不同类别，每种类别均分概率。</p>
 </div>
-<p>这个例子中当一定抽数没有获得道具时，下次获得道具的概率会逐渐上升，直到概率上升为 100%。将这种模型称为软保底模型。
-同时注意到，这个例子中获取了道具后，道具可能是 5 种道具中的任意一种，将这种等概率选择的模型称为伯努利模型。
-而如果在自定义的抽卡模型中将保底抽卡层和伯努利抽卡层按顺序结合起来，就可以建立获取指定类别的道具的模型了。</p>
+<p>这个例子中当一定抽数没有获得道具时，下次获得道具的概率会逐渐上升，直到概率上升为 100%。将这种模型称为软保底模型。</p>
+<p>同时注意到，这个例子中获取了道具后，道具可能是 5 种道具中的任意一种，将这种等概率选择的模型称为伯努利模型。</p>
+<section id="id2">
+<h2>通过预定义模板自定义抽卡模型<a class="headerlink" href="#id2" title="此标题的永久链接">#</a></h2>
+<p><strong>GGanalysis</strong> 中已经预定义好了结合保底抽卡模型和伯努利抽卡模型的模板模型 <code class="xref py py-class docutils literal notranslate"><span class="pre">PityBernoulliModel</span></code> ，将当前参数传入其中即可获得对应模型。</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">GGanalysis</span> <span class="k">as</span> <span class="nn">gg</span>
 <span class="c1"># 定义一个星级带软保底，每个星级内有5种物品，想要获得其中特定一种的模型</span>
 <span class="c1"># 定义软保底概率上升表，第1-3抽概率0.1，第4抽概率0.6，第5抽保底</span>
@@ -228,8 +241,18 @@
 <span class="n">gacha_model</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">PityBernoulliModel</span><span class="p">(</span><span class="n">pity_p</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="c1"># 根据定义的类计算从零开始获取一个道具的分布，由于可能永远获得不了道具，分布是截断的</span>
 <span class="n">dist</span> <span class="o">=</span> <span class="n">gacha_model</span><span class="p">(</span><span class="n">item_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pull_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h2>组合抽卡层自定义抽卡模型<a class="headerlink" href="#id3" title="此标题的永久链接">#</a></h2>
+<p><strong>GGanalysis</strong> 也支持更细粒度的定制抽卡模型。可以继承 <code class="xref py py-class docutils literal notranslate"><span class="pre">CommonGachaModel</span></code> 并组合不同抽卡层来设计自己的抽卡模型。</p>
+<p>同样是解决上述抽卡问题，可以参照以下代码在自定义的抽卡模型中将保底抽卡层和伯努利抽卡层按顺序结合起来，就可以建立获取指定类别的道具的模型了。</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">GGanalysis</span> <span class="k">as</span> <span class="nn">gg</span>
+<span class="c1"># 定义一个星级带软保底，每个星级内有5种物品，想要获得其中特定一种的模型</span>
+<span class="c1"># 定义软保底概率上升表，第1-3抽概率0.1，第4抽概率0.6，第5抽保底</span>
+<span class="n">pity_p</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 
-<span class="c1"># 从头定义抽卡类</span>
 <span class="c1"># 保底伯努利抽卡类</span>
 <span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">gg</span><span class="o">.</span><span class="n">CommonGachaModel</span><span class="p">):</span>
     <span class="c1"># 限制期望的误差比例为 1e-8，达不到精度时分布截断位置为 1e5</span>
@@ -239,12 +262,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gg</span><span class="o">.</span><span class="n">PityLayer</span><span class="p">(</span><span class="n">pity_p</span><span class="p">))</span>
         <span class="c1"># 增加伯努利抽卡层</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gg</span><span class="o">.</span><span class="n">BernoulliLayer</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">e_error</span><span class="p">,</span> <span class="n">max_dist_len</span><span class="p">))</span>
-<span class="c1"># 根据定义的类计算从零开始获取一个道具的分布，由于可能永远获得不了道具，分布是截断的</span>
+<span class="c1"># 根据自定义的类计算从零开始获取一个道具的分布，由于可能永远获得不了道具，分布是截断的</span>
 <span class="n">gacha_model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">pity_p</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="c1"># 关于 pull_state 等条件输入，如有需要可以参考预置类中 __call__ 和 _build_parameter_list 的写法</span>
 <span class="n">dist</span> <span class="o">=</span> <span class="n">gacha_model</span><span class="p">(</span><span class="n">item_num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
 </section>
 
         </article>
@@ -290,8 +314,28 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">自定义抽卡模型</a><ul>
+<li><a class="reference internal" href="#id2">通过预定义模板自定义抽卡模型</a></li>
+<li><a class="reference internal" href="#id3">组合抽卡层自定义抽卡模型</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

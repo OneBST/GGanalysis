@@ -11,7 +11,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     
     
 
@@ -173,6 +172,30 @@
 </ul>
 </li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">支持的游戏</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../games/index.html">支持的游戏</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../games/genshin_impact/index.html">原神</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../games/genshin_impact/gacha_models.html">原神抽卡模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../games/genshin_impact/artifact_models.html">原神圣遗物模型</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../games/arknights/index.html">明日方舟</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../games/arknights/gacha_models.html">明日方舟抽卡模型</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../games/genshin_impact/index.html">原神</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../games/genshin_impact/gacha_models.html">原神抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/genshin_impact/artifact_models.html">原神圣遗物模型</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../games/arknights/index.html">明日方舟</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../games/arknights/gacha_models.html">明日方舟抽卡模型</a></li>
+</ul>
+</li>
+</ul>
 
 </div>
 </div>
@@ -210,7 +233,7 @@
 <h1>使用预定义的抽卡模型<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
 <p>预定义的抽卡模型多以 <code class="xref py py-class docutils literal notranslate"><span class="pre">CommonGachaModel</span></code> 为基类。
 根据输入信息返回 <code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型的结果。</p>
-<p>以原神为例说明如何使用预先定义好的抽卡模型。</p>
+<p>以原神为例说明如何使用预先定义好的抽卡模型。更多预定义模型可在 <a class="reference internal" href="../games/genshin_impact/gacha_models.html#genshin-gacha-model"><span class="std std-ref">原神抽卡模型</span></a> 中查阅。</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 导入预定义好的原神模块</span>
 <span class="kn">import</span> <span class="nn">GGanalysis.games.genshin_impact</span> <span class="k">as</span> <span class="nn">GI</span>
 <span class="c1"># 原神角色池的计算</span>
@@ -218,7 +241,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;期望为&#39;</span><span class="p">,</span> <span class="n">dist_c</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span> <span class="s1">&#39;方差为&#39;</span><span class="p">,</span> <span class="n">dist_c</span><span class="o">.</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;分布为&#39;</span><span class="p">,</span> <span class="n">dist_c</span><span class="o">.</span><span class="n">dist</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>以明日方舟为例说明如何使用预先定义好的抽卡模型。</p>
+<p>以明日方舟为例说明如何使用预先定义好的抽卡模型。更多预定义模型可在 <a class="reference internal" href="../games/arknights/gacha_models.html#arknights-gacha-model"><span class="std std-ref">明日方舟抽卡模型</span></a> 中查阅。</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 计算抽卡所需抽数分布律 以明日方舟为例</span>
 <span class="kn">import</span> <span class="nn">GGanalysis.games.arknights</span> <span class="k">as</span> <span class="nn">AK</span>
 <span class="c1"># 普池双UP的计算 item_num是要抽多少个 pull_state是当前垫了多少抽，从零开始填0就行</span>
@@ -226,7 +249,6 @@
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;期望为&#39;</span><span class="p">,</span> <span class="n">dist_c</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span> <span class="s1">&#39;方差为&#39;</span><span class="p">,</span> <span class="n">dist_c</span><span class="o">.</span><span class="n">var</span><span class="p">,</span> <span class="s1">&#39;分布为&#39;</span><span class="p">,</span> <span class="n">dist_c</span><span class="o">.</span><span class="n">dist</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>更多预定义好的抽卡模型可以在 <code class="docutils literal notranslate"><span class="pre">GGanalysis\games\gamename\gacha_model</span></code> 内找到。</p>
 </section>
 
         </article>
