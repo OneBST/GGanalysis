@@ -13,7 +13,7 @@ GGanalysis 是一个概率计算工具包，主要用于解决各类游戏抽卡
 
 GGanalysis 也提供计算极端情况发生的平均回归时、计算广义 CouponCollection 问题概率、计算多种道具耦合、类似原神圣遗物这样的道具的线性加权打分分布计算。
 
-.. admonition:: 工具包的名字是怎么起的？
+.. admonition:: **工具包的名字是怎么起的？**
    :class: note
    
    GGanalysis 名称中的 GG 可以理解为 Gacha Game，也可以理解为 Good Game，也可以认为代表了构建这个包的初衷是为了分析 Genshin Gacha。
@@ -23,7 +23,6 @@ GGanalysis 也提供计算极端情况发生的平均回归时、计算广义 Co
    :maxdepth: 2
    :caption: 快速上手
 
-   installation/index
    start_using/index
 
 .. toctree::
