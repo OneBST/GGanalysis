@@ -24,7 +24,7 @@ __all__ = [
     'single_up_specific_5star',
     'dual_up_specific_5star',
     'triple_up_specific_5star',
-    'HardTypePityDP', # TODO 这里之后移除
+    'both_up_6star',
 ]
 
 # 设置6星概率递增表
@@ -65,6 +65,7 @@ class HardTypePityDP():
         类型硬保底DP（这里称原神的“平稳机制”为类型软包保底，是一个类型的机制）
         描述超过一定抽数没有获取某类道具时，下次再获取道具时必为某类道具之一，直至某类道具获得完全的模型
         调用返回获得1个指定类型道具所需抽数分布
+        TODO 稍加修改改为集齐k种道具所需的抽数分布
     '''
     def __init__(self, item_pull_dist, type_pity_gap, item_types=2, up_rate=1, type_pull_shift=0) -> None:
         '''以获取此道具抽数分布、类型保底抽数、道具类别数量初始化'''
@@ -197,7 +198,7 @@ dual_up_specific_6star_old = PityBernoulliModel(PITY_6STAR, 1/4)
 dual_up_specific_6star = AKHardPityModel(dual_up_specific_6star_old(1), p2dist(PITY_6STAR), type_pity_gap=200, item_types=2, up_rate=0.5, type_pull_shift=1)
 # 获取限定UP6星中的限定6星
 limited_up_6star = PityBernoulliModel(PITY_6STAR, 0.35)
-# 同时获取两个UP6星
+# 同时获取限定池中两个UP6星（没有考虑井，不适用于有定向选调的卡池）
 both_up_6star = AK_Limit_Model(PITY_6STAR, 0.7, collect_item=2)
 
 
