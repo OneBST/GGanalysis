@@ -1,5 +1,3 @@
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
 from GGanalysis.basic_models import *
 
 '''
@@ -25,6 +23,7 @@ __all__ = [
     'dual_up_specific_5star',
     'triple_up_specific_5star',
     'both_up_6star',
+    'AK_Limit_Model',
 ]
 
 # 设置6星概率递增表
