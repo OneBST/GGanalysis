@@ -4,6 +4,10 @@
 FiniteDist 类型
 ------------------------
 
+.. .. autoclass:: GGanalysis.FiniteDist
+..     :special-members: __init__, __setitem__, __getitem__, __add__, __mul__, __rmul__, __truediv__, __pow__, __str__, __len__
+..     :members:
+
 :class:`~GGanalysis.FiniteDist` 是非常重要的类型，GGanalysis 工具包的计算功能建立在这个类型之上。
 FiniteDist 用于描述自然数位置上的有限长分布，用一个数组记录从0位置开始分布的概率。
 可以视为记录了一个样本空间为自然数的随机变量的信息。
