@@ -1,0 +1,298 @@
+
+.. container:: cell markdown
+
+.. rubric:: 事前准备
+    :name: 事前准备
+
+.. container:: cell code
+
+.. code:: python
+
+    import GGanalysis
+    import GGanalysis.games.arknights as AK
+
+.. container:: cell markdown
+
+.. rubric:: 参数解释
+    :name: 参数解释
+
+item_num: 需求物品个数
+
+multi_dist：是否返回分别需求1~item_num个物品时的所有分布列
+
+item_pity：我也是保底状态，通俗的叫法为水位
+
+type_pity：定向选调的水位
+
+calc_pull：最高计算的抽数，高于此不计算（五星计算特有）
+
+.. container:: cell markdown
+
+.. rubric:: 具体模型
+    :name: 具体模型
+
+.. container:: cell markdown
+
+.. rubric:: 六星模型
+    :name: 六星模型
+
+.. rubric:: 获取任意六星
+    :name: 获取任意六星
+
+.. code:: python
+
+    def common_6star(
+        item_num: int = 1,
+        multi_dist: bool = False, 
+        pull_state: int = 0, 
+        *args: Any, 
+        **kwds: Any
+    ) -> (FiniteDist | list)
+
+.. container:: cell code
+
+.. code:: python
+
+    dist_1=AK.common_6star(item_num=1)
+    print('抽到六星的期望抽数为：{}'.format(dist_1.exp))
+
+.. container:: output stream stdout
+
+    ::
+
+        抽到六星的期望抽数为：34.59455493520977
+
+.. container:: cell markdown
+
+.. rubric:: 获取单up六星
+    :name: 获取单up六星
+
+.. rubric:: 无定向选调
+    :name: 无定向选调
+
+.. code:: python
+
+    def single_up_6star_old(
+        item_num: int = 1, 
+        multi_dist: bool = False, 
+        pull_state: int = 0, 
+        *args: Any, 
+        **kwds: Any
+    ) -> (FiniteDist | list)
+
+.. rubric:: 有定向选调
+    :name: 有定向选调
+
+.. code:: python
+
+    def single_up_6star(
+        item_num: int = 1, 
+        multi_dist: bool = False, 
+        item_pity: int = 0, 
+        type_pity: int = 0
+    ) -> (FiniteDist | list)
+
+.. container:: cell code
+
+.. code:: python
+
+    dist_2=AK.single_up_6star(item_num=1,item_pity=0,type_pity=0)
+    print('4.6寻访机制更新后，无水位时抽到单up六星的期望抽数为：{}'.format(dist_2.exp))
+
+.. container:: output stream stdout
+
+    ::
+
+        4.6寻访机制更新后，无水位时抽到单up六星的期望抽数为：66.16056206529494
+
+.. container:: cell markdown
+
+.. rubric:: 获取轮换池中特定六星
+    :name: 获取轮换池中特定六星
+
+.. rubric:: 有类型保底
+    :name: 有类型保底
+
+    轮换池\ `类型保底 <https://www.bilibili.com/video/BV1ib411f7YF/>`__\ ：
+
+    首个201抽无up六星后，下个六星必为up六星其一
+
+    首个401抽无特定up六星后，下个六星必为特定up六星。
+
+该规律由统计数据观察得。
+
+.. code:: python
+
+    def dual_up_specific_6star(
+        item_num: int = 1, 
+        multi_dist: bool = False, 
+        item_pity: int = 0, 
+        type_pity: int = 0
+    ) -> (FiniteDist | list)
+
+.. rubric:: 无类型保底
+    :name: 无类型保底
+
+    万一改版后取消了呢？(bushi)
+
+.. code:: python
+
+    def dual_up_specific_6star_old(
+        item_num: int = 1, 
+        multi_dist: bool = False, 
+        pull_state: int = 0, 
+        *args: Any, 
+        **kwds: Any
+    ) -> (FiniteDist | list)
+
+.. container:: cell code
+
+.. code:: python
+
+    dist_3=AK.dual_up_specific_6star(item_num=1)
+    print('准备100抽，从轮换池捞出玛恩纳的概率只有：{}%'.format(sum(dist_3[:100+1])*100))
+
+.. container:: output stream stdout
+
+    ::
+
+        准备100抽，从轮换池捞出玛恩纳的概率只有：49.60442859476116%
+
+.. container:: cell markdown
+
+.. rubric:: 获取限定池六星
+    :name: 获取限定池六星
+
+.. rubric:: 获取限定池中的特定6星
+    :name: 获取限定池中的特定6星
+
+.. code:: python
+
+    def limited_up_6star(
+        item_num: int = 1, 
+        multi_dist: bool = False, 
+        pull_state: int = 0, 
+        *args: Any, 
+        **kwds: Any
+    ) -> (FiniteDist | list)
+
+.. container:: cell code
+
+.. code:: python
+
+    dist_4=AK.limited_up_6star(item_num=5)
+    print('一井满潜限定的概率：{}%'.format(sum(dist_4[:300+1])*100))
+
+.. container:: output stream stdout
+
+    ::
+
+        一井满潜限定的概率：14.881994954229667%
+
+.. container:: cell markdown
+
+.. rubric:: 获取限定池中两个up六星
+    :name: 获取限定池中两个up六星
+
+.. code:: python
+
+    def both_up_6star(
+        item_num: int = 1, 
+        multi_dist: bool = False, 
+        pull_state: int = 0, 
+        up_guarantee: int = 0, 
+        *args: Any, 
+        **kwds: Any
+    ) -> (FiniteDist | list)
+
+.. container:: cell code
+
+.. code:: python
+
+    from GGanalysis.games.arknights.gacha_model import both_up_6star
+    dist_5=both_up_6star()
+    print('全六党吃井概率：{}%'.format((1-sum(dist_5[:300+1]))*100))
+
+.. container:: output stream stdout
+
+    ::
+
+        全六党吃井概率：7.130522684168872%
+
+.. container:: cell markdown
+
+.. rubric:: 五星模型
+    :name: 五星模型
+
+    由于五星的概率受保底影响变得较为复杂，这里采用了近似
+
+    同时也没有考虑类型保底，所以……就是很粗糙啦
+
+.. rubric:: 获取任意五星
+    :name: 获取任意五星
+
+.. code:: python
+
+    def common_5star(
+        item_num: int,
+        calc_pull: int
+    )-> FiniteDist
+
+.. rubric:: 获取单up五星
+    :name: 获取单up五星
+
+    例如联动池
+
+.. code:: python
+
+    def single_up_specific_5star(
+        item_num: int,
+        calc_pull: int
+    )-> FiniteDist
+
+.. rubric:: 获取双UP5星中的特定5星
+    :name: 获取双up5星中的特定5星
+
+    例如普通新池子
+
+.. code:: python
+
+    def dual_up_specific_5star(
+        item_num: int,
+        calc_pull: int
+    )-> FiniteDist
+
+.. rubric:: 获取三UP5星中的特定5星
+    :name: 获取三up5星中的特定5星
+
+    例如轮换池
+
+.. code:: python
+
+    def triple_up_specific_5star(
+        item_num: int,
+        calc_pull: int
+    )-> FiniteDist
+
+.. container:: cell code
+
+.. code:: python
+
+
+    dist_6=AK.triple_up_specific_5star(item_num=6,calc_pull=200)
+    print('150抽满潜概率：',sum(dist_6[:150+1]))
+    print('150抽没满潜概率：',sum(dist_6[150+1:]))
+    print('以上是反面教材：上限设太少')
+    dist_7=AK.triple_up_specific_5star(item_num=6,calc_pull=2000)
+    print('150抽满潜概率：',sum(dist_7[:150+1]))
+    print('150抽没满潜概率：',sum(dist_7[150+1:]))
+
+.. container:: output stream stdout
+
+    ::
+
+        150抽满潜概率： 0.02568320601900781
+        150抽没满潜概率： 0.054984699958017934
+        以上是反面教材：上限设太少
+        150抽满潜概率： 0.02568320601900781
+        150抽没满潜概率： 0.9743167716654138

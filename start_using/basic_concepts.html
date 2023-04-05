@@ -238,7 +238,7 @@
 </div>
 <p><strong>从 FiniteDist 中提取信息</strong></p>
 <p><code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型的分布以 numpy 数组形式记录在 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 中。同时可以从 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型中直接获取分布的基本属性，如期望和方差。</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_a 的分布数组&#39;</span><span class="p">,</span> <span class="n">dist_a</span><span class="o">.</span><span class="n">dist</span><span class="p">)</span>  <span class="c1"># np.ndarray</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_a 的分布数组&#39;</span><span class="p">,</span> <span class="n">dist_a</span><span class="o">.</span><span class="n">dist</span><span class="p">)</span>  <span class="c1"># [0.  0.5 0.5]</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_a 的期望&#39;</span><span class="p">,</span> <span class="n">dist_a</span><span class="o">.</span><span class="n">exp</span><span class="p">)</span>  <span class="c1"># 1.5</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;dist_a 的方差&#39;</span><span class="p">,</span> <span class="n">dist_a</span><span class="o">.</span><span class="n">var</span><span class="p">)</span>  <span class="c1"># 0.25</span>
 </pre></div>

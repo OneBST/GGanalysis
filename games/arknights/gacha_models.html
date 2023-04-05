@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -210,7 +210,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -228,6 +228,151 @@
 <p>适用于计算集齐多种六星的模型（不考虑300井、定向寻访及类型硬保底机制）
 <code class="xref py py-class docutils literal notranslate"><span class="pre">AK_Limit_Model</span></code></p>
 </div></blockquote>
+<section id="id5">
+<h2>参数意义<a class="headerlink" href="#id5" title="此标题的永久链接">#</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">item_num</span></code> 需求物品个数，由于 sphinx autodoc 的 <a class="reference external" href="https://github.com/sphinx-doc/sphinx/issues/9342">bug</a> 在下面没有显示</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multi_dist</span></code> 是否以列表返回获取 1-item_num 个物品的所有分布列</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">item_pity</span></code> 道具保底状态，通俗的叫法为水位、垫抽</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type_pity</span></code> 定向选调的类型保底状态</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calc_pull</span></code> 采用伯努利模型时最高计算的抽数，高于此不计算（仅五星采用伯努利模型）</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id6">
+<h2>六星模型<a class="headerlink" href="#id6" title="此标题的永久链接">#</a></h2>
+<p><strong>获取任意六星角色</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.common_6star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">common_6star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.common_6star" title="永久链接至目标">#</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">GGanalysis.games.arknights</span> <span class="k">as</span> <span class="nn">AK</span>
+<span class="n">dist</span> <span class="o">=</span> <span class="n">AK</span><span class="o">.</span><span class="n">common_6star</span><span class="p">(</span><span class="n">item_num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;抽到六星的期望抽数为：</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">exp</span><span class="p">))</span>  <span class="c1"># 34.59455493520977</span>
+</pre></div>
+</div>
+<p><strong>无定向选调获取单UP六星</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.single_up_6star_old">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">single_up_6star_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.single_up_6star_old" title="永久链接至目标">#</a></dt>
+<dd></dd></dl>
+
+<p><strong>有定向选调获取单UP六星</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.single_up_6star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">single_up_6star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.single_up_6star" title="永久链接至目标">#</a></dt>
+<dd><p>针对描述的寻访规则调整中提到的 <a class="reference external" href="https://www.bilibili.com/read/cv22596510">定向选调机制</a> （在这里称为类型保底）</p>
+</dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">GGanalysis.games.arknights</span> <span class="k">as</span> <span class="nn">AK</span>
+<span class="n">dist</span> <span class="o">=</span> <span class="n">AK</span><span class="o">.</span><span class="n">single_up_6star</span><span class="p">(</span><span class="n">item_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">item_pity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">type_pity</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;4.6寻访机制更新后，无水位时抽到单up六星的期望抽数为：</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">exp</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="output stream stdout docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>4.6寻访机制更新后，无水位时抽到单up六星的期望抽数为：66.16056206529494
+</pre></div>
+</div>
+</div>
+<p><strong>无类型保底轮换池获取特定六星</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.dual_up_specific_6star_old">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">dual_up_specific_6star_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.dual_up_specific_6star_old" title="永久链接至目标">#</a></dt>
+<dd></dd></dl>
+
+<p><strong>有类型保底时轮换池获取特定六星</strong></p>
+<blockquote>
+<div><p>轮换池具有类型保底，即首个 201 抽无 UP 六星后，下个六星必为 UP 六星其一；首个 401 抽无特定 UP 六星后，下个六星必为特定 UP 六星。每个卡池仅生效一轮。</p>
+<p>该规律由 <a class="reference external" href="https://space.bilibili.com/456135037">一个资深的烧饼-</a> 观察 <a class="reference external" href="https://www.bilibili.com/video/BV1ib411f7YF/">统计数据</a> 推断得到。</p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.dual_up_specific_6star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">dual_up_specific_6star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.dual_up_specific_6star" title="永久链接至目标">#</a></dt>
+<dd><p>针对 <a class="reference external" href="https://www.bilibili.com/video/BV1ib411f7YF/">通过统计发现的类型保底</a></p>
+</dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">GGanalysis.games.arknights</span> <span class="k">as</span> <span class="nn">AK</span>
+<span class="n">dist</span> <span class="o">=</span> <span class="n">AK</span><span class="o">.</span><span class="n">dual_up_specific_6star</span><span class="p">(</span><span class="n">item_num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;准备100抽，从轮换池捞出玛恩纳的概率只有：</span><span class="si">{}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dist</span><span class="p">[:</span><span class="mi">100</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="output stream stdout docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>准备100抽，从轮换池捞出玛恩纳的概率只有：49.60442859476116%
+</pre></div>
+</div>
+</div>
+<p><strong>限定池获取特定六星角色</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.limited_up_6star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">limited_up_6star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.limited_up_6star" title="永久链接至目标">#</a></dt>
+<dd><p>需要注意的是，此模型返回的结果是不考虑井的分布。如需考虑井需要自行进行一定后处理。</p>
+</dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">GGanalysis.games.arknights</span> <span class="k">as</span> <span class="nn">AK</span>
+<span class="n">dist</span> <span class="o">=</span> <span class="n">AK</span><span class="o">.</span><span class="n">limited_up_6star</span><span class="p">(</span><span class="n">item_num</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;一井满潜限定的概率：</span><span class="si">{}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">dist_4</span><span class="p">[:</span><span class="mi">300</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="output stream stdout docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>一井满潜限定的概率：14.881994954229667%
+</pre></div>
+</div>
+</div>
+<p><strong>限定池集齐两种UP六星</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.limited_both_up_6star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">limited_both_up_6star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.limited_both_up_6star" title="永久链接至目标">#</a></dt>
+<dd><p>方舟限定池同时获取限定6星及陪跑6星模型</p>
+</dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">GGanalysis.games.arknights</span> <span class="k">as</span> <span class="nn">AK</span>
+<span class="n">dist</span> <span class="o">=</span> <span class="n">AK</span><span class="o">.</span><span class="n">limited_both_up_6star</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;全六党吃井概率：</span><span class="si">{}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="nb">sum</span><span class="p">(</span><span class="n">dist</span><span class="p">[:</span><span class="mi">300</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="output stream stdout docutils container">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>全六党吃井概率：7.130522684168872%
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id11">
+<h2>五星模型<a class="headerlink" href="#id11" title="此标题的永久链接">#</a></h2>
+<div class="admonition attention">
+<p class="admonition-title">注意</p>
+<p>明日方舟五星角色实际上有概率递增的星级保底机制，但其保底进度会被六星重置。这里对五星模型采用了近似，认为其是一个概率为考虑了概率递增的伯努利模型。另外，此处提供的五星模型也没有考虑类型保底。</p>
+<p>此外明日方舟五星模型没有采用 <code class="xref py py-class docutils literal notranslate"><span class="pre">BernoulliLayer</span></code> 构建模型，而是直接采用了 <code class="xref py py-class docutils literal notranslate"><span class="pre">BernoulliGachaModel</span></code> ，当设置 <code class="docutils literal notranslate"><span class="pre">calc_pull</span></code> 太低时，返回的分布概率和可能距离 1 有相当大差距，需要适当设高。</p>
+</div>
+<p><strong>获取任意五星角色</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.common_5star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">common_5star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_pull</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.common_5star" title="永久链接至目标">#</a></dt>
+<dd></dd></dl>
+
+<p><strong>获取单UP五星角色</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.single_up_specific_5star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">single_up_specific_5star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_pull</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.single_up_specific_5star" title="永久链接至目标">#</a></dt>
+<dd></dd></dl>
+
+<p><strong>获取双UP中特定五星角色</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.dual_up_specific_5star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">dual_up_specific_5star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_pull</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.dual_up_specific_5star" title="永久链接至目标">#</a></dt>
+<dd></dd></dl>
+
+<p><strong>获取三UP中特定五星角色</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.arknights.gacha_model.triple_up_specific_5star">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">triple_up_specific_5star</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_pull</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span></span></span><a class="headerlink" href="#GGanalysis.games.arknights.gacha_model.triple_up_specific_5star" title="永久链接至目标">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id12">
+<h2>其它使用示例<a class="headerlink" href="#id12" title="此标题的永久链接">#</a></h2>
+</section>
 </section>
 
         </article>
@@ -265,8 +410,45 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">明日方舟抽卡模型</a><ul>
+<li><a class="reference internal" href="#id5">参数意义</a></li>
+<li><a class="reference internal" href="#id6">六星模型</a><ul>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.common_6star"><code class="docutils literal notranslate"><span class="pre">gacha_model.common_6star()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.single_up_6star_old"><code class="docutils literal notranslate"><span class="pre">gacha_model.single_up_6star_old()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.single_up_6star"><code class="docutils literal notranslate"><span class="pre">gacha_model.single_up_6star()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.dual_up_specific_6star_old"><code class="docutils literal notranslate"><span class="pre">gacha_model.dual_up_specific_6star_old()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.dual_up_specific_6star"><code class="docutils literal notranslate"><span class="pre">gacha_model.dual_up_specific_6star()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.limited_up_6star"><code class="docutils literal notranslate"><span class="pre">gacha_model.limited_up_6star()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.limited_both_up_6star"><code class="docutils literal notranslate"><span class="pre">gacha_model.limited_both_up_6star()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id11">五星模型</a><ul>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.common_5star"><code class="docutils literal notranslate"><span class="pre">gacha_model.common_5star()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.single_up_specific_5star"><code class="docutils literal notranslate"><span class="pre">gacha_model.single_up_specific_5star()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.dual_up_specific_5star"><code class="docutils literal notranslate"><span class="pre">gacha_model.dual_up_specific_5star()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.arknights.gacha_model.triple_up_specific_5star"><code class="docutils literal notranslate"><span class="pre">gacha_model.triple_up_specific_5star()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id12">其它使用示例</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
