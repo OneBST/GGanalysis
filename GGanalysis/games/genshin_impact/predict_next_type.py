@@ -3,10 +3,10 @@ import GGanalysis.games.genshin_impact as GI
 from matplotlib import pyplot as plt
 
 # 计算常驻类别概率
-def calc_type_P(pull_state, not_met):
+def calc_type_P(item_pity, not_met):
     # c = ggl.Pity5starCommon()
-    # dist = c.conditional_distribution(1, pull_state)
-    dist = GI.common_5star(1, pull_state=pull_state)
+    # dist = c.conditional_distribution(1, item_pity)
+    dist = GI.common_5star(1, item_pity=item_pity)
     # 计算单抽类别概率
     def pull_type_P(pull_num):
         A = 30

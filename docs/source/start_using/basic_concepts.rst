@@ -35,7 +35,7 @@ FiniteDist 用于描述自然数位置上的有限长分布，用一个数组记
 
 .. code:: Python
 
-    print('dist_a 的分布数组', dist_a.dist)  # np.ndarray
+    print('dist_a 的分布数组', dist_a.dist)  # [0.  0.5 0.5]
     print('dist_a 的期望', dist_a.exp)  # 1.5
     print('dist_a 的方差', dist_a.var)  # 0.25
 

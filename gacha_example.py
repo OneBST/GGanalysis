@@ -15,12 +15,12 @@ print('分布在类中以numpy数组形式保存', c.dist)
 import GGanalysis.games.genshin_impact as GI
 # 原神角色池的计算
 print('角色池在垫了20抽，有大保底的情况下抽3个UP五星抽数的分布')
-dist_c = GI.up_5star_character(item_num=3, pull_state=20, up_guarantee=1)
+dist_c = GI.up_5star_character(item_num=3, item_pity=20, up_pity=1)
 print('期望为', dist_c.exp, '方差为', dist_c.var, '分布为', dist_c.dist)
 
 # 原神武器池的计算
 print('武器池池在垫了30抽，有大保底，命定值为1的情况下抽1个UP五星抽数的分布')
-dist_w = GI.up_5star_ep_weapon(item_num=1, pull_state=30, up_guarantee=1, fate_point=1)
+dist_w = GI.up_5star_ep_weapon(item_num=1, item_pity=30, up_pity=1, fate_point=1)
 print('期望为', dist_w.exp, '方差为', dist_w.var, '分布为', dist_w.dist)
 
 # 联合角色池和武器池

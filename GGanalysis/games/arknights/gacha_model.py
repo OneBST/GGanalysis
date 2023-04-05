@@ -24,7 +24,7 @@ __all__ = [
     'single_up_specific_5star',
     'dual_up_specific_5star',
     'triple_up_specific_5star',
-    'both_up_6star',
+    'limited_both_up_6star',
 ]
 
 # 设置6星概率递增表
@@ -51,12 +51,12 @@ class AK_Limit_Model(CommonGachaModel):
         self.layers.append(BernoulliLayer(p, e_error, max_dist_len))
         self.layers.append(CouponCollectorLayer(total_item_types, collect_item))
 
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, pull_state, up_guarantee, *args, **kwds)
+    def __call__(self, multi_dist: bool = False, item_pity = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        return super().__call__(1, multi_dist, item_pity, *args, **kwds)
 
-    def _build_parameter_list(self, pull_state: int=0, up_guarantee: int=0) -> list:
+    def _build_parameter_list(self, item_pity: int=0,) -> list:
         parameter_list = [
-            [[], {'pull_state':pull_state}],
+            [[], {'item_pity':item_pity}],
             [[], {}],
             [[], {}]
         ]
@@ -117,7 +117,7 @@ class HardTypePityDP():
         return M[:, 1]
 
 class AKHardPityModel(CommonGachaModel):
-    '''针对 https://www.bilibili.com/video/BV1ib411f7YF/'''
+    '''针对 `通过统计发现的类型保底 <https://www.bilibili.com/video/BV1ib411f7YF/>`_ '''
     def __init__(self, no_type_pity_dist: FiniteDist, item_pull_dist, type_pity_gap, item_types=2, up_rate=1, type_pull_shift=0) -> None:
         super().__init__()
         self.DP_module = HardTypePityDP(item_pull_dist, type_pity_gap, item_types, up_rate, type_pull_shift)
@@ -133,7 +133,7 @@ class AKHardPityModel(CommonGachaModel):
             return ans_list
 
 class AKDirectionalModel(CommonGachaModel):
-    '''针对 https://www.bilibili.com/read/cv22596510 描述的寻访规则调整中提到的定向选调机制（我这里称为类型保底）'''
+    '''针对描述的寻访规则调整中提到的 `定向选调机制 <https://www.bilibili.com/read/cv22596510>`_ （在这里称为类型保底）'''
     def __init__(self, no_type_pity_dist: FiniteDist, item_pull_dist, type_pity_gap, item_types=2, up_rate=1, type_pull_shift=0) -> None:
         super().__init__()
         self.DP_module = HardTypePityDP(item_pull_dist, type_pity_gap, item_types, up_rate, type_pull_shift)
@@ -201,7 +201,7 @@ dual_up_specific_6star = AKHardPityModel(dual_up_specific_6star_old(1), p2dist(P
 # 获取限定UP6星中的限定6星
 limited_up_6star = PityBernoulliModel(PITY_6STAR, 0.35)
 # 同时获取限定池中两个UP6星（没有考虑井，不适用于有定向选调的卡池）
-both_up_6star = AK_Limit_Model(PITY_6STAR, 0.7, total_item_types=2, collect_item=2)
+limited_both_up_6star = AK_Limit_Model(PITY_6STAR, 0.7, total_item_types=2, collect_item=2)
 
 
 if __name__ == '__main__':

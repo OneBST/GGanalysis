@@ -6,8 +6,6 @@
 
 近期加入了对有分值道具的相关功能，可以对类似原神圣遗物等问题进行建模。但请注意，这部分代码随时可能发生变动，接口可能大幅改动。
 
-工具包名称从 `GGanalysisLite` 改为 `GGanalysis`，此前的 `GGanalysis` 包暂更名为 `GGanalysislib`。
-
 ## 安装方法
 
 本工具包的依赖库很简单，只需要安装`numpy`和`scipy`即可。如果需要使用工具包提供的画图代码，还需安装 `matplotlib`。
@@ -26,15 +24,7 @@ pip install .
 
 画图时需要安装[思源黑体](https://github.com/adobe-fonts/source-han-sans)，安装[对应版本](https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip)后即可使用。
 
-## 支持抽卡层
-
-1. `Pity_layer` 保底抽卡层，实现每抽获取物品的概率仅和当前至多多少抽没有获取过物品相关的抽卡模型。
-2. `Bernoulli_layer` 伯努利抽卡层，实现每次抽卡获取物品的概率都是相互独立并有同样概率的抽卡模型。
-3. `Markov_layer` 马尔可夫抽卡层，实现每次抽卡都按一定概率在状态图上进行转移的抽卡模型。保底抽卡层是马尔科夫抽卡层的特例。
-3. `Coupon_Collector_layer` 集齐道具层，实现每次抽卡随机获得某种代币，代币有若干不同种类，当集齐一定种类的代币后获得物品的抽卡模型。（注意：目前集齐道具层的功能已经可以使用，但还未经过充分的测试）
-
 ## 使用方法
-
 
 **使用定义好的抽卡模型计算抽卡所需抽数分布**
 
@@ -80,30 +70,6 @@ class MyModel(gg.CommonGachaModel):
 gacha_model = MyModel(pity_p, 1/5)
 # 关于 pull_state 等条件输入，如有需要可以参考预置类中 __call__ 和 _build_parameter_list 的写法
 dist = gacha_model(item_num=1)
-```
-
-**使用转移矩阵方法计算复合类型保底的概率**
-
-``` python
-# 以明日方舟为例，计算明日方舟六星、五星、四星、三星物品耦合后，各类物品的综合概率
-import GGanalysis as gg
-import GGanalysis.games.arknights as AK
-# 按优先级将道具概率表组成列表
-item_p_list = [AK.pity_6star, AK.pity_5star, [0, 0.5], [0, 0.4]]
-AK_probe = gg.PriorityPitySystem(item_p_list, extra_state=1, remove_pity=True)
-# 打印结果，转移矩阵的计算可能比较慢
-print(AK_probe.get_stationary_p())
-# [0.02890628 0.08948246 0.49993432 0.38167693]
-```
-
-**使用迭代方法计算平稳分布后n连抽获得k个道具概率**
-
-``` python
-# 以原神10连获得多个五星道具为例
-import GGanalysis as gg
-import GGanalysis.games.genshin_impact as GI
-# 获得平稳后进行10连抽获得k个五星道具的分布
-ans = gg.multi_item_rarity(GI.pity_5star, 10)
 ```
 
 **绘制简略的概率质量函数图及累积质量函数图**

@@ -89,21 +89,21 @@ class Genshin5starEPWeaponModel(CommonGachaModel):
         self.layers.append(PityLayer(PITY_W5STAR))
         self.layers.append(MarkovLayer(M))
 
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, up_guarantee = 0, fate_point = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, pull_state, up_guarantee, fate_point, *args, **kwds)
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, up_pity = 0, fate_point = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity, up_pity, fate_point, *args, **kwds)
 
-    def _build_parameter_list(self, pull_state: int=0, up_guarantee: int=0, fate_point: int=0) -> list:
+    def _build_parameter_list(self, item_pity: int=0, up_pity: int=0, fate_point: int=0) -> list:
         if fate_point >= 2:
             begin_pos = 4
-        elif fate_point == 1 and up_guarantee == 1:
+        elif fate_point == 1 and up_pity == 1:
             begin_pos = 3
-        elif fate_point == 1 and up_guarantee == 0:
+        elif fate_point == 1 and up_pity == 0:
             begin_pos = 2
-        elif fate_point == 0 and up_guarantee == 1:
+        elif fate_point == 0 and up_pity == 1:
             begin_pos = 1
         else:
             begin_pos = 0
-        l1_param = [[], {'pull_state':pull_state}]
+        l1_param = [[], {'item_pity':item_pity}]
         l2_param = [[], {'begin_pos':begin_pos}]
         parameter_list = [l1_param, l2_param]
         return parameter_list
@@ -116,11 +116,11 @@ class GenshinCommon5starInUPpoolModel(CommonGachaModel):
         super().__init__()
         self.layers.append(PityLayer(PITY_5STAR))
         self.layers.append(GenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, need_type, max_dist_len))
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, pull_state = 0, is_last_UP=False, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, pull_state, is_last_UP, *args, **kwds)
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, is_last_UP=False, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity, is_last_UP, *args, **kwds)
 
-    def _build_parameter_list(self, pull_state: int=0, is_last_UP: bool=False) -> list:
-        l1_param = [[], {'pull_state':pull_state}]
+    def _build_parameter_list(self, item_pity: int=0, is_last_UP: bool=False) -> list:
+        l1_param = [[], {'item_pity':item_pity}]
         l2_param = [[], {'is_last_UP':is_last_UP}]
         parameter_list = [l1_param, l2_param]
         return parameter_list
@@ -195,3 +195,7 @@ class GenshinCommon5starInUPpoolLayer(GachaLayer):
     
 stander_5star_character_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.5, stander_item=7, dp_lenth=300, need_type=1)
 stander_5star_weapon_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.75, stander_item=10, dp_lenth=800, need_type=1)
+
+
+if __name__ == '__main__':
+    pass

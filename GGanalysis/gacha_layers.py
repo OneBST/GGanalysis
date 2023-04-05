@@ -37,10 +37,10 @@ class PityLayer(GachaLayer):
         self.var = self.dist.var
     def __str__(self) -> str:
         return f"Pity Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
-    def _forward(self, input, full_mode, pull_state=0) -> FiniteDist:
+    def _forward(self, input, full_mode, item_pity=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
-            return FiniteDist(cut_dist(self.dist, pull_state))
+            return FiniteDist(cut_dist(self.dist, item_pity))
         # 处理累加分布情况
         # f_dist 为完整分布 c_dist 为条件分布 根据工作模式不同进行切换
         f_dist: FiniteDist = input[0]
@@ -49,7 +49,7 @@ class PityLayer(GachaLayer):
         else:
             c_dist: FiniteDist = input[1]
         # 处理条件叠加分布
-        overlay_dist = FiniteDist(cut_dist(self.dist, pull_state))
+        overlay_dist = FiniteDist(cut_dist(self.dist, item_pity))
         output_dist = FiniteDist([0])  # 获得一个0分布
         output_E = 0  # 叠加后的期望
         output_D = 0  # 叠加后的方差

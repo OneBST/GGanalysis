@@ -56,7 +56,7 @@ def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
         for i in range(len(pity_p)-1):
             # 枚举垫抽数量
             # 获得抽到第一个物品的分布
-            dist = item_model(1, pull_state=i).dist[:once_pull_times+1]
+            dist = item_model(1, item_pity=i).dist[:once_pull_times+1]
             dist = pad_zero(dist, once_pull_times+1)
             # 假设概率提升段大于每次连抽次数，这个情况下只需要考虑基础概率
             for j in range(1, once_pull_times+1):
@@ -91,7 +91,7 @@ def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
         for i in range(len(pity_p)-1):
             # 枚举垫抽数量
             # 获得抽到 1-once_pull_times 个物品的分布
-            dists = item_model(once_pull_times, pull_state=i, multi_dist=True)
+            dists = item_model(once_pull_times, item_pity=i, multi_dist=True)
             for j in range(len(dists)):
                 dists[j] = pad_zero(dists[j].dist[:once_pull_times+1], once_pull_times+1)
             for j in range(1, once_pull_times+1):
@@ -119,7 +119,7 @@ def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
     # 计算平稳情况下第一个道具位置的分布
     first_item_p = np.zeros(once_pull_times+1, dtype=np.double)
     for i in range(len(pity_p)-1):
-        dist = pad_zero(item_model(1, pull_state=i).dist[:once_pull_times+1], once_pull_times+1)
+        dist = pad_zero(item_model(1, item_pity=i).dist[:once_pull_times+1], once_pull_times+1)
         first_item_p += stationary_left[i] * dist
     
     # 计算连抽出多个道具的概率
@@ -136,7 +136,7 @@ def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
     for i in range(1, once_pull_times+1):
         # 枚举之前垫了多少抽
         for j in range(len(pity_p)-1):
-            dist = item_model(i, pull_state=j)
+            dist = item_model(i, item_pity=j)
             for k in range(1, len(dist.dist[:once_pull_times+1])):
                 ans[i] += stationary_left[j] * dist.dist[k] * P_m[once_pull_times-k]
     ans[0] = 1 - sum(ans[1:])
