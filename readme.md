@@ -43,35 +43,6 @@ dist_c = AK.dual_up_specific_6star(item_num=3, pull_state=20)
 print('期望为', dist_c.exp, '方差为', dist_c.var, '分布为', dist_c.dist)
 ```
 
-**自定义抽卡模型**
-
-``` python
-import GGanalysis as gg
-# 定义一个星级带软保底，每个星级内有5种物品，想要获得其中特定一种的模型
-# 定义软保底概率上升表，第1-3抽概率0.1，第4抽概率0.6，第5抽保底
-pity_p = [0, 0.1, 0.1, 0.1, 0.6, 1]
-
-# 采用预定义的保底伯努利抽卡类
-gacha_model = gg.PityBernoulliModel(pity_p, 1/5)
-# 根据定义的类计算从零开始获取一个道具的分布，由于可能永远获得不了道具，分布是截断的
-dist = gacha_model(item_num=1, pull_state=0)
-
-# 从头定义抽卡类
-# 保底伯努利抽卡类
-class MyModel(gg.CommonGachaModel):
-    # 限制期望的误差比例为 1e-8，达不到精度时分布截断位置为 1e5
-    def __init__(self, pity_p, p, e_error = 1e-8, max_dist_len=1e5) -> None:
-        super().__init__()
-        # 增加保底抽卡层
-        self.layers.append(gg.PityLayer(pity_p))
-        # 增加伯努利抽卡层
-        self.layers.append(gg.BernoulliLayer(p, e_error, max_dist_len))
-# 根据定义的类计算从零开始获取一个道具的分布，由于可能永远获得不了道具，分布是截断的
-gacha_model = MyModel(pity_p, 1/5)
-# 关于 pull_state 等条件输入，如有需要可以参考预置类中 __call__ 和 _build_parameter_list 的写法
-dist = gacha_model(item_num=1)
-```
-
 **绘制简略的概率质量函数图及累积质量函数图**
 
 ``` python

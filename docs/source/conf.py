@@ -38,9 +38,10 @@ html_search_language = 'zh'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo" # pip install furo
+html_logo = "logo.svg"
 html_static_path = ['_static']
 html_css_files = ['custom.css']
 html_title = "GGanalysis"
 html_theme_options = {
-    "sidebar_hide_name": False,  # 启用左上角的标题以便随时返回
+    "sidebar_hide_name": True, 
 }

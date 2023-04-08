@@ -13,6 +13,12 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
     适用于计算在活动祈愿中获得常驻祈愿五星/四星道具的模型
     :class:`~GGanalysis.games.genshin_impact.GenshinCommon5starInUPpoolModel` 
 
+.. attention:: 
+
+   原神的四星保底不会被五星重置，但与五星耦合时仍会在综合概率上产生细微的影响。此处的模型没有考虑四星和五星的耦合。
+
+   原神常驻祈愿中具有“平稳机制”，即角色和武器两种类型的保底，GGanalysis 包没有提供这类模型，有需要可以使用 `GGanalysislib 包 <https://github.com/OneBST/GGanalysislib>`_ 。
+
 参数意义
 ------------------------
 
@@ -25,12 +31,6 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
     - ``up_pity`` UP道具保底状态，设为 1 即为玩家所说的大保底
 
     - ``calc_pull`` 采用伯努利模型时最高计算的抽数，高于此不计算（仅五星采用伯努利模型）
-
-.. attention:: 
-
-   原神的四星保底不会被五星重置，但与五星耦合时仍会在综合概率上产生细微的影响。此处的模型没有考虑四星和五星的耦合。
-
-   原神常驻祈愿中具有“平稳机制”，即角色和武器两种类型的保底，GGanalysis 包没有提供这类模型，有需要可以使用 `GGanalysislib 包 <https://github.com/OneBST/GGanalysislib>`_ 。
 
 基本模型
 ------------------------
