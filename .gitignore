@@ -23,3 +23,6 @@ GGanalysislib/
 
 # vs code setting
 .vscode/
+
+# idea setting
+.idea/
