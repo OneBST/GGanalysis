@@ -147,8 +147,10 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
   
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../_static/logo.svg" alt="Logo"/>
+  </div>
   
-  <span class="sidebar-brand-text">GGanalysis</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="搜索" name="q" aria-label="搜索">
@@ -226,6 +228,11 @@
 <p>适用于计算在活动祈愿中获得常驻祈愿五星/四星道具的模型
 <code class="xref py py-class docutils literal notranslate"><span class="pre">GenshinCommon5starInUPpoolModel</span></code></p>
 </div></blockquote>
+<div class="admonition attention">
+<p class="admonition-title">注意</p>
+<p>原神的四星保底不会被五星重置，但与五星耦合时仍会在综合概率上产生细微的影响。此处的模型没有考虑四星和五星的耦合。</p>
+<p>原神常驻祈愿中具有“平稳机制”，即角色和武器两种类型的保底，GGanalysis 包没有提供这类模型，有需要可以使用 <a class="reference external" href="https://github.com/OneBST/GGanalysislib">GGanalysislib 包</a> 。</p>
+</div>
 <section id="id3">
 <h2>参数意义<a class="headerlink" href="#id3" title="此标题的永久链接">#</a></h2>
 <blockquote>
@@ -237,11 +244,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">calc_pull</span></code> 采用伯努利模型时最高计算的抽数，高于此不计算（仅五星采用伯努利模型）</p></li>
 </ul>
 </div></blockquote>
-<div class="admonition attention">
-<p class="admonition-title">注意</p>
-<p>原神的四星保底不会被五星重置，但与五星耦合时仍会在综合概率上产生细微的影响。此处的模型没有考虑四星和五星的耦合。</p>
-<p>原神常驻祈愿中具有“平稳机制”，即角色和武器两种类型的保底，GGanalysis 包没有提供这类模型，有需要可以使用 <a class="reference external" href="https://github.com/OneBST/GGanalysislib">GGanalysislib 包</a> 。</p>
-</div>
 </section>
 <section id="id4">
 <h2>基本模型<a class="headerlink" href="#id4" title="此标题的永久链接">#</a></h2>
