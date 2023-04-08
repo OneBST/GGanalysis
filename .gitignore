@@ -15,6 +15,9 @@ doctrees/
 figure/
 build/
 
+# leave logo file
+!/docs/source/logo.svg
+
 # test files
 test.py
 temp.py
