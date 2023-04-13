@@ -191,6 +191,43 @@ class MarkovLayer(GachaLayer):
         output_dist.var = output_D
         return output_dist
 
+class DynamicProgrammingLayer(GachaLayer):
+    '''DP抽卡层 传入DP函数以定义，注意DP函数需要定义默认值'''
+    # TODO 完善这个抽卡层并进行测试，目前还是没有经过测试的不可用阶段，其功能和接口也尚未评估
+    def __init__(self, dp_function) -> None:
+        super().__init__()
+        self.dp_function = dp_function
+    def __str__(self) -> str:
+        return f"DP Layer {self.dp_function}"
+    def _forward(self, input, full_mode, *args: any, **kwds: any) -> FiniteDist:
+        # 以下代码修改自 PityLayer
+        # 输入为空，本层为第一层，返回初始分布
+        if input is None:
+            return FiniteDist(self.dp_function(*args, **kwds))
+        # 处理累加分布情况
+        # f_dist 为完整分布 c_dist 为条件分布 根据工作模式不同进行切换
+        f_dist: FiniteDist = input[0]
+        if full_mode:
+            c_dist: FiniteDist = input[0]
+        else:
+            c_dist: FiniteDist = input[1]
+        # 处理条件叠加分布
+        overlay_dist = FiniteDist(self.dp_function(*args, **kwds))
+        output_dist = FiniteDist([0])  # 获得一个0分布
+        output_E = 0  # 叠加后的期望
+        output_D = 0  # 叠加后的方差
+        temp_dist = FiniteDist([1]) # 用于优化计算量
+        for i in range(1, len(overlay_dist)):
+            c_i = float(overlay_dist[i])  # 防止类型错乱的缓兵之策 如果 c_i 的类型是 numpy 数组，则 numpy 会接管 finite_dist_1D 定义的运算返回错误的类型
+            output_dist += c_i * (c_dist * temp_dist)  # 分布累加
+            temp_dist = temp_dist * f_dist
+            output_E += c_i * (c_dist.exp + (i-1) * f_dist.exp)  # 期望累加
+            output_D += c_i * (c_dist.var + (i-1) * f_dist.var + (c_dist.exp + (i-1) * f_dist.exp) ** 2)  # 期望平方累加
+        output_D -= output_E ** 2  # 计算得到方差
+        output_dist.exp = output_E
+        output_dist.var = output_D
+        return output_dist
+
 class CouponCollectorLayer(GachaLayer):
     # 集齐道具层写完了，但是还没有测试
     # 集齐道具层，一般用于最后一层 如果想要实现集齐k种（不足总种类）后继续进入下一层的模型，需要在初始化时给出 target_types
