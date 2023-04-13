@@ -14,7 +14,6 @@ GGanalysis.egg-info/
 doctrees/
 figure/
 build/
-honkai_star_rail/
 
 # leave logo file
 !/docs/source/logo.svg
