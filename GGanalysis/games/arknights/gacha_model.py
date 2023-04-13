@@ -43,13 +43,18 @@ P_5STAR_AVG = 0.08948
 
 
 class AK_Limit_Model(CommonGachaModel):
-    '''方舟限定池同时获取限定6星及陪跑6星模型'''
+    '''
+    方舟限定池同时获取限定6星及陪跑6星模型
+    
+    - ``total_item_types`` 道具的总类别数
+    - ``collect_item`` 收集道具的目标类别数
+    '''
 
-    def __init__(self, pity_p1, p, total_item_types=2, collect_item=None, e_error=1e-8, max_dist_len=1e5) -> None:
+    def __init__(self, pity_p, p, total_item_types=2, collect_item=None, e_error=1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         if collect_item is None:
             collect_item = total_item_types
-        self.layers.append(PityLayer(pity_p1))
+        self.layers.append(PityLayer(pity_p))
         self.layers.append(BernoulliLayer(p, e_error, max_dist_len))
         self.layers.append(CouponCollectorLayer(total_item_types, collect_item))
 
@@ -124,7 +129,10 @@ class HardTypePityDP():
 
 
 class AKHardPityModel(CommonGachaModel):
-    '''针对 `通过统计发现的类型保底 <https://www.bilibili.com/video/BV1ib411f7YF/>`_ '''
+    '''
+    针对通过统计发现的类型保底
+    
+    该机制目前仅发现存在于标准寻访-双UP轮换池（不包含中坚寻访-双UP轮换池），尚未知该机制的累计次数是否会跨卡池继承, `详细信息参看一个资深的烧饼-视频 <https://www.bilibili.com/video/BV1ib411f7YF/>`_ '''
 
     def __init__(self, no_type_pity_dist: FiniteDist, item_pull_dist, type_pity_gap, item_types=2, up_rate=1,
                  type_pull_shift=0) -> None:
@@ -144,7 +152,14 @@ class AKHardPityModel(CommonGachaModel):
 
 
 class AKDirectionalModel(CommonGachaModel):
-    '''针对描述的寻访规则调整中提到的 `定向选调机制 <https://www.bilibili.com/read/cv22596510>`_ （在这里称为类型保底）'''
+    '''
+    针对描述的寻访规则调整中提到的 `定向选调机制 <https://www.bilibili.com/read/cv22596510>`_ （在这里称为类型保底）
+    
+    - ``type_pity_gap`` 类型保底触发间隔抽数
+    - ``item_types`` 道具类别个数，可以简单理解为UP了几个干员
+    - ``up_rate`` 道具所占比例
+    - ``type_pull_shift`` 保底类型偏移量，默认为0（无偏移）
+    '''
 
     def __init__(self, no_type_pity_dist: FiniteDist, item_pull_dist, type_pity_gap, item_types=2, up_rate=1,
                  type_pull_shift=0) -> None:
@@ -214,6 +229,7 @@ single_up_6star = AKDirectionalModel(single_up_6star_old(1), p2dist(PITY_6STAR),
                                      up_rate=0.5)
 # 获取双UP6星中的特定6星 无类型保底及有类型保底，此抽卡机制尚未完全验证
 dual_up_specific_6star_old = PityBernoulliModel(PITY_6STAR, 1 / 4)
+# 据统计 https://www.bilibili.com/video/BV1ib411f7YF/ 此卡池保底实际上从 202/402 等位置开始触发，因此此处 ``type_pull_shift`` 填写为 1
 dual_up_specific_6star = AKHardPityModel(dual_up_specific_6star_old(1), p2dist(PITY_6STAR), type_pity_gap=200,
                                          item_types=2, up_rate=0.5, type_pull_shift=1)
 # 获取限定UP6星中的限定6星
