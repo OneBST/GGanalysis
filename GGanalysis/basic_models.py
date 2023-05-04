@@ -1,21 +1,22 @@
 from GGanalysis.distribution_1d import *
 from GGanalysis.gacha_layers import *
-from typing import Union
+from GGanalysis.recursion_methods import GeneralCouponCollection
+from typing import Any, Union
 
-# 所有抽卡模型的基类，目前什么也不干
 class GachaModel(object):
+    '''所有抽卡模型的基类'''
     pass
 
-# 基本抽卡类 对每次获取道具是独立事件的抽象
 class CommonGachaModel(GachaModel):
+    '''基本抽卡类 对每次获取道具是独立事件的抽象'''
     def __init__(self) -> None:
         super().__init__()
         # 初始化抽卡层
         self.layers = []
         # 在本层中定义抽卡层
     
-    # 调用本类时运行的函数
     def __call__(self, item_num: int=1, multi_dist: bool=False, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        '''调用本类时返回分布'''
         parameter_list = self._build_parameter_list(*args, **kwds)
         # 如果没有对 _build_parameter_list 进行定义就输入参数，报错
         if args != () and kwds != {} and parameter_list is None:
@@ -68,21 +69,42 @@ class CommonGachaModel(GachaModel):
             ans_dist = layer(ans_dist, *parameter[0], **parameter[1])
         return ans_dist
 
-# 伯努利抽卡类
 class BernoulliGachaModel(GachaModel):
-    def __init__(self, p) -> None:
+    '''伯努利抽卡类'''
+    def __init__(self, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         self.p = p  # 伯努利试验概率
+        self.e_error = e_error
+        self.max_dist_len = max_dist_len
 
-    def __call__(self, item_num: int, calc_pull: int) -> FiniteDist:
+    def __call__(self, item_num: int, calc_pull: int=None) -> FiniteDist:
         '''
             返回抽物品个数的分布
-            这里 calc_pull 表示了计算的最高抽数，高于此不计算
+            这里 calc_pull 表示了计算的最高抽数，高于此不计算，若不指定则返回自动长度
         '''
+        output_E = item_num / self.p
+        output_D = item_num * (1 - self.p) / self.p ** 2
+        if calc_pull is None:
+            test_len = max(int(output_E), 2)
+            while True:
+                x = np.arange(test_len+1)
+                output_dist = self.p * (binom.pmf(item_num-1, x-1, self.p))
+                output_dist[0] = 0
+                output_dist = FiniteDist(output_dist)
+                calc_error = abs(calc_expectation(output_dist)-output_E)/output_E
+                if calc_error < self.e_error or test_len > self.max_dist_len:
+                    if test_len > self.max_dist_len:
+                        print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+                    output_dist.exp = output_E
+                    output_dist.var = output_D
+                    return output_dist
+                test_len *= 2
+        # 指定长度时不内嵌理论方差和期望
         x = np.arange(calc_pull+1)
-        dist = self.p * (binom.pmf(item_num-1, x-1, self.p))
-        dist[0] = 0
-        return FiniteDist(dist)
+        output_dist = self.p * (binom.pmf(item_num-1, x-1, self.p))
+        output_dist[0] = 0
+        output_dist = FiniteDist(output_dist)
+        return output_dist
 
     # 计算固定抽数，获得道具数的分布
     '''
@@ -93,8 +115,53 @@ class BernoulliGachaModel(GachaModel):
         return finite_dist_1D(dist)
     '''
 
-# 带保底抽卡类
+class CouponCollectorModel(CommonGachaModel):
+    '''均等概率集齐道具抽卡类'''
+    def __init__(self, item_types, e_error = 1e-6, max_dist_len = 1e5) -> None:
+        super().__init__()
+        self.layers.append(CouponCollectorLayer(item_types, None, e_error, max_dist_len))
+    
+    def __call__(self, initial_types: int = 0, target_types: int = None, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        return super().__call__(1, False, initial_types, target_types, *args, **kwds)
+
+    def _build_parameter_list(self, initial_types: int = 0, target_types: int = None) -> list:
+        parameter_list = [
+            [[], {'initial_types':initial_types, 'target_types':target_types}],
+        ]
+        return parameter_list
+
+class GeneralCouponCollectorModel(GachaModel):
+    '''不均等概率集齐道具抽卡类'''
+    def __init__(self, p_list: Union[list, np.ndarray], item_name: list[str]=None, e_error = 1e-6, max_dist_len = 1e5) -> None:
+        super().__init__()
+        self.e_error = e_error
+        self.max_dist_len = max_dist_len
+        self.model = GeneralCouponCollection(p_list, item_name)
+
+    def __call__(self, init_item: list=None, target_item: list=None) -> FiniteDist:
+        # 输入处理
+        if init_item is None:
+            init_state = self.model.default_init_state
+        else:
+            init_state = self.model.encode_state_number(init_item)
+        if target_item is None:
+            target_state = self.model.default_target_state
+        else:
+            target_state = self.model.encode_state_number(target_item)
+        output_E = self.model.get_expectation(init_state, target_state)
+        test_len = max(int(output_E), 2)
+        while True:
+            output_dist = FiniteDist(cdf2dist(self.model.get_collection_p(test_len, init_state, target_state)))
+            calc_error = abs(calc_expectation(output_dist)-output_E)/output_E
+            if calc_error < self.e_error or test_len > self.max_dist_len:
+                if test_len > self.max_dist_len:
+                    print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+                output_dist.exp = output_E
+                return output_dist
+            test_len *= 2
+
 class PityModel(CommonGachaModel):
+    '''带保底抽卡类'''
     def __init__(self, pity_p) -> None:
         super().__init__()
         self.layers.append(PityLayer(pity_p))
@@ -106,8 +173,8 @@ class PityModel(CommonGachaModel):
         parameter_list = [[[], {'item_pity':item_pity}]]
         return parameter_list
 
-# 双重保底抽卡类
 class DualPityModel(CommonGachaModel):
+    '''双重保底抽卡类'''
     def __init__(self, pity_p1, pity_p2) -> None:
         super().__init__()
         self.layers.append(PityLayer(pity_p1))
@@ -123,8 +190,8 @@ class DualPityModel(CommonGachaModel):
         ]
         return parameter_list
 
-# 保底伯努利抽卡类
 class PityBernoulliModel(CommonGachaModel):
+    '''保底伯努利抽卡类'''
     def __init__(self, pity_p, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         self.layers.append(PityLayer(pity_p))
@@ -140,8 +207,8 @@ class PityBernoulliModel(CommonGachaModel):
         ]
         return parameter_list
 
-# 双重保底伯努利类
 class DualPityBernoulliModel(CommonGachaModel):
+    '''双重保底伯努利类'''
     def __init__(self, pity_p1, pity_p2, p, e_error = 1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         self.layers.append(PityLayer(pity_p1))

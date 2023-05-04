@@ -124,7 +124,7 @@ class BernoulliLayer(GachaLayer):
             # 解决输出位置0处不是0的问题
             output_dist[0] = 0
             # 误差限足够小则停止
-            calc_error = abs(output_dist.exp-output_E)/output_E
+            calc_error = abs(calc_expectation(output_dist)-output_E)/output_E
             if calc_error < self.e_error or test_len > self.max_dist_len:
                 if test_len > self.max_dist_len:
                     print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
@@ -229,6 +229,7 @@ class DynamicProgrammingLayer(GachaLayer):
         return output_dist
 
 class CouponCollectorLayer(GachaLayer):
+    '''均等概率集齐道具层'''
     # 集齐道具层写完了，但是还没有测试
     # 集齐道具层，一般用于最后一层 如果想要实现集齐k种（不足总种类）后继续进入下一层的模型，需要在初始化时给出 target_types
     def __init__(self, item_types, target_types=None, e_error=1e-6, max_dist_len=1e5) -> None:
