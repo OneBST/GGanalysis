@@ -41,8 +41,6 @@
 处理天井示例代码
 ------------------------
 
-.. automethod:: GGanalysis.games.honkai_star_rail.gacha_model.up_4star_specific_character
-
 .. code:: python
 
     import GGanalysis as gg
