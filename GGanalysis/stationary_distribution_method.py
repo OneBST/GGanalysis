@@ -3,6 +3,10 @@ from scipy.special import comb
 from GGanalysis.distribution_1d import *
 from GGanalysis.basic_models import PityModel
 
+'''
+基于解平稳分布的分析工具
+'''
+
 def calc_stationary_distribution(M):
     '''
     计算转移矩阵对应平稳分布
@@ -50,6 +54,8 @@ def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
     def build_n_time_matrix(pity_p, item_model, once_pull_times):
         '''
         构建连抽后保底情况的平稳分布
+
+        TODO: 此为旧的功能更少的函数，验证 ``build_n_time_matrix_complete`` 后应移除
         '''
         M = np.zeros((len(pity_p)-1, len(pity_p)-1), dtype=np.double)
         base_p = pity_p[1]
