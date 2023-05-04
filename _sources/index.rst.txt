@@ -31,6 +31,11 @@ GGanalysis 也提供计算极端情况发生的平均回归时、计算广义 Co
 
    games/index
 
+.. toctree::
+   :maxdepth: 2
+   :caption: 抽卡导论
+
+   introduction_to_gacha/index
 .. Indices and tables
 .. ==================
 
