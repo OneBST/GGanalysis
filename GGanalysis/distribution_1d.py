@@ -144,7 +144,7 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         self.dist = np.array(dist, dtype=float)  # 转化为numpy.ndarray类型
         if len(self.dist) == 0:
             self.dist = np.zeros(1, dtype=float)
-        
+
     def __getattr__(self, key):  # 访问未计算的属性时进行计算
         # 基本统计属性
         if key in ['exp', 'var', 'p_sum']:
@@ -155,6 +155,10 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
                 return self.var
             if key == 'p_sum':
                 return self.p_sum
+        # 累积概率密度函数
+        if key == 'cdf':
+            self.calc_cdf()
+            return self.cdf
         # 熵相关属性
         if key in ['entropy_rate', 'randomness_rate']:
             self.calc_entropy_attribution()
@@ -171,6 +175,10 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     def __getitem__(self, sliced):
         '''将numpy切片的方法应用于 ``dist`` 直接取得numpy数组切片'''
         return self.dist[sliced]
+
+    def calc_cdf(self):
+        '''将自身分布转为cdf返回'''
+        self.cdf = dist2cdf(self.dist)
 
     def calc_dist_attribution(self, p_error=1e-6) -> None:
         '''
@@ -201,6 +209,10 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         temp[0] = 1
         self.entropy_rate = -sum(self.dist * np.log2(self.dist+temp)) / self.exp
         self.randomness_rate = self.entropy_rate / (-1/self.exp * np.log2(1/self.exp) - (1-1/self.exp) * np.log2(1-1/self.exp))
+
+    def quantile_point(self, quantile_p):
+        '''返回分位点位置'''
+        return np.searchsorted(self.cdf, quantile_p, side='left')
 
     def p_normalization(self) -> None:
         # 分布概率归一

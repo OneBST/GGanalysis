@@ -1,7 +1,7 @@
 from GGanalysis.distribution_1d import *
 from GGanalysis.gacha_layers import *
 from GGanalysis.recursion_methods import GeneralCouponCollection
-from typing import Any, Union
+from typing import Union
 
 class GachaModel(object):
     '''所有抽卡模型的基类'''

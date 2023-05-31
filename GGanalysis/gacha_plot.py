@@ -377,7 +377,7 @@ class DrawDistribution(object):
         if dpi == None:
             dpi == self.dpi
         if savefig:
-            plt.savefig(self.title+'.png', dpi=dpi)
+            plt.savefig('./figure/'+self.title+'.png', dpi=dpi)
         else:
             plt.show()
 
@@ -389,7 +389,7 @@ class DrawDistribution(object):
         self.set_xticks(self.ax_dist)
         self.add_dist(self.ax_dist, show_title=False, show_xlabel=True)
         if savefig:
-            plt.savefig(self.title+'.png', dpi=self.dpi)
+            plt.savefig('./figure/'+self.title+'.png', dpi=self.dpi)
         else:
             plt.show()
 
@@ -401,7 +401,7 @@ class DrawDistribution(object):
         self.set_xticks(self.ax_cdf)
         self.add_cdf(self.ax_cdf, show_title=False, show_xlabel=True)
         if savefig:
-            plt.savefig(self.title+'.png', dpi=self.dpi)
+            plt.savefig('./figure/'+self.title+'.png', dpi=self.dpi)
         else:
             plt.show()
 
