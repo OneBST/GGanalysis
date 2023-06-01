@@ -19,7 +19,9 @@ __all__ = [
     'common_2star',
     'up_6star',
     'specific_up_5star',
+    'specific_stander_6star',
     'both_up_5star',
+    'stander_charactor_collection',
 ]
 
 # 重返未来1999普通6星保底概率表
@@ -48,8 +50,12 @@ up_6star = DualPityModel(PITY_6STAR, [0, 0.5, 1])
 specific_up_5star = BernoulliGachaModel(P_5s/4)
 # 定义集齐两个UP五星模型
 both_up_5star = GeneralCouponCollectorModel([P_5s/4, P_5s/4], ['up5star1', 'up5star2'])
+# 常驻获取特定6星角色
+specific_stander_6star = PityBernoulliModel(PITY_6STAR, 1/11)
+# 定义集齐常驻
+stander_charactor_collection = PityCouponCollectorModel(PITY_6STAR, 11)
 
 if __name__ == '__main__':
-    print(PITY_6STAR)
-    print(common_6star(1).exp, 1/common_6star(1).exp)
-    print(common_6star(1)[70])
+    # print(PITY_6STAR)
+    # print(common_6star(1).exp, 1/common_6star(1).exp)
+    print(stander_charactor_collection(target_types=2).exp)

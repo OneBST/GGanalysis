@@ -319,6 +319,7 @@ class DrawDistribution(object):
                     title='获取物品所需抽数分布及累进概率',
                     dpi=300,
                     show_description=True,
+                    description_pos=0,
                     is_finite=True,         # 是否为有限分布
                     end_add="@一棵平衡树",   # 末尾添加的标记
                 ) -> None:
@@ -336,6 +337,7 @@ class DrawDistribution(object):
         self.title = title
         self.dpi = dpi
         self.end_add = end_add
+        self.description_pos = description_pos
 
         # 绘图分位点
         self.quantile_pos = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
@@ -589,7 +591,7 @@ class DrawDistribution(object):
             show_text += '\n'+self.end_add
         
         if self.show_description:
-            ax.text(0, self.max_mass*1.08,
+            ax.text(self.description_pos, self.max_mass*1.08,
                     show_text,
                     fontproperties=mark_font,
                     color='#B0B0B0',
