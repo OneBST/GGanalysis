@@ -1,7 +1,7 @@
 from GGanalysis.distribution_1d import *
 from GGanalysis.gacha_layers import *
 from GGanalysis.recursion_methods import GeneralCouponCollection
-from typing import Any, Union
+from typing import Union
 
 class GachaModel(object):
     '''所有抽卡模型的基类'''
@@ -126,6 +126,23 @@ class CouponCollectorModel(CommonGachaModel):
 
     def _build_parameter_list(self, initial_types: int = 0, target_types: int = None) -> list:
         parameter_list = [
+            [[], {'initial_types':initial_types, 'target_types':target_types}],
+        ]
+        return parameter_list
+    
+class PityCouponCollectorModel(CommonGachaModel):
+    '''道具保底均等概率集齐道具抽卡类'''
+    def __init__(self, pity_p, item_types, e_error = 1e-6, max_dist_len = 1e5) -> None:
+        super().__init__()
+        self.layers.append(PityLayer(pity_p))
+        self.layers.append(CouponCollectorLayer(item_types, None, e_error, max_dist_len))
+    
+    def __call__(self, initial_types: int = 0, item_pity = 0, target_types: int = None, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        return super().__call__(1, False, item_pity, initial_types, target_types, *args, **kwds)
+
+    def _build_parameter_list(self, item_pity: int=0, initial_types: int = 0, target_types: int = None) -> list:
+        parameter_list = [
+            [[], {'item_pity':item_pity}],
             [[], {'initial_types':initial_types, 'target_types':target_types}],
         ]
         return parameter_list

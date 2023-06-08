@@ -48,7 +48,7 @@ html_theme_options = {
     "dark_logo": "dark_logo.svg",
     "source_repository": "https://github.com/OneBST/GGanalysis",
     "source_branch": "develop",
-    "source_directory": "docs/",
+    "source_directory": "docs/source",
     "footer_icons": [
         {
             "name": "GitHub",
