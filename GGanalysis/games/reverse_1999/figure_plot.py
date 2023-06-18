@@ -64,35 +64,44 @@ RV_fig.show_figure(dpi=300, savefig=True)
 # 重返未来1999 集齐两个UP五星角色
 RV_fig = DrawDistribution(
     dist_data=RV.both_up_5star(),
+    title='重返未来1999集齐两个UP五星角色',
     max_pull=300,
-    title='重返未来1999集齐两个UP五星角色概率',
-    description_pos=210,
+    text_head='采用官方公示模型',
+    text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
+    description_pos=200,
     is_finite=False,
 )
-RV_fig.draw_two_graph(dpi=300, savefig=True)
+RV_fig.show_dist(dpi=300, savefig=True)
 
 # 重返未来1999 获取六星角色
 RV_fig = DrawDistribution(
     dist_data=RV.common_6star(1),
     title='重返未来1999获取六星角色',
+    text_head='采用官方公示模型',
+    text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
     is_finite=True,
 )
-RV_fig.draw_two_graph(dpi=300, savefig=True)
+RV_fig.show_dist(dpi=300, savefig=True)
 
 # 重返未来1999 常驻获取特定六星角色
 RV_fig = DrawDistribution(
     dist_data=RV.specific_stander_6star(1),
     title='重返未来1999常驻获取特定六星角色',
+    text_head='采用官方公示模型',
+    text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
     max_pull=2300,
-    description_pos=1650,
-    is_finite=True,
+    description_pos=1550,
+    quantile_pos=[0.25, 0.5, 0.75, 0.9, 0.99],
+    is_finite=False,
 )
-RV_fig.draw_two_graph(dpi=300, savefig=True)
+RV_fig.show_dist(dpi=300, savefig=True)
 
 # 重返未来1999 获取UP六星角色
 RV_fig = DrawDistribution(
     dist_data=RV.up_6star(1),
     title='重返未来1999获取UP六星角色',
+    text_head='采用官方公示模型',
+    text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
     is_finite=True,
 )
-RV_fig.draw_two_graph(dpi=300, savefig=True)
+RV_fig.show_dist(dpi=300, savefig=True)
