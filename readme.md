@@ -58,7 +58,7 @@ fig.draw_two_graph()
 
 更详细的构建抽卡模型和计算分布见项目下的 [example.py](https://github.com/OneBST/GGanalysisLite/blob/main/example.py)
 
-使用绘图程序绘制分为函数见项目下的 [figure_example.py](https://github.com/OneBST/GGanalysisLite/blob/main/figure_example.py)
+绘图程序参考项目下 `GGanalysis/games/gamename/figure_plot.py` 文件
 
 ## 注意事项
 
