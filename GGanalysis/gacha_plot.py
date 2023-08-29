@@ -1,7 +1,6 @@
 from GGanalysis.plot_tools import *
 from GGanalysis.distribution_1d import FiniteDist, pad_zero
 from matplotlib.ticker import AutoMinorLocator
-import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
 import os
 
@@ -137,8 +136,8 @@ class QuantileFunction(object):
         )
         fig.set_dpi(dpi)
         ax.set_title(self.title, weight='bold', size=18)
-        ax.set_xlabel('投入抽数', weight='medium', size=12)
-        ax.set_ylabel('获取概率', weight='medium', size=12)
+        ax.set_xlabel('获取概率', weight='medium', size=12)
+        ax.set_ylabel('投入抽数', weight='medium', size=12)
         
         # 分道具数量添加分位函数
         for i, (data, color) in enumerate(zip(self.cdf_data[1:], self.line_colors[1:])):
