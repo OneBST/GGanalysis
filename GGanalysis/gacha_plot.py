@@ -362,7 +362,7 @@ class DrawDistribution(object):
         
         # 绘制分位线
         if quantile_pos is not None:
-            add_vertical_quantile_pmf(ax, dist[:self.max_pull], quantile_pos=self.quantile_pos)
+            add_vertical_quantile_pmf(ax, dist[:self.max_pull], mark_name=self.cost_name, quantile_pos=self.quantile_pos)
 
         if self.show_exp:
             # 绘制期望
