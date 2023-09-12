@@ -1,9 +1,11 @@
 import math
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
 import matplotlib as mpl
 import matplotlib.patheffects as pe
 import matplotlib.transforms as transforms
+
 
 mpl.rcParams['font.family'] = 'Source Han Sans SC'
 
@@ -62,6 +64,8 @@ def set_square_grid_fig(
     ax.grid(visible=True, which='major', linestyle='-', linewidth=1)
     ax.grid(visible=True, which='minor', linestyle='-', linewidth=0.5)
     ax.minorticks_on()
+    ax.xaxis.set_minor_locator(AutoMinorLocator(5))
+    ax.yaxis.set_minor_locator(AutoMinorLocator(5))
 
     return fig, ax, x_gap, x_grids, y_gap, y_grids
 

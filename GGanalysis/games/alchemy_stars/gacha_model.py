@@ -31,8 +31,8 @@ P_3 = 0.555
 # 按照 stationary_p.py 的计算结果修订
 P_6s = 0.02914069
 P_5s = 0.095
-P_4s = 0.33570489
-P_3s = 0.54015442
+P_4s = 0.3299999
+P_3s = 0.54585941
 # 定义获取星级物品的模型
 common_6star = PityModel(PITY_6STAR)
 common_5star = BernoulliGachaModel(P_5s)

@@ -57,4 +57,11 @@ up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/3
 
 
 if __name__ == '__main__':
-    print(PITY_W5STAR)
+    # print(PITY_W5STAR)
+    # 计算分位点
+    quantile_pos = [0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
+    print("选择分位点"+str(quantile_pos))
+    for c in range(0, 7):
+        for w in range(0, 6):
+            dist = up_5star_character(c) * up_5star_weapon(w)
+            print(f"{c}魂{w}叠 "+str(dist.quantile_point(quantile_pos)))

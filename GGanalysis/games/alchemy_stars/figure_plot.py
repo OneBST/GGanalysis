@@ -22,3 +22,26 @@ AS_fig = QuantileFunction(
         y2x_base=2,
         is_finite=True)
 AS_fig.show_figure(dpi=300, savefig=True)
+
+# 白夜极光 获取6星光灵
+AS_fig = DrawDistribution(
+    dist_data=AS.common_6star(1),
+    title='白夜极光获取六星光灵',
+    text_head='采用官方公示模型',
+    text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
+    item_name='六星光灵',
+    is_finite=True,
+)
+AS_fig.show_dist(dpi=300, savefig=True)
+
+# 白夜极光 获取UP6星光灵
+AS_fig = DrawDistribution(
+    dist_data=AS.up_6star(1),
+    title='白夜极光获取UP六星光灵',
+    text_head='采用官方公示模型\n获取UP6星光灵最多需要抽3个六星\n保底进度跨池继承',
+    text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
+    item_name='UP六星光灵',
+    description_pos=180,
+    is_finite=True,
+)
+AS_fig.show_dist(dpi=300, savefig=True)
