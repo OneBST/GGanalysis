@@ -13,7 +13,8 @@ __all__ = [
     'up_3star',
     'up_2star',
     'SimpleDualCollection',
-    'no_exchange_dp',
+    'pull_exchange_dp_1',
+    'pull_exchange_dp_10',
     'get_common_refund',
     'STANDER_3STAR',
     'EXCHANGE_PULL',
@@ -51,8 +52,8 @@ class SimpleDualCollection():
         none_ratio = M[none_state, :]
         return both_ratio, a_ratio, b_ratio, none_ratio
         
-def no_exchange_dp(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, exchange_pos=EXCHANGE_PULL):
-    '''在重复角色获得神名文字无价值情情况下用最低抽数集齐的策略，即会切换卡池抽'''
+def pull_exchange_dp_1(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, exchange_pos=EXCHANGE_PULL):
+    '''在重复角色获得神名文字无价值情情况下用最低抽数集齐的策略，即会切换卡池抽，每次单抽'''
     # 即获得了A后就换到B池继续抽的情况
     import numpy as np
     # A为默认先抽角色 B默认为后抽角色
@@ -88,6 +89,69 @@ def no_exchange_dp(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, excha
 
     return M[:, 3]
 
+def pull_exchange_dp_10(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, exchange_pos=EXCHANGE_PULL):
+    '''在重复角色获得神名文字无价值情情况下用最低抽数集齐的策略，即会切换卡池抽，每次十连抽'''
+    a, b = up_p, (base_p-up_p)/other_charactors
+    # 设置每种状态下的转移矩阵，开始位置为先抽A卡池
+    M_A = np.array([[1-a-b, 0, 0, 0],
+                    [a, 1-b, 0, 0],
+                    [b, 0, 1-a, 0],
+                    [0, b, a, 1]])
+    M_B = np.array([[1-a-b, 0, 0, 0],
+                    [b, 1-a, 0, 0],
+                    [a, 0, 1-b, 0],
+                    [0, a, b, 1]])
+    # 十连自乘10次
+    M_A_10 = np.linalg.matrix_power(M_A, 10)
+    M_B_10 = np.linalg.matrix_power(M_B, 10)
+    # 得到策略组合后的矩阵
+    M = np.hstack((M_A_10[:, [0]], M_B_10[:, [1]], M_A_10[:, [2]], M_B_10[:, [3]]))
+    
+    # 递推得到结果
+    k = int(exchange_pos/10) * 2 # 十连次数
+    ans = np.zeros((k+1, 4), dtype=float)
+    x = np.array([1, 0, 0, 0])
+    # 计算所有情况
+    for i in range(0, k+1):
+        ans[i, :] = x
+        x = np.matmul(M, x)
+
+    # 对井的情况进行处理
+    ans[20:, 3] += ans[20:, 1]
+    ans[20:, 3] += ans[20:, 2]
+    ans[40:, 3] = 1
+
+    return ans[:, 3]
+
+def no_exchange_dp_10(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, exchange_pos=EXCHANGE_PULL):
+    '''上面的函数的不切换抽到井版本'''
+    a, b = up_p, (base_p-up_p)/other_charactors
+    # 设置每种状态下的转移矩阵，开始位置为先抽A卡池
+    M_A = np.array([[1-a-b, 0, 0, 0],
+                    [a, 1-b, 0, 0],
+                    [b, 0, 1-a, 0],
+                    [0, b, a, 1]])
+    # 十连自乘10次
+    M_A_10 = np.linalg.matrix_power(M_A, 10)
+    # 得到策略组合后的矩阵
+    M = M_A_10
+    
+    # 递推得到结果
+    k = int(exchange_pos/10) * 2 # 十连次数
+    ans = np.zeros((k+1, 4), dtype=float)
+    x = np.array([1, 0, 0, 0])
+    # 计算所有情况
+    for i in range(0, k+1):
+        ans[i, :] = x
+        x = np.matmul(M, x)
+
+    # 对井的情况进行处理
+    ans[20:, 3] += ans[20:, 1]
+    ans[20:, 3] += ans[20:, 2]
+    ans[40:, 3] = 1
+
+    return ans[:, 3]
+
 def get_common_refund(rc3=0.5, rc2=1, rc1=1,has_up=False):
     '''按每个卡池抽200计算的平均每抽神名文字返还'''
     e_up = 0  # 超出1个数量的期望
@@ -111,7 +175,7 @@ if __name__ == '__main__':
 
     # 计算仅获取UP抽数期望（拥有即算，在200抽抽到时虽然可以多井一个但也算保证获取一个UP
     model = SimpleDualCollection(other_charactors=STANDER_3STAR)
-    both_ratio, a_ratio, b_ratio, none_ratio = model.get_dist()
+    both_ratio, a_ratio, b_ratio, none_ratio = model.get_dist(calc_pull=EXCHANGE_PULL*2)
     temp_dist = both_ratio+a_ratio
     temp_dist = temp_dist[:201]
     temp_dist[200] = 1
@@ -119,16 +183,15 @@ if __name__ == '__main__':
     print("含井仅获取UP角色的抽数期望", calc_expectation(temp_dist))
     # 含井仅获取UP角色的抽数期望 107.80200663752993
 
-    # 计算获取同期两个UP，采用抽1井1方法的期望（因为大部分玩家为了200井都会抽到200，所以此时换池子抽的情况虽然理论上为集齐角色消耗抽数更少更优，但未必符合实际，于是按照一个池里一直抽计算）
-    both_ratio, a_ratio, b_ratio, none_ratio = model.get_dist(calc_pull=400)
-    temp_dist = copy.deepcopy(both_ratio)
-    temp_dist[200:] += a_ratio[200:] + b_ratio[200:]
-    temp_dist[400] = 1
-    temp_dist = cdf2dist(temp_dist)
-    print("含井同池内一直抽获得同时UP的两类角色的抽数期望", calc_expectation(temp_dist))
-    # 含井同池内一直抽获得同时UP的两类角色的抽数期望 206.9735880064448
 
-    # 计算无穷时间平均意义并不大，因为井过期清零
+    # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，出了对应学生就换池的方法进行)
+    temp_dist = cdf2dist(pull_exchange_dp_10())
+    print("一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望", calc_expectation(temp_dist)*10)
+    # 一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望 185.85079879472937
+
+    # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，但是不换池的方法)
+    temp_dist = cdf2dist(no_exchange_dp_10())
+    print("不换池情况的期望", calc_expectation(temp_dist)*10)
 
     # 计算含/不含井的神名文字返还
 

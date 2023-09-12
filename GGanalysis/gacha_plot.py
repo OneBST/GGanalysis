@@ -69,7 +69,7 @@ class QuantileFunction(object):
         
         # 参数的默认值
         self.xlabel = '获取概率'
-        self.ylabel = '投入抽数'
+        self.ylabel = f'投入{self.cost_name}数'
         self.quantile_pos = [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
         self.mark_pos = 0.5
         self.stroke_width = 2
@@ -137,7 +137,7 @@ class QuantileFunction(object):
         fig.set_dpi(dpi)
         ax.set_title(self.title, weight='bold', size=18)
         ax.set_xlabel('获取概率', weight='medium', size=12)
-        ax.set_ylabel('投入抽数', weight='medium', size=12)
+        ax.set_ylabel(f'投入{self.cost_name}数', weight='medium', size=12)
         
         # 分道具数量添加分位函数
         for i, (data, color) in enumerate(zip(self.cdf_data[1:], self.line_colors[1:])):
@@ -244,7 +244,7 @@ class DrawDistribution(object):
         fig.set_size_inches(figsize)
         # 设置标题
         if title is None:
-            ax.set_title("所需抽数分布", weight='bold', size=15)
+            ax.set_title(f"所需{self.cost_name}数分布", weight='bold', size=15)
             title = self.title
             fig.suptitle(self.title, weight='bold', size=20)
         else:
@@ -304,12 +304,12 @@ class DrawDistribution(object):
 
         # 设置标题
         fig.suptitle(self.title, weight='bold', size=20)
-        ax_dist.set_title("所需抽数分布", weight='bold', size=15)
+        ax_dist.set_title(f"所需{self.cost_name}数分布", weight='bold', size=15)
         ax_cdf.set_title("累积分布函数", weight='bold', size=15)
         # 两张图的绘制
         # 绘制分布
         self.add_dist(ax_dist, quantile_pos=self.quantile_pos, show_xlabel=False)
-        ax_dist.set_title("所需抽数分布", weight='bold', size=15)
+        ax_dist.set_title(f"所需{self.cost_name}数分布", weight='bold', size=15)
         
         # 绘制累积概率函数
         self.add_cdf(ax_cdf, show_title=False, show_xlabel=True)
@@ -339,8 +339,8 @@ class DrawDistribution(object):
         ax.set_ylim(0, self.max_mass*1.26)
         # 设置标签
         if show_xlabel:
-            ax.set_xlabel('抽数', weight='bold', size=12, color='black')
-        ax.set_ylabel('本抽概率', weight='bold', size=12, color='black')
+            ax.set_xlabel(f'{self.cost_name}数', weight='bold', size=12, color='black')
+        ax.set_ylabel(f'本{self.cost_name}概率', weight='bold', size=12, color='black')
         # 开启主次网格和显示
         if show_grid:
             ax.grid(visible=True, which='major', linestyle='-', linewidth=1)
@@ -367,7 +367,7 @@ class DrawDistribution(object):
         if self.show_exp:
             # 绘制期望
             ax.text(
-                dist.exp+len(dist)/200, exp_y+self.max_mass*0.01, '期望'+str(round(dist.exp, 1))+'抽',
+                dist.exp+len(dist)/200, exp_y+self.max_mass*0.01, '期望'+str(round(dist.exp, 1))+self.cost_name,
                 color='gray',
                 weight='bold',
                 size=10,
@@ -381,7 +381,7 @@ class DrawDistribution(object):
         if self.show_peak:
             # 绘制峰值
             ax.text(
-                self.max_pos, self.max_mass*1.01, '峰值'+str(self.max_pos)+'抽',
+                self.max_pos, self.max_mass*1.01, '峰值'+str(self.max_pos)+self.cost_name,
                 color='gray',
                 weight='bold',
                 size=10,
@@ -434,7 +434,7 @@ class DrawDistribution(object):
         if show_title:
             ax.set_title(title, weight='bold', size=15)
         if show_xlabel:
-            ax.set_xlabel("抽数", weight='bold', size=12, color='black')
+            ax.set_xlabel(f"{self.cost_name}数", weight='bold', size=12, color='black')
         ax.set_ylabel('累进概率', weight='bold', size=12, color='black')
         # 设置x/y范围和刻度
         ax.set_xlim(self.x_left_lim, self.x_right_lim)
@@ -471,7 +471,7 @@ class DrawDistribution(object):
             # ax.plot([self.x_left_lim-1, pos], [cdf[pos], cdf[pos]], c="lightgray", linewidth=2, linestyle="--", zorder=0)
             ax.plot([pos, pos], [-1, cdf[pos]], c="lightgray", linewidth=2, linestyle="--", zorder=0)
             add_stroke_dot(ax, pos, cdf[pos], color=main_color, s=10, path_effects=[pe.withStroke(linewidth=2.5, foreground='white')])
-            ax.text(pos, cdf[pos], str(pos)+'抽\n'+str(round(p*100))+'%',
+            ax.text(pos, cdf[pos], str(pos)+f'{self.cost_name}\n'+str(round(p*100))+'%',
                     weight='bold',
                     size=10,
                     color='gray',

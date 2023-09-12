@@ -44,7 +44,7 @@ def plot_dual_collection_p(title="蔚蓝档案200抽内集齐两个UP学生概�
     plt.plot(x, both_ratio[1:]+a_ratio[1:], color='C0', alpha=0.5, linewidth=2, zorder=10)
     plt.plot(x, both_ratio[1:]+a_ratio[1:]+b_ratio[1:], color='C0', alpha=0.3, linewidth=2, zorder=10)
     # 添加来回切换策略
-    swith_cdf = BA.no_exchange_dp()
+    swith_cdf = BA.pull_exchange_dp_1()
     plt.plot(
         range(1, len(swith_cdf)), swith_cdf[1:], color='gold', alpha=1, linewidth=2, zorder=10, linestyle='--', label='对比策略')
     # 添加描述文本
@@ -68,8 +68,8 @@ def plot_dual_collection_p(title="蔚蓝档案200抽内集齐两个UP学生概�
         plt.show()
 
 def get_dual_description(
-        item_name='道具',
-        cost_name='抽',
+        item_name='学生',
+        cost_name='十连',
         text_head=None,
         mark_exp=None,
         direct_exchange=None,
@@ -86,7 +86,7 @@ def get_dual_description(
     if mark_exp is not None:
         if description_text != '':
             description_text += '\n'
-        description_text += '集齐同时UP角色的期望抽数为'+format(mark_exp, '.2f')+cost_name
+        description_text += '集齐同时UP角色的期望抽数为'+format(mark_exp*10, '.2f')+'抽'
     # 对能否100%获取道具的描述
     description_text += '\n集齐同时UP角色最多需要400抽'
     # 末尾附加文字
@@ -188,22 +188,19 @@ if __name__ == '__main__':
     # 分析无保底时同时集齐UP的两个学生的概率(考虑换池抽)
     plot_dual_collection_p(dpi=300, save_fig=True)
 
-    # 分析同时集齐UP的两个学生的抽数分布(不考虑换池抽，对于抽到200井的情况两种策略对3星是无区别的)
+    # 分析同时集齐UP的两个学生的抽数分布（每次十连，抽到了就换池抽)
     # 集齐两个UP角色
-    model = BA.SimpleDualCollection(other_charactors=BA.STANDER_3STAR)
-    both_ratio, a_ratio, b_ratio, none_ratio = model.get_dist(calc_pull=400)
-    temp_dist = copy.deepcopy(both_ratio)
-    temp_dist[200:] += a_ratio[200:] + b_ratio[200:]
-    temp_dist[400] = 1
-    temp_dist = cdf2dist(temp_dist)
+    temp_dist = gg.FiniteDist(cdf2dist(BA.pull_exchange_dp_10()))
     BA_fig = DrawDistribution(
         dist_data=temp_dist,
         title='蔚蓝档案集齐同时UP的两个学生',
-        quantile_pos=[0.05, 0.1, 0.75, 0.8, 0.9, 0.95, 1],
-        max_pull=400,
-        text_head=f'采用官方公示模型\n视常驻有{BA.STANDER_3STAR}个角色，计入每{BA.EXCHANGE_PULL}抽兑换',
+        quantile_pos=[0.05, 0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.95, 1],
+        max_pull=40,
+        text_head=f'采用官方公示模型\n视常驻有{BA.STANDER_3STAR}个角色，计入每{BA.EXCHANGE_PULL}抽兑换\n按每次十连抽，抽到对应学生则换池\n集齐即停止计算（即没抽到井集齐了不补到井）',
         text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
         description_pos=0,
+        item_name='3星学生',
+        cost_name='十连',
         is_finite=True,
         description_func=get_dual_description,
     )
