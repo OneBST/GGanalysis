@@ -173,15 +173,24 @@ if __name__ == '__main__':
     # 十连的实际综合概率
     print(f"十连时三星概率{P_3} 两星概率{P_2_TENPULL} 一星概率{P_1}，两星概率相比不十连提升{100*(P_2_TENPULL/P_2-1)}%")
 
-    # 计算仅获取UP抽数期望（拥有即算，在200抽抽到时虽然可以多井一个但也算保证获取一个UP
+    # 计算单抽仅获取UP抽数期望（拥有即算，在200抽抽到时虽然可以多井一个但也算保证获取一个UP
     model = SimpleDualCollection(other_charactors=STANDER_3STAR)
     both_ratio, a_ratio, b_ratio, none_ratio = model.get_dist(calc_pull=EXCHANGE_PULL*2)
     temp_dist = both_ratio+a_ratio
     temp_dist = temp_dist[:201]
     temp_dist[200] = 1
     temp_dist = cdf2dist(temp_dist)
-    print("含井仅获取UP角色的抽数期望", calc_expectation(temp_dist))
-    # 含井仅获取UP角色的抽数期望 107.80200663752993
+    print("含井单抽仅获取UP角色的抽数期望", calc_expectation(temp_dist))
+    # 含井单抽仅获取UP角色的抽数期望 107.80200663752993
+
+    # 计算十连抽仅获取UP抽数期望（拥有即算，在200抽抽到时虽然可以多井一个但也算保证获取一个UP
+    temp_dist = both_ratio+a_ratio
+    temp_dist = temp_dist[:201]
+    temp_dist[200] = 1
+    temp_dist = cdf2dist(temp_dist)
+    temp_dist = dist_squeeze(temp_dist, 10)
+    print("含井十连仅获取UP角色的抽数期望", calc_expectation(temp_dist)*10)
+    # 含井十连仅获取UP角色的抽数期望 111.24149841754267
 
 
     # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，出了对应学生就换池的方法进行)
