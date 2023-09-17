@@ -195,7 +195,7 @@ if __name__ == '__main__':
         dist_data=temp_dist,
         title='蔚蓝档案集齐同时UP的两个学生',
         quantile_pos=[0.05, 0.1, 0.25, 0.5, 0.75, 0.8, 0.9, 0.95, 1],
-        max_pull=40,
+        max_pull=41,
         text_head=f'采用官方公示模型\n视常驻有{BA.STANDER_3STAR}个角色，计入每{BA.EXCHANGE_PULL}抽兑换\n按每次十连抽，抽到对应学生则换池\n集齐即停止计算（即没抽到井集齐了不补到井）',
         text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
         description_pos=0,

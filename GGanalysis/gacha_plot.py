@@ -330,7 +330,7 @@ class DrawDistribution(object):
                     show_description=True,
                     fill_alpha=0.5,
                     minor_ticks=10,
-                    color='C0',
+                    main_color='C0',
                 ):
         '''给图增加分布列的绘制，当分布较为稀疏时采用柱状图绘制，较为密集时近似为连续函数绘制（或者叫 pmf 概率质量函数）'''
         dist = self.dist_data
@@ -351,10 +351,10 @@ class DrawDistribution(object):
         # 根据疏密程度切换绘图方式
         if(len(dist) <= self.switch_len):
             # 分布较短
-            plot_pmf(ax, dist[:self.max_pull], color, self.is_finite, is_step=True, fill_alpha=fill_alpha)
+            plot_pmf(ax, dist[:self.max_pull], main_color, self.is_finite, is_step=True, fill_alpha=fill_alpha)
         else:
             # 分布较长
-            plot_pmf(ax, dist[:self.max_pull], color, self.is_finite, is_step=False, fill_alpha=fill_alpha)
+            plot_pmf(ax, dist[:self.max_pull], main_color, self.is_finite, is_step=False, fill_alpha=fill_alpha)
         # 标记期望值与方差
         exp_y = (int(dist.exp)+1-dist.exp) * dist.dist[int(dist.exp)] + (dist.exp-int(dist.exp)) * dist.dist[int(dist.exp+1)]
         # ax.axvline(x=dist.exp, c="lightgray", ls="--", lw=2, zorder=5, 
@@ -377,7 +377,7 @@ class DrawDistribution(object):
                 path_effects=self.plot_path_effect
             )
             # 曲线上期望处打点
-            add_stroke_dot(ax, dist.exp, exp_y, color=color, s=10, path_effects=[pe.withStroke(linewidth=2.5, foreground='white')])
+            add_stroke_dot(ax, dist.exp, exp_y, color=main_color, s=10, path_effects=[pe.withStroke(linewidth=2.5, foreground='white')])
         if self.show_peak:
             # 绘制峰值
             ax.text(
@@ -391,7 +391,7 @@ class DrawDistribution(object):
                 path_effects=self.plot_path_effect
             )
             # 峰值处打点
-            add_stroke_dot(ax, self.max_pos, self.max_mass, color=color, s=10, path_effects=[pe.withStroke(linewidth=2.5, foreground='white')])
+            add_stroke_dot(ax, self.max_pos, self.max_mass, color=main_color, s=10, path_effects=[pe.withStroke(linewidth=2.5, foreground='white')])
 
         # 设置说明文字
         description_text = self.description_func(
@@ -438,7 +438,7 @@ class DrawDistribution(object):
         ax.set_ylabel('累进概率', weight='bold', size=12, color='black')
         # 设置x/y范围和刻度
         ax.set_xlim(self.x_left_lim, self.x_right_lim)
-        ax.set_ylim(-0.05,1.15)
+        ax.set_ylim(0,1.15)
         ax.set_yticks(np.linspace(0, 1, 11))
         ax.yaxis.set_major_formatter(mpl.ticker.PercentFormatter(1.0))
         # 开启主次网格和显示
@@ -449,16 +449,22 @@ class DrawDistribution(object):
             ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
             ax.yaxis.set_minor_locator(AutoMinorLocator(2))
 
-        # 绘制图线
-        ax.plot(range(1, len(dist)),cdf[1:],
-                color=main_color,
-                linewidth=3,
-                path_effects=[pe.withStroke(linewidth=3, foreground='white')],
-                zorder=10)
+        # 根据疏密程度切换绘图方式
+        if(len(dist) <= self.switch_len):
+            # 分布较短
+            plot_cdf(ax, cdf[:self.max_pull], line_color=main_color, dist_end=self.is_finite, is_step=True)
+        else:
+            # 分布较长
+            plot_cdf(ax, cdf[:self.max_pull], line_color=main_color, dist_end=self.is_finite, is_step=False)
+        # ax.plot(range(1, len(dist)),cdf[1:],
+        #         color=main_color,
+        #         linewidth=3,
+        #         path_effects=[pe.withStroke(linewidth=3, foreground='white')],
+        #         zorder=10)
         # 标注末尾是否为长尾分布
-        if self.is_finite is False:
-            ax.scatter( len(cdf)-1, cdf[len(dist)-1],
-                        s=80, color=main_color, marker=">", zorder=11)
+        # if self.is_finite is False:
+        #     ax.scatter( len(cdf)-1, cdf[len(dist)-1],
+        #                 s=10, color=main_color, marker=">", zorder=11)
         # 绘制网格
         ax.grid(visible=True, which='major', color='lightgray', linestyle='-', linewidth=1)
         # 绘制分位点及标注文字

@@ -213,7 +213,7 @@ def add_quantile_line(
             add_stroke_dot(ax, data[-1], max_pull, s=40, color=color, marker="^", transform=transform, path_effects=[])
     return ax
 
-def plot_pmf(ax, input: np.array, fill_color='C0', dist_end=True, is_step=True, fill_alpha=0.5, path_effects=[pe.withStroke(linewidth=3, foreground='white')]):
+def plot_pmf(ax, input: np.array, line_color='C0', dist_end=True, is_step=True, fill_alpha=0.5, path_effects=[pe.withStroke(linewidth=3, foreground='white')]):
     if is_step:
         x = np.arange(len(input)) + 0.5 # 生成x轴坐标点
         x = np.repeat(x, 2)             # 每个x坐标重复两次以创建阶梯效果
@@ -234,17 +234,51 @@ def plot_pmf(ax, input: np.array, fill_color='C0', dist_end=True, is_step=True, 
     # 绘制分布图
     ax.plot(
         x, y,
-        color=fill_color,
+        color=line_color,
         linewidth=1.5,
         path_effects=path_effects,
         zorder=10)
-    ax.fill_between(x, 0, y, alpha=fill_alpha, color=fill_color, zorder=9)
+    ax.fill_between(x, 0, y, alpha=fill_alpha, color=line_color, zorder=9)
 
     # 分布未结束时添加箭头
     if not dist_end:
-        add_stroke_dot(ax, x[-1], y[-1], s=10, color=fill_color, marker=">", path_effects=path_effects)
-        ax.plot(x, y, color=fill_color, linewidth=1.5, zorder=10)
+        add_stroke_dot(ax, x[-1], y[-1], s=10, color=line_color, marker=">", path_effects=path_effects)
+        ax.plot(x, y, color=line_color, linewidth=1.5, zorder=10)
     
+    return ax
+
+def plot_cdf(ax, input: np.array, line_color='C0', dist_end=True, is_step=True, fill_alpha=0.5, path_effects=[pe.withStroke(linewidth=3, foreground='white')]):
+    if is_step:
+        x = np.arange(len(input)) + 0.5 # 生成x轴坐标点
+        x = np.repeat(x, 2)             # 每个x坐标重复两次以创建阶梯效果
+        y = np.repeat(input, 2)         # 每个y坐标重复两次以创建阶梯效果
+
+        # 添加前后的额外坐标以完整显示阶梯图
+        if input[0] != 0:
+            x = np.append(-0.5, x[:-1])  # 在最前面加上-0.5，去掉末尾
+        else:
+            x = x[1:-1]
+            y = y[2:]
+    else:
+        x = np.arange(len(input))           # 生成x轴坐标点
+        y = input
+        if input[0] == 0:
+            x = x[1:]
+            y = y[1:]
+    # 绘制cdf
+    ax.plot(
+        x, y,
+        linewidth=1.5,
+        color=line_color,
+        zorder=10,
+        path_effects=path_effects,
+        )
+    ax.fill_between(x, 0, y, alpha=fill_alpha, color=line_color, zorder=9)
+
+    # 末尾位置示意
+    if not dist_end:
+        add_stroke_dot(ax, x[-1], y[-1], s=10, color=line_color, marker=">", path_effects=path_effects)
+        ax.plot(x, y, linewidth=1.5, color=line_color, zorder=10)
     return ax
 
 def add_vertical_quantile_pmf(ax, pdf: np.ndarray, quantile_pos:list, mark_name='抽', color='gray', pos_func=lambda x:x, pos_rate=1.1, size=10):
