@@ -51,14 +51,14 @@ def dist2cdf(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
         return np.cumsum(dist.dist)
     return np.cumsum(dist)
 
-def cdf2dist(cdf: np.ndarray) -> np.ndarray:
+def cdf2dist(cdf: np.ndarray) -> 'FiniteDist':
     '''将cdf转化为分布'''
     if len(cdf) == 1:
         # 长度为1 返回必然事件分布
         return FiniteDist([1])
     pdf = np.array(cdf)
     pdf[1:] -= pdf[:-1].copy()
-    return pdf
+    return FiniteDist(pdf)
 
 def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
     '''

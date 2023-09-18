@@ -59,7 +59,7 @@ class ScoredItem():
                 raise ValueError("p should between 0 and 1!")
             use_p = p
         cdf = (use_p * np.cumsum(self.score_dist.dist) + 1 - use_p) ** n
-        return ScoredItem(FiniteDist(cdf2dist(cdf)), self.sub_stats_exp)
+        return ScoredItem(cdf2dist(cdf), self.sub_stats_exp)
     
     def __getattr__(self, key):  # 访问未计算的属性时进行计算
         # 基本统计属性

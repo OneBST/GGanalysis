@@ -190,7 +190,7 @@ if __name__ == '__main__':
 
     # 分析同时集齐UP的两个学生的抽数分布（每次十连，抽到了就换池抽)
     # 集齐两个UP角色
-    temp_dist = gg.FiniteDist(cdf2dist(BA.pull_exchange_dp_10()))
+    temp_dist = cdf2dist(BA.pull_exchange_dp_10())
     BA_fig = DrawDistribution(
         dist_data=temp_dist,
         title='蔚蓝档案集齐同时UP的两个学生',

@@ -180,7 +180,7 @@ if __name__ == '__main__':
     temp_dist = temp_dist[:201]
     temp_dist[200] = 1
     temp_dist = cdf2dist(temp_dist)
-    print("含井单抽仅获取UP角色的抽数期望", calc_expectation(temp_dist))
+    print("含井单抽仅获取UP角色的抽数期望", temp_dist.exp)
     # 含井单抽仅获取UP角色的抽数期望 107.80200663752993
 
     # 计算十连抽仅获取UP抽数期望（拥有即算，在200抽抽到时虽然可以多井一个但也算保证获取一个UP
@@ -189,18 +189,18 @@ if __name__ == '__main__':
     temp_dist[200] = 1
     temp_dist = cdf2dist(temp_dist)
     temp_dist = dist_squeeze(temp_dist, 10)
-    print("含井十连仅获取UP角色的抽数期望", calc_expectation(temp_dist)*10)
+    print("含井十连仅获取UP角色的抽数期望", temp_dist.exp*10)
     # 含井十连仅获取UP角色的抽数期望 111.24149841754267
 
 
     # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，出了对应学生就换池的方法进行)
     temp_dist = cdf2dist(pull_exchange_dp_10())
-    print("一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望", calc_expectation(temp_dist)*10)
+    print("一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望", temp_dist.exp*10)
     # 一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望 185.85079879472937
 
     # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，但是不换池的方法)
     temp_dist = cdf2dist(no_exchange_dp_10())
-    print("不换池情况的期望", calc_expectation(temp_dist)*10)
+    print("不换池情况的期望", temp_dist.exp*10)
 
     # 计算含/不含井的神名文字返还
 

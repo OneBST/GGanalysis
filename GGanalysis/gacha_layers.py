@@ -56,8 +56,6 @@ class PityLayer(GachaLayer):
         temp_dist = FiniteDist([1]) # 用于优化计算量
         for i in range(1, len(overlay_dist)):
             c_i = float(overlay_dist[i])  # 防止类型错乱的缓兵之策 如果 c_i 的类型是 numpy 数组，则 numpy 会接管 finite_dist_1D 定义的运算返回错误的类型
-            # output_dist += c_i * (c_dist * f_dist ** (i-1))  # 分布累加
-            # 修改一下优化计算量
             output_dist += c_i * (c_dist * temp_dist)  # 分布累加
             temp_dist = temp_dist * f_dist
             output_E += c_i * (c_dist.exp + (i-1) * f_dist.exp)  # 期望累加
