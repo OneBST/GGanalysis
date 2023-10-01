@@ -187,7 +187,7 @@ class QuantileFunction(object):
 
 class DrawDistribution(object):
     def __init__(   self,
-                    dist_data=None,         # 输入数据，为finite_dist_1D类型的分布列
+                    dist_data=None,  # 输入数据，为finite_dist_1D类型的分布列
                     max_pull=None,
                     title='获取物品所需抽数分布及累进概率',
                     item_name='道具',
@@ -279,7 +279,7 @@ class DrawDistribution(object):
                 os.makedirs(self.save_path)
             fig.savefig(os.path.join(self.save_path, title+'.png'), dpi=dpi)
         else:
-            plt.show()   
+            plt.show()
 
     def show_two_graph(
             self,
@@ -309,7 +309,6 @@ class DrawDistribution(object):
         # 两张图的绘制
         # 绘制分布
         self.add_dist(ax_dist, quantile_pos=self.quantile_pos, show_xlabel=False)
-        ax_dist.set_title(f"所需{self.cost_name}数分布", weight='bold', size=15)
         
         # 绘制累积概率函数
         self.add_cdf(ax_cdf, show_title=False, show_xlabel=True)

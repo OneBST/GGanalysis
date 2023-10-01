@@ -4,37 +4,107 @@ from GGanalysis.ScoredItem.scored_item import *
 '''
 
 __all__ = [
+    'combine_items',
+    'max_item',
+    'max_item_set',
     'select_best_combination',
     'remove_worst_combination',
     'sim_select_best_k',
     'get_mix_dist',
 ]
+
+def combine_items(item_list: list[ScoredItem]):
+    '''返回列表内道具的混合'''
+    ans = ScoredItem([1], {}, stats_score=item_list[0].stats_score)
+    for item in item_list:
+        ans *= item
+    return ans
+
+def max_item(a: ScoredItem, b: ScoredItem):
+    '''
+    返回两个道具混合后的最优分布，如果两者相等，副词条采用a而不是b
+    '''
+    cdf_a = dist2cdf(a.score_dist)
+    cdf_b = dist2cdf(b.score_dist)
+    min_len = min(len(a), len(b))
+    max_len = max(len(a), len(b))
+    ans_score = np.zeros(max_len, dtype=float)
+    ans_sub_stats_exp = {}
+    key_set = set(a.sub_stats_exp.keys())
+    key_set.update(b.sub_stats_exp.keys())
+    for key in key_set:
+        ans_sub_stats_exp[key] = np.zeros(max_len, dtype=float)
+
+    # a >= b 情况
+    for i in range(min_len):
+        p = cdf_b[i] * a.score_dist.dist[i]
+        ans_score[i] += p
+        for key in key_set:
+            ans_sub_stats_exp[key][i] += a.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[i] * p
+    # b > a 情况
+    for i in range(1, min_len):
+        p = cdf_a[i-1] * b.score_dist.dist[i]
+        ans_score[i] += p
+        for key in key_set:
+            ans_sub_stats_exp[key][i] += b.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[i] * p
+    # 副词条归一化
+    for key in key_set:
+        ans_sub_stats_exp[key] = np.divide(ans_sub_stats_exp[key], ans_score, out=np.zeros_like(ans_score), where=ans_score!=0)
+    # 处理剩下部分
+    if len(a) > len(b):
+        c = a
+    else:
+        c = b
+    ans_score[min_len:] = c.score_dist.dist[min_len:]
+    for key in key_set:
+        ans_sub_stats_exp[key][min_len:] = c.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[min_len:]
+    return ScoredItem(score_dist=ans_score, sub_stats_exp=ans_sub_stats_exp, stats_score=a.stats_score)
+
+def max_item_set(a: ScoredItemSet, b: ScoredItemSet):
+    '''
+    返回两个道具套装混合后的最优分布，如果两者分数相等，副词条采用a而不是b，如果套装部位不同，则采用有部位的
+    '''
+    item_set = {}
+    key_set = set(a.item_set.keys())
+    key_set.update(b.item_set.keys())
+    for key in key_set:
+        if key in a.item_set and key in b.item_set:
+            item_set[key] = max_item(a.item_set[key], b.item_set[key])
+        elif key in a.item_set:
+            item_set[key] = a.item_set[key]
+        elif key in b.item_set:
+            item_set[key] = b.item_set[key]
+    return ScoredItemSet(item_set)
+
 class ConditionalScore():
-    '''返回可行的分数序列'''
+    '''
+    配合 select_best_combination 使用
+    返回可行的分数序列（道具顺序）
+    '''
     def __init__(self, item_idx:Union[list, tuple], score_max:list) -> None:
         self.state = [score_max[0]]
         self.item_idx = item_idx
         self.score_max = score_max
-        # 生成初始状态
+        # 生成分数初始状态
         for i in range(1, len(self.item_idx)):
             if self.item_idx[i] > self.item_idx[i-1]:
+                # 规定一个方向可以取等，另一个方向不能取等以达到容斥效果
                 self.state.append(min(self.score_max[i], self.state[i-1]))
             else:
                 self.state.append(min(self.score_max[i], self.state[i-1])-1)
         # 定义合法分数序列集合
         self.possible_sequence = []
-        # 枚举并选择合法分数序列
+        # 枚举并选择合法分数序列，并排除枚举到末尾分数小于0的情况
         while self.state[-1] >= 0:
             self.possible_sequence.append(deepcopy(self.state))
             self.next_state()
         
     def next_state(self):
-        '''切换到下一个可行状态'''
+        '''切换到下一个可行状态，即找到按照不增规则的下一个'''
         pos = len(self.state)
         while pos >= 1:
             pos -= 1
             self.state[pos] -= 1
-            # TODO 0也是可能的，可能都是0，但是需要特判，要想一下其他地方怎么写
             if self.state[pos] >= 0:
                 break
         # 进行迭代
@@ -99,11 +169,11 @@ def select_best_combination(item_set:list[ScoredItem], chose_num=1) -> ScoredIte
         ans_sub_exp[key] = np.divide(ans_sub_exp[key], ans_dist, \
                                 out=np.zeros_like(ans_sub_exp[key]), where=ans_dist!=0)
     # print('Best combination calc time: {}s'.format(time.time()-start_time))
-    return ScoredItem(ans_dist, ans_sub_exp)
+    return ScoredItem(ans_dist, ans_sub_exp, stats_score=item_set[0].stats_score)
 
 def remove_worst_combination(item_list:list[ScoredItem]) -> ScoredItem:
     '''返回去除最差一件后的情况'''
-    ans_item = ScoredItem([0], {})
+    ans_item = ScoredItem([0], {}, stats_score=item_list[0].stats_score)
     score_max = [len(item_list[i])-1 for i in range(len(item_list))]
     for i in range(len(item_list)):
         # 枚举最差位置
@@ -190,7 +260,7 @@ def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem]) -> ScoredItem
                      pad_zero(B.score_dist.dist, n))
         info_list.append(get_info(M))
     
-    ans_item = ScoredItem([0], {})
+    ans_item = ScoredItem([0], {}, stats_score=listA[0].stats_score)
     for i in range(m):
         # 枚举选择B的部位
         for s in range(1, n):

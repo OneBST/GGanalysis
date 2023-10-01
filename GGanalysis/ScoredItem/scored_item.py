@@ -12,9 +12,11 @@ import time
 
 class ScoredItem():
     '''词条型道具'''
-    def __init__(self, score_dist: Union[FiniteDist, np.ndarray, list]=FiniteDist([0]), sub_stats_exp: dict={}, drop_p=1) -> None:
+    # TODO 研究怎样继承 stats_score 比较好，运算时 stats_score 应该一致才能运算 套装 stats_score 也应该一致
+    def __init__(self, score_dist: Union[FiniteDist, np.ndarray, list]=FiniteDist([0]), stats_score: dict={}, sub_stats_exp: dict={}, drop_p=1) -> None:
         '''使用分数分布和副词条期望完成初始化，可选副词条方差'''
         self.score_dist = FiniteDist(score_dist)    # 得分分布
+        self.stats_score = stats_score
         self.sub_stats_exp = sub_stats_exp          # 每种副词条的期望
         self.drop_p = drop_p
         if self.drop_p < 0 or self.drop_p > 1:
@@ -45,13 +47,13 @@ class ScoredItem():
         '''检查副词条的加权和'''
         ans = np.zeros(len(self))
         for key in self.sub_stats_exp.keys():
-            ans[:len(self.sub_stats_exp[key])] += self.sub_stats_exp[key] * self.stats_score[key]
+            ans[:len(self.sub_stats_exp[key])] += self.sub_stats_exp[key] * self.stats_score.get(key, 0)
         return ans
 
     def repeat(self, n: int=1, p=None) -> 'ScoredItem':
         '''重复n次获取道具尝试，每次有p概率获得道具后获得的最大值分布'''
         if n == 0:
-            return ScoredItem([1])
+            return ScoredItem([1], stats_score=self.stats_score)
         if p is None:
             use_p = self.drop_p
         else:
@@ -59,7 +61,7 @@ class ScoredItem():
                 raise ValueError("p should between 0 and 1!")
             use_p = p
         cdf = (use_p * np.cumsum(self.score_dist.dist) + 1 - use_p) ** n
-        return ScoredItem(cdf2dist(cdf), self.sub_stats_exp)
+        return ScoredItem(cdf2dist(cdf), self.sub_stats_exp, stats_score=self.stats_score)
     
     def __getattr__(self, key):  # 访问未计算的属性时进行计算
         # 基本统计属性
@@ -81,7 +83,7 @@ class ScoredItem():
         sub_stats_exp = {}
         for key in self.sub_stats_exp.keys():
             sub_stats_exp[key] = self.sub_stats_exp[key] * mask
-        return ScoredItem(FiniteDist(score_dist), sub_stats_exp)
+        return ScoredItem(FiniteDist(score_dist), sub_stats_exp, stats_score=self.stats_score)
     
     def __add__(self, other: 'ScoredItem') -> 'ScoredItem':
         key_set = set(self.sub_stats_exp.keys())
@@ -98,7 +100,7 @@ class ScoredItem():
             b = ans_dist.dist[:target_len]
             ans_sub_stats_exp[key] = np.divide(a, b, \
                                     out=np.zeros_like(a), where=b!=0)
-        return ScoredItem(ans_dist, ans_sub_stats_exp)
+        return ScoredItem(ans_dist, ans_sub_stats_exp, stats_score=self.stats_score)
 
     def __mul__(self, other: Union['ScoredItem', float, int]) -> 'ScoredItem':
         '''对两个物品进行卷积合并，或单纯数乘'''
@@ -116,12 +118,12 @@ class ScoredItem():
                 a = pad_zero(a, len(new_score_dist))
                 b = pad_zero(b, len(new_score_dist))
                 new_sub_exp[key] = np.divide((a + b), new_score_dist.dist, out=np.zeros_like(new_score_dist.dist), where=new_score_dist.dist!=0)
-            return ScoredItem(new_score_dist, new_sub_exp)
+            return ScoredItem(new_score_dist, new_sub_exp, stats_score=self.stats_score)
         else:
             # other为常数的情况下，进行数乘，数乘下不影响副词条平均值
             new_score_dist = self.score_dist * other
             new_sub_exp = self.sub_stats_exp
-            return ScoredItem(new_score_dist, new_sub_exp)
+            return ScoredItem(new_score_dist, new_sub_exp, stats_score=self.stats_score)
 
     def __rmul__(self, other: Union['ScoredItem', float, int]) -> 'ScoredItem':
         return self * other
@@ -131,53 +133,6 @@ class ScoredItem():
     
     def __str__(self) -> str:
         return f"Score Dist {self.score_dist.dist} Sub Exp {self.sub_stats_exp}"
-
-def combine_items(item_list: list[ScoredItem]):
-    '''返回列表内道具的混合'''
-    ans = ScoredItem([1], {})
-    for item in item_list:
-        ans *= item
-    return ans
-
-def max_item(a: ScoredItem, b: ScoredItem):
-    '''
-    返回两个道具混合后的最优分布，如果两者相等，副词条采用a而不是b
-    '''
-    cdf_a = dist2cdf(a.score_dist)
-    cdf_b = dist2cdf(b.score_dist)
-    min_len = min(len(a), len(b))
-    max_len = max(len(a), len(b))
-    ans_score = np.zeros(max_len, dtype=float)
-    ans_sub_stats_exp = {}
-    key_set = set(a.sub_stats_exp.keys())
-    key_set.update(b.sub_stats_exp.keys())
-    for key in key_set:
-        ans_sub_stats_exp[key] = np.zeros(max_len, dtype=float)
-
-    # a >= b 情况
-    for i in range(min_len):
-        p = cdf_b[i] * a.score_dist.dist[i]
-        ans_score[i] += p
-        for key in key_set:
-            ans_sub_stats_exp[key][i] += a.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[i] * p
-    # b > a 情况
-    for i in range(1, min_len):
-        p = cdf_a[i-1] * b.score_dist.dist[i]
-        ans_score[i] += p
-        for key in key_set:
-            ans_sub_stats_exp[key][i] += b.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[i] * p
-    # 副词条归一化
-    for key in key_set:
-        ans_sub_stats_exp[key] = np.divide(ans_sub_stats_exp[key], ans_score, out=np.zeros_like(ans_score), where=ans_score!=0)
-    # 处理剩下部分
-    if len(a) > len(b):
-        c = a
-    else:
-        c = b
-    ans_score[min_len:] = c.score_dist.dist[min_len:]
-    for key in key_set:
-        ans_sub_stats_exp[key][min_len:] = c.sub_stats_exp.get(key, np.zeros(max_len, dtype=float))[min_len:]
-    return ScoredItem(score_dist=ans_score, sub_stats_exp=ans_sub_stats_exp)
 
 class ScoredItemSet():
     '''由词条型道具组成的套装'''
@@ -191,7 +146,7 @@ class ScoredItemSet():
 
     def combine_set(self, select_items: list[str]=None, n=1):
         '''计算获取n次道具后套装中道具的最佳得分分布'''
-        ans = ScoredItem([1])
+        ans = ScoredItem([1], stats_score=self.item_set.values()[0].stats_score)
         if select_items is None:
             for key in self.item_set.keys():
                 ans *= self.item_set[key].repeat(n, self.item_set[key].drop_p)

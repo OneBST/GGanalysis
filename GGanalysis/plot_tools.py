@@ -281,7 +281,7 @@ def plot_cdf(ax, input: np.array, line_color='C0', dist_end=True, is_step=True, 
         ax.plot(x, y, linewidth=1.5, color=line_color, zorder=10)
     return ax
 
-def add_vertical_quantile_pmf(ax, pdf: np.ndarray, quantile_pos:list, mark_name='抽', color='gray', pos_func=lambda x:x, pos_rate=1.1, size=10):
+def add_vertical_quantile_pmf(ax, pdf: np.ndarray, quantile_pos:list, mark_name='抽', color='gray', pos_func=lambda x:x, pos_rate=1.1, size=10, show_mark_name=True):
     '''输入pmf增加分位线'''
     cdf = np.cumsum(pdf)
     x_start = ax.get_xlim()[0]
@@ -295,7 +295,11 @@ def add_vertical_quantile_pmf(ax, pdf: np.ndarray, quantile_pos:list, mark_name=
         ax.plot([pos, pos], [y_start, max(pdf)*pos_rate],
                 color=color, zorder=2, alpha=0.75, linestyle=':', linewidth=2)
         # 添加抽数文字
-        ax.text(pos, max(pdf)*pos_rate, str(pos_func(pos))+mark_name+'\n'+str(int(p*100))+"%",
+        if show_mark_name:
+            show_text = str(pos_func(pos))+mark_name+'\n'+str(int(p*100))+"%"
+        else:
+            show_text = str(int(p*100))+"%"
+        ax.text(pos, max(pdf)*pos_rate, show_text,
                 horizontalalignment='center',
                 verticalalignment='bottom',
                 weight='bold',

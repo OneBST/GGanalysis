@@ -165,11 +165,13 @@ class GenshinArtifact(ScoredItem):
     def __init__(
         self,
         type: str = "flower",  # 道具类型
-        type_p=1 / 5,  # 每次获得道具是是类型道具概率
+        type_p = 1/5,  # 每次获得道具是是类型道具概率
         main_stat: str = None,  # 主词条属性
         sub_stats_select_weight: dict = W_SUB_STAT,  # 副词条抽取权重
         stats_score: dict = DEFAULT_STAT_SCORE,  # 词条评分权重
         drop_source: str = "domains_drop",  # 圣遗物掉落来源，和初始词条数相关
+        forced_p_4sub = None,   # 直接设定初始4词条概率
+        forced_combinations = None, # 直接设定初始词条组合
     ) -> None:
         # 计算获得主词条概率
         self.type = type
@@ -187,16 +189,22 @@ class GenshinArtifact(ScoredItem):
         if self.main_stat in self.sub_stats_weight:
             del self.sub_stats_weight[self.main_stat]
         # 确定副词条四件概率
-        self.p_4sub = P_DROP_STATE[drop_source]
+        if forced_p_4sub is None:
+            self.p_4sub = P_DROP_STATE[drop_source]
+        else:
+            self.p_4sub = forced_p_4sub
         # 词条权重改变时应清除缓存
         self.stats_score = stats_score
         if self.stats_score != STATS_WEIGHTS:
             set_using_weight(self.stats_score)
         # 计算副词条组合概率
         ans = ScoredItem()
-        self.sub_stats_combinations = get_combinations_p(
-            stats_p=self.sub_stats_weight, select_num=4
-        )
+        if forced_combinations is None:
+            self.sub_stats_combinations = get_combinations_p(
+                stats_p=self.sub_stats_weight, select_num=4
+            )
+        else:
+            self.sub_stats_combinations = forced_combinations
         # 遍历所有情况累加
         for stat_comb in list(self.sub_stats_combinations.keys()):
             temp_base = get_init_state(stat_comb)
@@ -213,7 +221,7 @@ class GenshinArtifact(ScoredItem):
             ans += (
                 (1 - self.p_4sub) * temp_3 + self.p_4sub * temp_4
             ) * self.sub_stats_combinations[stat_comb]
-        super().__init__(ans.score_dist, ans.sub_stats_exp, drop_p)
+        super().__init__(ans.score_dist, ans.sub_stats_exp, drop_p, stats_score=self.stats_score)
 
 
 # 导入所需的最优组合组件
@@ -229,7 +237,7 @@ class GenshinArtifactSet(ScoredItemSet):
         main_stat: dict = DEFAULT_MAIN_STAT,
         stats_score: dict = DEFAULT_STAT_SCORE,
         drop_source: str = "domains_drop",
-        type_p=1 / 10,  # 掉落对应套装部位的概率
+        type_p = 1/10,  # 掉落对应套装部位的概率
     ) -> None:
         # 初始化道具
         self.main_stat = main_stat
@@ -332,7 +340,7 @@ if __name__ == "__main__":
     """
     # 检查4+1正确性
     # 按照年/12的方式平均，这种情况下一个月可以刷291.54件圣遗物（期望），取290为一个月的数量，3480为一年的数量
-    # 但是玩家一年也不会全部体力都去刷圣遗物，取1500作为散件指标吧
+    # 但是玩家一年也不会全部体力都去刷圣遗物，取用体力的70%即一年2500件作为散件指标吧，一个版本的基准为280件。
     from matplotlib import pyplot as plt
 
     artifact_set = GenshinArtifactSet()
