@@ -63,6 +63,7 @@ class ScoredItemDistribution():
             text_tail=None,
             description_pos=0,  # 起始位置为多少评分值
             description_func=get_default_score_description,
+            x_minor_ticks=10,  # 小刻度密度
         ) -> None:
         # 初始化参数
         self.title = title
@@ -83,6 +84,7 @@ class ScoredItemDistribution():
         self.description_func = description_func
         self.show_exp = show_exp
         self.show_peak = show_peak
+        self.x_minor_ticks = x_minor_ticks
 
         # 分布最值
         self.max_pos = self.item.score_dist[:].argmax()
@@ -95,9 +97,6 @@ class ScoredItemDistribution():
         weights = np.zeros(len(item.score_dist))    # 用于归一化的分数
         self.fig_stat_ratio = {}  # 副词条占比
 
-        print(self.item.sub_stats_exp['cr'][70:])
-        print(self.item.sub_stats_exp['cd'][70:])
-        print(self.item.sub_stats_exp['atkp'][70:])
         # 绘制占比是按照词条数还是加权分数
         if component_use_weight:
             for key in self.item.sub_stats_exp.keys():
@@ -173,19 +172,11 @@ class ScoredItemDistribution():
 
     def set_xticks(self, ax):
         '''设置x刻度及xlim'''
-        self.xlim_L = -self.score_per_tick * 0.25
-        self.xlim_R = self.score_per_tick * (len(self.item)/self.score_per_tick+0.25)
+        self.xlim_L = min(-self.score_per_tick * 0.25, -self.max_score * 0.02)
+        self.xlim_R = max(self.score_per_tick * (len(self.item)/self.score_per_tick+0.25), self.max_score * 1.02)
         ax.set_xlim(self.xlim_L, self.xlim_R)
         ax.set_xticks([self.score_per_tick*i for i in range(0, int(len(self.item)/self.score_per_tick)+1)], \
                       [i for i in range(0, int(len(self.item)/self.score_per_tick)+1)])
-
-    def test_plot(self):
-        fig, axs = plt.subplots(2, 1, constrained_layout=True)
-        ax = axs[0]
-        self.add_score_dist(ax, quantile_pos=self.quantile_pos)
-        ax2 = axs[1]
-        self.add_stats_component(ax2)
-        plt.show()
 
     def add_score_dist(
                 self,
@@ -195,7 +186,6 @@ class ScoredItemDistribution():
                 show_grid=True,
                 show_description=True,
                 fill_alpha=0.5,
-                minor_ticks=10,
                 main_color='C0',
             ):
         '''给图增加道具分数分布列的绘制，当分布较为稀疏时采用柱状图绘制，较为密集时近似为连续函数绘制（或者叫 pmf 概率质量函数）'''
@@ -216,7 +206,7 @@ class ScoredItemDistribution():
             ax.grid(visible=True, which='major', linestyle='-', linewidth=1)
             ax.grid(visible=True, which='minor', linestyle='-', linewidth=0.5)
             ax.minorticks_on()
-            ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(self.x_minor_ticks))
 
         # 根据疏密程度切换绘图方式
         if(len(dist) <= self.switch_len):
@@ -235,7 +225,7 @@ class ScoredItemDistribution():
         if self.show_exp:
             # 绘制期望
             ax.text(
-                dist.exp+len(dist)/200, exp_y+self.max_mass*0.01, '期望'+str(round(dist.exp/self.score_per_tick, 1))+self.score_name,
+                dist.exp+len(dist)/200, exp_y+self.max_mass*0.01, f'期望{dist.exp/self.score_per_tick:.2f}'+self.score_name,
                 color='gray',
                 weight='bold',
                 size=10,
@@ -249,7 +239,7 @@ class ScoredItemDistribution():
         if self.show_peak:
             # 绘制峰值
             ax.text(
-                self.max_pos, self.max_mass*1.01, '峰值'+str(self.max_pos/self.score_per_tick)+self.score_name,
+                self.max_pos, self.max_mass*1.01, f'峰值{self.max_pos/self.score_per_tick:.2f}'+self.score_name,
                 color='gray',
                 weight='bold',
                 size=10,
@@ -287,7 +277,6 @@ class ScoredItemDistribution():
             alpha=0.7,
             show_grid=True,
             show_xlabel=True,
-            minor_ticks=10,
         ):
         # 设置x/y范围并设置x轴分数
         self.set_xticks(ax)
@@ -303,7 +292,7 @@ class ScoredItemDistribution():
             ax.grid(visible=True, which='major', linestyle='-', linewidth=1)
             ax.grid(visible=True, which='minor', linestyle='-', linewidth=0.5)
             ax.minorticks_on()
-            ax.xaxis.set_minor_locator(AutoMinorLocator(minor_ticks))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(self.x_minor_ticks))
         # 是否绘制x轴标签
         if show_xlabel:
             ax.set_xlabel(f'{self.score_name}', weight='bold', size=12, color='black')

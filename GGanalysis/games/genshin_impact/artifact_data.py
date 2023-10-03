@@ -3,6 +3,14 @@
 ''' 
 ARTIFACT_TYPES = ['flower', 'plume', 'sands', 'goblet', 'circlet']
 
+ARTIFACT_NAME = {
+    'flower': '生之花', 
+    'plume': '死之羽',
+    'sands': '时之沙',
+    'goblet': '空之杯',
+    'circlet': '理之冠'
+}
+
 # 类型别名对照表
 STAT_NAME = {
     'hp': '数值生命值',

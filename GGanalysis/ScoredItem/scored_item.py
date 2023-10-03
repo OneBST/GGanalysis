@@ -13,7 +13,7 @@ import time
 class ScoredItem():
     '''词条型道具'''
     # TODO 研究怎样继承 stats_score 比较好，运算时 stats_score 应该一致才能运算 套装 stats_score 也应该一致
-    def __init__(self, score_dist: Union[FiniteDist, np.ndarray, list]=FiniteDist([0]), stats_score: dict={}, sub_stats_exp: dict={}, drop_p=1) -> None:
+    def __init__(self, score_dist: Union[FiniteDist, np.ndarray, list]=FiniteDist([0]), sub_stats_exp: dict={}, drop_p=1, stats_score: dict={}) -> None:
         '''使用分数分布和副词条期望完成初始化，可选副词条方差'''
         self.score_dist = FiniteDist(score_dist)    # 得分分布
         self.stats_score = stats_score
@@ -86,6 +86,10 @@ class ScoredItem():
         return ScoredItem(FiniteDist(score_dist), sub_stats_exp, stats_score=self.stats_score)
     
     def __add__(self, other: 'ScoredItem') -> 'ScoredItem':
+        '''数量合并两个物品'''
+        # 判断 stats_score 是否一致
+        if self.stats_score != other.stats_score:
+            raise ValueError("stats_score must be the same!")
         key_set = set(self.sub_stats_exp.keys())
         key_set.update(other.sub_stats_exp.keys())
         ans_dist = self.score_dist + other.score_dist
@@ -105,6 +109,9 @@ class ScoredItem():
     def __mul__(self, other: Union['ScoredItem', float, int]) -> 'ScoredItem':
         '''对两个物品进行卷积合并，或单纯数乘'''
         if isinstance(other, ScoredItem):
+            # 判断 stats_score 是否一致
+            if self.stats_score != other.stats_score:
+                raise ValueError("stats_score must be the same!")
             # 两者都是词条型道具的情况下，进行卷积合并
             new_score_dist = self.score_dist * other.score_dist
             new_sub_exp = {}

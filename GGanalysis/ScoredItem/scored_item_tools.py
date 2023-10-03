@@ -24,6 +24,9 @@ def max_item(a: ScoredItem, b: ScoredItem):
     '''
     返回两个道具混合后的最优分布，如果两者相等，副词条采用a而不是b
     '''
+    # 判断 stats_score 是否一致
+    if a.stats_score != b.stats_score:
+        raise ValueError("stats_score must be the same!")
     cdf_a = dist2cdf(a.score_dist)
     cdf_b = dist2cdf(b.score_dist)
     min_len = min(len(a), len(b))
@@ -178,7 +181,7 @@ def remove_worst_combination(item_list:list[ScoredItem]) -> ScoredItem:
     for i in range(len(item_list)):
         # 枚举最差位置
         for s in range(score_max[i]+1):
-            c_dist = ScoredItem([1], {})
+            c_dist = ScoredItem([1], {}, stats_score=item_list[0].stats_score)
             # 枚举本件分数
             zero_mark = False
             for j in range(len(item_list)):
@@ -251,8 +254,6 @@ def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem]) -> ScoredItem
     # 计算最长边
     n = max([max(len(m[0]), len(m[1])) for m in zip(listA, listB)])
     m = len(listA)
-    # for A, B in zip(listA, listB):
-    #     n = max(n, len(A.score_dist), len(B.score_dist))
     # 计算对应的矩阵空间
     info_list = []
     for i, (A, B) in enumerate(zip(listA, listB)):
@@ -268,7 +269,7 @@ def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem]) -> ScoredItem
             # 卷积条件分布，注意这里可能有值为0要特判
             if np.sum(info_list[i][1][s, :]) == 0:
                 continue
-            unit_item = ScoredItem(info_list[i][1][s, :], listB[i].sub_stats_exp)
+            unit_item = ScoredItem(info_list[i][1][s, :], listB[i].sub_stats_exp, stats_score=listA[0].stats_score)
             unit_item.sub_stats_clear()
             for j in range(m):
                 # 遍历其他部位
@@ -279,13 +280,13 @@ def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem]) -> ScoredItem
                     s_pos = s
                 else:
                     s_pos = s-1
-                unit_item = unit_item * ScoredItem(FiniteDist(info_list[j][0][s_pos, :]), listA[j].sub_stats_exp)
+                unit_item = unit_item * ScoredItem(FiniteDist(info_list[j][0][s_pos, :]), listA[j].sub_stats_exp, stats_score=listA[0].stats_score)
             ans_item += unit_item
     
     # 添加不选择B的情况
-    unit_item = ScoredItem([1], {})
+    unit_item = ScoredItem([1], {}, stats_score=listA[0].stats_score)
     for i in range(m):
-        unit_item = unit_item * ScoredItem(FiniteDist(info_list[i][0][0, :]), listA[i].sub_stats_exp)
+        unit_item = unit_item * ScoredItem(FiniteDist(info_list[i][0][0, :]), listA[i].sub_stats_exp, stats_score=listA[0].stats_score)
     ans_item += unit_item
     return ans_item
 
