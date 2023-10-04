@@ -11,7 +11,7 @@
     # 导入预定义好的原神模块
     import GGanalysis.games.genshin_impact as GI
     # 原神角色池的计算
-    dist_c = GI.up_5star_character(item_num=3, pull_state=20, up_guarantee=1)
+    dist_c = GI.up_5star_character(item_num=3, item_pity=20, up_pity=1)
     print('期望为', dist_c.exp, '方差为', dist_c.var, '分布为', dist_c.dist)
 
 以明日方舟为例说明如何使用预先定义好的抽卡模型。更多预定义模型可在 :ref:`明日方舟抽卡模型 <arknights_gacha_model>` 中查阅。
@@ -20,6 +20,6 @@
 
     # 计算抽卡所需抽数分布律 以明日方舟为例
     import GGanalysis.games.arknights as AK
-    # 普池双UP的计算 item_num是要抽多少个 pull_state是当前垫了多少抽，从零开始填0就行
-    dist_c = AK.dual_up_specific_6star(item_num=3, pull_state=20)
+    # 普池双UP的计算 item_num是要抽多少个 item_pity是当前垫了多少抽，从零开始填0就行
+    dist_c = AK.dual_up_specific_6star(item_num=3, item_pity=20)
     print('期望为', dist_c.exp, '方差为', dist_c.var, '分布为', dist_c.dist)
