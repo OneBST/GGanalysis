@@ -168,7 +168,7 @@ class GeneralCouponCollectorModel(GachaModel):
         output_E = self.model.get_expectation(init_state, target_state)
         test_len = max(int(output_E), 2)
         while True:
-            output_dist = FiniteDist(cdf2dist(self.model.get_collection_p(test_len, init_state, target_state)))
+            output_dist = cdf2dist(self.model.get_collection_p(test_len, init_state, target_state))
             calc_error = abs(calc_expectation(output_dist)-output_E)/output_E
             if calc_error < self.e_error or test_len > self.max_dist_len:
                 if test_len > self.max_dist_len:

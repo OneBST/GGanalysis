@@ -3,6 +3,14 @@
 ''' 
 ARTIFACT_TYPES = ['flower', 'plume', 'sands', 'goblet', 'circlet']
 
+ARTIFACT_NAME = {
+    'flower': '生之花', 
+    'plume': '死之羽',
+    'sands': '时之沙',
+    'goblet': '空之杯',
+    'circlet': '理之冠'
+}
+
 # 类型别名对照表
 STAT_NAME = {
     'hp': '数值生命值',
@@ -134,16 +142,16 @@ P_EXP_MULTI = {
 
 # 默认打分权重，这个值可以是 [0,1] 的浮点数
 DEFAULT_STAT_SCORE = {
-            'hp': 0,
-            'atk': 0,
-            'def': 0,
-            'hpp': 0,
-            'atkp': 1,
-            'defp': 0,
-            'em': 0,
-            'er': 0,
-            'cr': 1,
-            'cd': 1,
+    'hp': 0,
+    'atk': 0,
+    'def': 0,
+    'hpp': 0,
+    'atkp': 1,
+    'defp': 0,
+    'em': 0,
+    'er': 0,
+    'cr': 1,
+    'cd': 1,
 }
 
 # 默认主属性选择

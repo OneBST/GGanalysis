@@ -1,5 +1,6 @@
 from typing import Union
 import numpy as np
+import math
 from scipy.signal import convolve
 
 def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
@@ -33,20 +34,31 @@ def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     exp = sum(use_pulls * dist)
     return sum((use_pulls - exp) ** 2 * dist)
 
+def dist_squeeze(dist: Union['FiniteDist', list, np.ndarray], squeeze_factor) -> 'FiniteDist':
+    '''
+    按照 squeeze_factor 对分布进行倍数压缩，将压缩部分和存在一起
+    '''
+    n = math.ceil((len(dist)-1)/squeeze_factor)+1
+    new_arr = np.zeros(n, dtype=float)
+    new_arr[0] = dist[0]
+    for i in range(1, n):
+        new_arr[i] = np.sum(dist[(i-1)*squeeze_factor+1:i*squeeze_factor+1])
+    return FiniteDist(new_arr)
+
 def dist2cdf(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
     '''简单封装一下numpy的cumsum'''
     if isinstance(dist, FiniteDist):
         return np.cumsum(dist.dist)
     return np.cumsum(dist)
 
-def cdf2dist(cdf: np.ndarray) -> np.ndarray:
+def cdf2dist(cdf: np.ndarray) -> 'FiniteDist':
     '''将cdf转化为分布'''
     if len(cdf) == 1:
         # 长度为1 返回必然事件分布
         return FiniteDist([1])
     pdf = np.array(cdf)
     pdf[1:] -= pdf[:-1].copy()
-    return pdf
+    return FiniteDist(pdf)
 
 def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
     '''
