@@ -27,7 +27,7 @@ GGanalysis 中已经预定义好了结合保底抽卡模型和伯努利抽卡模
     # 采用预定义的保底伯努利抽卡类
     gacha_model = gg.PityBernoulliModel(pity_p, 1/5)
     # 根据定义的类计算从零开始获取一个道具的分布，由于可能永远获得不了道具，分布是截断的
-    dist = gacha_model(item_num=1, pull_state=0)
+    dist = gacha_model(item_num=1, item_pity=0)
 
 组合抽卡层自定义抽卡模型
 ------------------------
@@ -54,5 +54,5 @@ GGanalysis 也支持更细粒度的定制抽卡模型。可以继承 :class:`~GG
             self.layers.append(gg.BernoulliLayer(p, e_error, max_dist_len))
     # 根据自定义的类计算从零开始获取一个道具的分布，由于可能永远获得不了道具，分布是截断的
     gacha_model = MyModel(pity_p, 1/5)
-    # 关于 pull_state 等条件输入，如有需要可以参考预置类中 __call__ 和 _build_parameter_list 的写法
+    # 关于 item_pity 等条件输入，如有需要可以参考预置类中 __call__ 和 _build_parameter_list 的写法
     dist = gacha_model(item_num=1)
