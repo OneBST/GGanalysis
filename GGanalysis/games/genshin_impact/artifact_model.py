@@ -1,6 +1,7 @@
 from copy import deepcopy
 from functools import lru_cache
 from itertools import permutations
+from typing import Callable
 
 import numpy as np
 
@@ -161,8 +162,8 @@ class GenshinArtifact(ScoredItem):
         main_stat: str = None,  # 主词条属性
         sub_stats_select_weight: dict = W_SUB_STAT,  # 副词条抽取权重
         stats_score: dict = DEFAULT_STAT_SCORE,  # 词条评分权重
-        drop_source: str = "domains_drop",  # 圣遗物掉落来源，和初始词条数相关
-        forced_p_4sub = None,   # 直接设定初始4词条概率
+        p_4sub: float = P_DROP_STATE["domains_drop"],  # 根据圣遗物掉落来源确定4件套掉落率
+        sub_stats_filter: Callable[..., bool] = None, # 设定副词条过滤器，若函数判断False直接丢掉被过滤的情况
         forced_combinations = None, # 直接设定初始词条组合
     ) -> None:
         # 计算获得主词条概率
@@ -181,10 +182,7 @@ class GenshinArtifact(ScoredItem):
         if self.main_stat in self.sub_stats_weight:
             del self.sub_stats_weight[self.main_stat]
         # 确定副词条四件概率
-        if forced_p_4sub is None:
-            self.p_4sub = P_DROP_STATE[drop_source]
-        else:
-            self.p_4sub = forced_p_4sub
+        self.p_4sub = p_4sub
         # 词条权重改变时应清除缓存
         self.stats_score = stats_score
         if self.stats_score != STATS_WEIGHTS:
@@ -199,6 +197,9 @@ class GenshinArtifact(ScoredItem):
             self.sub_stats_combinations = forced_combinations
         # 遍历所有情况累加
         for stat_comb in list(self.sub_stats_combinations.keys()):
+            if sub_stats_filter is not None:
+                if sub_stats_filter(stat_comb) is False:
+                    continue
             temp_base = get_init_state(stat_comb)
             temp_level_up = get_state_level_up(stat_comb)
             # 初始3词条和初始四词条的情况
@@ -227,13 +228,14 @@ class GenshinArtifactSet(ScoredItemSet):
         self,
         main_stat: dict = DEFAULT_MAIN_STAT,
         stats_score: dict = DEFAULT_STAT_SCORE,
-        drop_source: str = "domains_drop",
+        p_4sub: float = P_DROP_STATE["domains_drop"],  # 根据圣遗物掉落来源确定4件套掉落率
         type_p = 1/10,  # 掉落对应套装部位的概率
+        sub_stats_filter: Callable[..., bool] = None, # 设定副词条过滤器，若函数判断False直接丢掉被过滤的情况
     ) -> None:
         # 初始化道具
         self.main_stat = main_stat
         self.stats_score = stats_score
-        self.drop_source = drop_source
+        self.p_4sub = p_4sub
         item_set = {}
         for type in ARTIFACT_TYPES:
             item_set[type] = GenshinArtifact(
@@ -241,7 +243,8 @@ class GenshinArtifactSet(ScoredItemSet):
                 type_p=type_p,
                 main_stat=main_stat[type],
                 stats_score=stats_score,
-                drop_source=drop_source,
+                p_4sub=self.p_4sub,
+                sub_stats_filter=sub_stats_filter,
             )
         super().__init__(item_set)
 
@@ -303,7 +306,6 @@ if __name__ == "__main__":
     plt.plot(item_set_score.score_dist.dist, color='C1')
     plt.show()
     """
-    """
     # 测试非整数分数权重
     TEST_STAT_SCORE = {
             'hp': 0,
@@ -318,7 +320,7 @@ if __name__ == "__main__":
             'cd': 1,
     }
     from matplotlib import pyplot as plt
-    from GGanalysis.scored_item import check_subexp_sum
+    from GGanalysis.ScoredItem import check_subexp_sum
     flower = GenshinArtifact(type='flower', stats_score=TEST_STAT_SCORE)
     score = check_subexp_sum(flower, TEST_STAT_SCORE)
     print(score)
@@ -343,7 +345,7 @@ if __name__ == "__main__":
     plt.plot(item_set_score_5.score_dist.dist, color="C0")
     plt.plot(item_set_score_4plus1.score_dist.dist, color="C1")
     plt.show()
-
+    """
     # TODO 加入相对当前的提升，超过提升部分才纳入计算（或者说把目前的分数作为base，低于或等于这个分数的都合并到一起），即增加在现有圣遗物基础上的提升计算
 
     # TODO 参考ideless的方法增加筛选策略

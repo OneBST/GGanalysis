@@ -245,9 +245,10 @@ def get_info(score_map: np.ndarray):
         sub_dist[offset, offset:] = diag
     return main_dist, sub_dist
 
-def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem]) -> ScoredItem:
+def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem], get_replace_rate=False) -> ScoredItem:
     '''
         计算可从 listA 中选取一个部位替换为 listB 中对应位置情况下，最优决策下两者混合后的分布
+        get_rate 用于控制是否返回每个位置道具选择替换的比例
     '''
     if len(listA) != len(listB):
         raise ValueError("A B lenth not equal!")
@@ -262,6 +263,7 @@ def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem]) -> ScoredItem
         info_list.append(get_info(M))
     
     ans_item = ScoredItem([0], {}, stats_score=listA[0].stats_score)
+    ans_replace_rate = [0] * m
     for i in range(m):
         # 枚举选择B的部位
         for s in range(1, n):
@@ -282,12 +284,16 @@ def get_mix_dist(listA: list[ScoredItem], listB: list[ScoredItem]) -> ScoredItem
                     s_pos = s-1
                 unit_item = unit_item * ScoredItem(FiniteDist(info_list[j][0][s_pos, :]), listA[j].sub_stats_exp, stats_score=listA[0].stats_score)
             ans_item += unit_item
+            ans_replace_rate[i] += sum(unit_item.score_dist.dist)
     
     # 添加不选择B的情况
     unit_item = ScoredItem([1], {}, stats_score=listA[0].stats_score)
     for i in range(m):
         unit_item = unit_item * ScoredItem(FiniteDist(info_list[i][0][0, :]), listA[i].sub_stats_exp, stats_score=listA[0].stats_score)
     ans_item += unit_item
+    # print("Set Replace:", ans_replace_rate, "No Replacement", 1-sum(ans_replace_rate))
+    if get_replace_rate:
+        return ans_item, ans_replace_rate
     return ans_item
 
 if __name__ == '__main__':
