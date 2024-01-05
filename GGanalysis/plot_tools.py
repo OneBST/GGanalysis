@@ -214,31 +214,33 @@ def add_quantile_line(
     return ax
 
 def plot_pmf(ax, input: np.array, line_color='C0', dist_end=True, is_step=True, fill_alpha=0.5, path_effects=[pe.withStroke(linewidth=3, foreground='white')]):
+    x = np.arange(len(input))           # 生成x轴坐标点
+    y = input
     if is_step:
-        x = np.arange(len(input)) + 0.5 # 生成x轴坐标点
-        x = np.repeat(x, 2)             # 每个x坐标重复两次以创建阶梯效果
-        y = np.repeat(input, 2)             # 每个y坐标重复两次以创建阶梯效果
+        # x = np.arange(len(input)) + 0.5 # 生成x轴坐标点
+        # x = np.repeat(x, 2)             # 每个x坐标重复两次以创建阶梯效果
+        # y = np.repeat(input, 2)             # 每个y坐标重复两次以创建阶梯效果
 
-        # 添加前后的额外坐标以完整显示阶梯图
-        if input[0] != 0:
-            x = np.append(-0.5, x[:-1])  # 在最前面加上-0.5，去掉末尾
-        else:
-            x = x[1:-1]
-            y = y[2:]
+        # # 添加前后的额外坐标以完整显示阶梯图
+        # if input[0] != 0:
+        #     x = np.append(-0.5, x[:-1])  # 在最前面加上-0.5，去掉末尾
+        # else:
+        #     x = x[1:-1]
+        #     y = y[2:]
+        step = 'mid'
     else:
-        x = np.arange(len(input))           # 生成x轴坐标点
-        y = input
         if input[0] == 0:
             x = x[1:]
             y = y[1:]
+        step = None
     # 绘制分布图
+    ax.fill_between(x, 0, y, alpha=fill_alpha, color=line_color, zorder=9, step=step, edgecolor='none')
     ax.plot(
         x, y,
         color=line_color,
         linewidth=1.5,
         path_effects=path_effects,
         zorder=10)
-    ax.fill_between(x, 0, y, alpha=fill_alpha, color=line_color, zorder=9)
 
     # 分布未结束时添加箭头
     if not dist_end:
