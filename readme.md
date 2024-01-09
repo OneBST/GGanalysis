@@ -1,7 +1,5 @@
 # 抽卡游戏概率分析工具包-GGanalysis
 
-点此查看[在线文档](https://onebst.github.io/GGanalysis/)
-
 本工具包为快速构建抽卡游戏抽卡模型设计，通过引入“抽卡层”，以抽卡层的组合快速实现复杂的抽卡逻辑，并以较低的时间复杂度计算抽卡模型对应的分布。除了计算分布，工具包还提供一些将计算结果可视化的绘图工具，并计划加入更多的针对各类抽卡问题的计算工具和设计工具。
 
 近期加入了对有分值道具的相关功能，可以对类似原神圣遗物等问题进行建模。但请注意，这部分代码随时可能发生变动，接口可能大幅改动。
@@ -25,6 +23,8 @@ pip install .
 画图时需要安装[思源黑体](https://github.com/adobe-fonts/source-han-sans)，安装[对应版本](https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip)后即可使用。
 
 ## 使用方法
+
+可以在[在线文档](https://onebst.github.io/GGanalysis/)中查看详细使用指南，这里简单举例
 
 **使用定义好的抽卡模型计算抽卡所需抽数分布**
 
@@ -56,9 +56,9 @@ fig = DrawDistribution(dist, dpi=72, show_description=True)
 fig.draw_two_graph()
 ```
 
-更详细的构建抽卡模型和计算分布见项目下的 [example.py](https://github.com/OneBST/GGanalysisLite/blob/main/example.py)
+每个游戏的抽卡模型定义在 `GGanalysis/games/gamename/gacha_model.py` 文件中
 
-绘图程序参考项目下 `GGanalysis/games/gamename/figure_plot.py` 文件
+每个游戏的绘图程序在项目 `GGanalysis/games/gamename/figure_plot.py` 文件下可参考
 
 ## 注意事项
 
