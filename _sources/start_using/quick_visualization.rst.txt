@@ -11,5 +11,5 @@
     dist = GI.up_5star_character(item_num=1) * GI.up_5star_ep_weapon(item_num=1)
     # 导入绘图模块
     from GGanalysis.gacha_plot import DrawDistribution
-    fig = DrawDistribution(dist, dpi=72, show_description=True)
-    fig.draw_two_graph()
+    fig = DrawDistribution(dist, show_description=True)
+    fig.show_two_graph(dpi=72)
