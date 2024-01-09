@@ -49,10 +49,10 @@ weapon_elite = PityModel(PITY_ELITE_W)
 weapon_common = PityModel(PITY_COMMON_W)
 
 
-# 定义获取UP物品模型
+# 定义获取UP物品模型，以下为简单推测模型
 up_elite = DualPityModel(PITY_ELITE, [0, 0.5, 1])
-up_common_character = DualPityModel(PITY_COMMON, [0, 0.5, 1])
-up_common_specific_character = DualPityBernoulliModel(PITY_COMMON, [0, 0.5, 1], 1/2)
+up_common_character = PityBernoulliModel(PITY_COMMON, p=0.25)
+up_common_specific_character = PityBernoulliModel(PITY_COMMON, p=0.25/2)
 up_elite_weapon = DualPityModel(PITY_ELITE_W, [0, 0.75, 1])
 up_common_weapon = DualPityModel(PITY_COMMON_W, [0, 0.75, 1])
 up_common_specific_weapon = DualPityBernoulliModel(PITY_COMMON_W, [0, 0.75, 1], 1/3)
@@ -68,4 +68,5 @@ if __name__ == '__main__':
     print(up_elite_weapon(1).exp, 1/up_elite_weapon(1).exp)
     # print(PITY_COMMON_W)
     # print(weapon_common(1).exp, 1/weapon_common(1).exp)
+    print(up_common_specific_character(1).exp, 1/up_common_specific_character(1).exp)
     pass
