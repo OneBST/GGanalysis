@@ -1,5 +1,6 @@
 import GGanalysis as gg
 import GGanalysis.games.genshin_impact as GI
+from GGanalysis.ScoredItem import combine_items
 
 # 注意，以下定义的分数指每次副词条强化为最高属性为10，其他情况依次为9、8、7
 
@@ -13,7 +14,7 @@ print(flower.repeat(100).score_dist.dist)
 # 定义以默认权重计算的圣遗物套装
 default_weight_artifact = GI.GenshinArtifactSet()
 print('在祝圣秘境获取100件圣遗物后，其中特定套装组5件套能获得的最高分数的分布')
-print(gg.ScoredItem.scored_item.combine_items(default_weight_artifact.repeat(100)).score_dist.dist)
+print(combine_items(default_weight_artifact.repeat(100)).score_dist.dist)
 print('在祝圣秘境获取100件圣遗物，获取散件1500件后，其中特定套装和散件组4+1能获得的最高分数的分布')
 print(default_weight_artifact.get_4piece_under_condition(n=100, base_n=1500).score_dist.dist)
 
