@@ -7,8 +7,7 @@ import matplotlib.patheffects as pe
 import matplotlib.transforms as transforms
 
 
-#mpl.rcParams['font.family'] = 'Source Han Sans SC'
-mpl.rcParams['font.family'] = 'Microsoft YaHei'
+mpl.rcParams['font.family'] = 'Source Han Sans SC'
 
 # 描边预设
 stroke_white = [pe.withStroke(linewidth=2, foreground='white')]
