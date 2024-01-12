@@ -4,15 +4,7 @@ import matplotlib.cm as cm
 import numpy as np
 import time
 
-'''
-注意若出现找不到字体的情况
-Windows 下检查 C:/Windows/Fonts/ 下是否有以 SourceHanSansSC 开头的otf字体
-Linux 下检查 ~/.local/share/fonts/ 下是否有以 SourceHanSansSC 开头的otf字体
-如果没有安装字体，请下载并安装字体包 https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip
-如果安装后还是找不到字体，请检查 GGanalysis/gacha_plot.py 内对字体路径的定义，自行修改为你的字体文件所在的位置
-'''
-
-# 以原神为例，演示绘制分位函数
+# 绘制原神抽卡概率分位函数图
 
 # 定义获取物品个数的别名
 def gi_character(x):
