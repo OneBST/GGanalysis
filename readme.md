@@ -20,7 +20,9 @@ cd GGanalysis
 pip install .
 ```
 
-画图时需要安装[思源黑体](https://github.com/adobe-fonts/source-han-sans)，安装[对应版本](https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip)后即可使用。
+画图时需要安装[思源黑体](https://github.com/adobe-fonts/source-han-sans)，安装[对应版本](https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip)后即可使用，若出现找不到字体的情况，Windows 下检查 `C:/Windows/Fonts/` 下是否有以 `SourceHanSansSC` 开头的otf字体（Linux 则检查 `~/.local/share/fonts/`）
+
+如果安装后还是找不到字体，请将 `GGanalysis/plot_tools.py` 内 `mpl.rcParams['font.family'] = 'Source Han Sans SC'` 自行修改为你指定的字体。
 
 ## 使用方法
 
