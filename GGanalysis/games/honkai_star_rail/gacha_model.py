@@ -34,12 +34,11 @@ PITY_4STAR[9] = 0.051 + 0.51
 PITY_4STAR[10] = 1
 # 星穹铁道武器池5星保底概率表
 PITY_W5STAR = np.zeros(81)
-PITY_W5STAR[1:67] = 0.008
-PITY_W5STAR[67:71] = np.arange(1, 5) * 0.008 * 14 + 0.008
-PITY_W5STAR[71:80] = np.arange(1, 10) * 0.008 * 7 + PITY_W5STAR[70]
+PITY_W5STAR[1:66] = 0.008
+PITY_W5STAR[66:80] = np.arange(1, 15) * 0.07 + 0.008
 PITY_W5STAR[80] = 1
 # 星穹铁道武器池4星保底概率表
-PITY_W4STAR = np.array([0,0.066,0.066,0.066,0.066,0.066,0.066,0.066,0.066+0.066*6,0.87,1])
+PITY_W4STAR = np.array([0,0.066,0.066,0.066,0.066,0.066,0.066,0.066,0.066*7.1,0.066*13.1,1])
 
 # 定义获取星级物品的模型
 common_5star = PityModel(PITY_5STAR)
