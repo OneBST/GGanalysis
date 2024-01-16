@@ -23,6 +23,9 @@ __all__ = [
     'specific_stander_6star',
     'both_up_5star',
     'stander_charactor_collection',
+    'dual_up_specific_6star',
+    'dual_up_both_6star',
+    'triple_pool_6star',
 ]
 
 # 重返未来1999普通6星保底概率表
@@ -56,8 +59,15 @@ both_up_5star = GeneralCouponCollectorModel([P_5s/4, P_5s/4], ['up5star1', 'up5s
 specific_stander_6star = PityBernoulliModel(PITY_6STAR, 1/11)
 # 定义集齐常驻
 stander_charactor_collection = PityCouponCollectorModel(PITY_6STAR, 11)
+# 常驻自选六星角色池抽到特定自选六星角色模型
+dual_up_specific_6star = DualPityBernoulliModel(PITY_6STAR, [0, 0.7, 1], 1/2)
+dual_up_both_6star = DualPityCouponCollectorModel(PITY_6STAR, [0, 0.7, 1], 2)
+# 常驻三池选一卡池模型
+triple_pool_6star = PityBernoulliModel(PITY_6STAR, 1/3)
 
 if __name__ == '__main__':
     # print(PITY_6STAR)
-    # print(common_6star(1).exp, 1/common_6star(1).exp)
-    print(stander_charactor_collection(target_types=2).exp)
+    print(common_6star(1).exp, 1/common_6star(1).exp)
+    # print(stander_charactor_collection(target_types=2).exp)
+    print(dual_up_specific_6star(1).exp)
+    print(dual_up_both_6star().exp)

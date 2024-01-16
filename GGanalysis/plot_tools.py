@@ -235,12 +235,21 @@ def plot_pmf(ax, input: np.array, line_color='C0', dist_end=True, is_step=True, 
         step = None
     # 绘制分布图
     ax.fill_between(x, 0, y, alpha=fill_alpha, color=line_color, zorder=9, step=step, edgecolor='none')
-    ax.plot(
-        x, y,
-        color=line_color,
-        linewidth=1.5,
-        path_effects=path_effects,
-        zorder=10)
+    if step is None:
+        ax.plot(
+            x, y,
+            color=line_color,
+            linewidth=1.5,
+            path_effects=path_effects,
+            zorder=10)
+    else:
+        ax.step(
+            x, y,
+            color=line_color,
+            linewidth=1.5,
+            path_effects=path_effects,
+            zorder=10,
+            where=step)
 
     # 分布未结束时添加箭头
     if not dist_end:
