@@ -151,16 +151,11 @@ class ScoredItemSet():
         '''添加名为 item_name 的道具'''
         self.item_set[item_name] = item
 
-    def combine_set(self, select_items: list[str]=None, n=1):
-        '''计算获取n次道具后套装中道具的最佳得分分布'''
-        # TODO 修改这个函数，目前存在意义很奇怪，为什么可以有输入
+    def combine_set(self, n=1):
+        '''计算每个道具获取n次道具后套装中道具的最佳得分分布'''
         ans = ScoredItem([1], stats_score=self.item_set.values()[0].stats_score)
-        if select_items is None:
-            for key in self.item_set.keys():
-                ans *= self.item_set[key].repeat(n, self.item_set[key].drop_p)
-        else:
-            for key in select_items:
-                ans *= self.item_set[key].repeat(n)
+        for key in self.item_set.keys():
+            ans *= self.item_set[key].repeat(n)
         return ans
 
     def repeat(self, n, p: dict=None) -> list[ScoredItem]:

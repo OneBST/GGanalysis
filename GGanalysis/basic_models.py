@@ -146,6 +146,25 @@ class PityCouponCollectorModel(CommonGachaModel):
             [[], {'initial_types':initial_types, 'target_types':target_types}],
         ]
         return parameter_list
+    
+class DualPityCouponCollectorModel(CommonGachaModel):
+    '''道具保底均等概率集齐道具抽卡类'''
+    def __init__(self, pity_p1, pity_p2, item_types, e_error = 1e-6, max_dist_len = 1e5) -> None:
+        super().__init__()
+        self.layers.append(PityLayer(pity_p1))
+        self.layers.append(PityLayer(pity_p2))
+        self.layers.append(CouponCollectorLayer(item_types, None, e_error, max_dist_len))
+    
+    def __call__(self, initial_types: int = 0, item_pity = 0, up_pity: int = 0, target_types: int = None, *args: any, **kwds: any) -> Union[FiniteDist, list]:
+        return super().__call__(1, False, item_pity, up_pity, initial_types, target_types, *args, **kwds)
+
+    def _build_parameter_list(self, item_pity: int = 0, up_pity:int = 0, initial_types: int = 0, target_types: int = None) -> list:
+        parameter_list = [
+            [[], {'item_pity':item_pity}],
+            [[], {'item_pity':up_pity}],
+            [[], {'initial_types':initial_types, 'target_types':target_types}],
+        ]
+        return parameter_list
 
 class GeneralCouponCollectorModel(GachaModel):
     '''不均等概率集齐道具抽卡类'''

@@ -117,8 +117,9 @@ class QuantileFunction(object):
                     b_pos = self.direct_exchange*(i-j)
                     e_pos = self.direct_exchange*(i-j+1)
                     fill_ans = np.copy(cdf_data[j][b_pos:e_pos])
-                    ans_cdf[b_pos:e_pos] = np.pad(fill_ans, (0, self.direct_exchange-len(fill_ans)), 'constant', constant_values=1)
-                ans_cdf[i*self.direct_exchange] = 1
+                    ans_cdf[b_pos:e_pos] = np.pad(fill_ans, (0, len(ans_cdf[b_pos:e_pos])-len(fill_ans)), 'constant', constant_values=1)
+                if i*self.direct_exchange+1 <= len(ans_cdf):
+                    ans_cdf[i*self.direct_exchange] = 1
                 calc_cdf.append(ans_cdf)
             self.cdf_data = calc_cdf
         else:
