@@ -102,7 +102,7 @@ W_SUB_STAT = {
 }
 
 # 五星遗器初始4词条概率
-P_DROP_STATE = 0.2
+P_INIT4_DROP = 0.2
 
 # 五星遗器主词条满级时属性 https://www.bilibili.com/video/BV11w411U7AV/
 MAIN_STAT_MAX = {
