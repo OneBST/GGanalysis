@@ -153,7 +153,7 @@ class ScoredItemSet():
 
     def combine_set(self, n=1):
         '''计算每个道具获取n次道具后套装中道具的最佳得分分布'''
-        ans = ScoredItem([1], stats_score=self.item_set.values()[0].stats_score)
+        ans = ScoredItem([1], stats_score=list(self.item_set.values())[0].stats_score)
         for key in self.item_set.keys():
             ans *= self.item_set[key].repeat(n)
         return ans
