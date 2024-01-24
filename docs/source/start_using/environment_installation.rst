@@ -4,14 +4,14 @@
 安装 Python
 ------------------------
 
-工具包需要 ``python>=3.8``，可以从 `官方网站 <https://www.python.org/>`_ 下载并安装。
+工具包需要 ``python>=3.9``，可以从 `官方网站 <https://www.python.org/>`_ 下载并安装。
 
 也可以将使用环境置于 Anaconda 环境中， `Anaconda下载 <https://www.anaconda.com//>`_ `Miniconda下载 <https://docs.conda.io/en/latest/miniconda.html/>`_。
 
 .. attention:: 
 
    只使用抽卡概率计算相关工具时可以采用更老的 Python 版本（不推荐）。
-   Python 3.8 之前的版本不支持类型提示，在导入圣遗物计算相关包时会报错，可以选择手动修改报错部分类型提示代码解决问题。
+   Python 3.9 之前的版本不支持工具包内类型提示写法，在导入计算相关包时会报错，可以选择手动修改报错部分类型提示代码解决问题。
 
 安装依赖包
 ------------------------

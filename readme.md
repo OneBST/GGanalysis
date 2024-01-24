@@ -8,7 +8,7 @@
 
 ## 安装方法
 
-本工具包的依赖库很简单，只需要安装`numpy`和`scipy`即可。如果需要使用工具包提供的画图代码，还需安装 `matplotlib`。
+本工具包的依赖库很简单，只需要在 `Python>=3.9` 环境中安装`numpy`和`scipy`即可。如果需要使用工具包提供的画图代码，还需安装 `matplotlib`。
 
 ``` shell
 pip install numpy scipy matplotlib
