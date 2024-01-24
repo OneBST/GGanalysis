@@ -183,20 +183,15 @@
 <li class="toctree-l3"><a class="reference internal" href="../games/honkai_star_rail/gacha_models.html">崩坏：星穹铁道抽卡模型</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../games/arknights/index.html">明日方舟</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../games/arknights/gacha_models.html">明日方舟抽卡模型</a></li>
-</ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../games/azur_lane/index.html">碧蓝航线</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../games/azur_lane/gacha_models.html">碧蓝航线抽卡模型</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../games/arknights/index.html">明日方舟抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/azur_lane/index.html">碧蓝航线抽卡模型</a></li>
 </ul>
 </li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">抽卡导论</span></p>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../introduction_to_gacha/index.html">抽卡导论</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../introduction_to_gacha/index.html">抽卡导论</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/foundations.html">基本概念约定</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/feedback_item_problem.html">道具返还问题</a></li>
 </ul>
 </li>
@@ -250,7 +245,7 @@
 <span class="kn">import</span> <span class="nn">GGanalysis</span> <span class="k">as</span> <span class="nn">gg</span>
 <span class="kn">import</span> <span class="nn">GGanalysis.games.arknights</span> <span class="k">as</span> <span class="nn">AK</span>
 <span class="c1"># 按优先级将道具概率表组成列表</span>
-<span class="n">item_p_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">AK</span><span class="o">.</span><span class="n">pity_6star</span><span class="p">,</span> <span class="n">AK</span><span class="o">.</span><span class="n">pity_5star</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]]</span>
+<span class="n">item_p_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">AK</span><span class="o">.</span><span class="n">PITY_6STAR</span><span class="p">,</span> <span class="n">AK</span><span class="o">.</span><span class="n">PITY_5STAR</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]]</span>
 <span class="n">AK_probe</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">PriorityPitySystem</span><span class="p">(</span><span class="n">item_p_list</span><span class="p">,</span> <span class="n">extra_state</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">remove_pity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># 打印结果，转移矩阵的计算可能比较慢</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">AK_probe</span><span class="o">.</span><span class="n">get_stationary_p</span><span class="p">())</span>  <span class="c1"># [0.02890628 0.08948246 0.49993432 0.38167693]</span>
@@ -263,7 +258,7 @@
 <span class="kn">import</span> <span class="nn">GGanalysis</span> <span class="k">as</span> <span class="nn">gg</span>
 <span class="kn">import</span> <span class="nn">GGanalysis.games.genshin_impact</span> <span class="k">as</span> <span class="nn">GI</span>
 <span class="c1"># 获得平稳后进行10连抽获得k个五星道具的分布</span>
-<span class="n">ans</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">multi_item_rarity</span><span class="p">(</span><span class="n">GI</span><span class="o">.</span><span class="n">pity_5star</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">ans</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">multi_item_rarity</span><span class="p">(</span><span class="n">GI</span><span class="o">.</span><span class="n">PITY_5STAR</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
