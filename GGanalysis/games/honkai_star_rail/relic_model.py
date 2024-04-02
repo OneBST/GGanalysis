@@ -247,6 +247,7 @@ class StarRailRelicSet(ScoredItemSet):
         super().__init__(item_set)
 
 class StarRailCavernRelics(StarRailRelicSet):
+    # 崩铁遗器四件套
     def __init__(
         self,
         main_stat: dict = DEFAULT_MAIN_STAT,
@@ -266,6 +267,7 @@ class StarRailCavernRelics(StarRailRelicSet):
         )
 
 class StarRailPlanarOrnaments(StarRailRelicSet):
+    # 崩铁遗器两件套
     def __init__(
         self,
         main_stat: dict = DEFAULT_MAIN_STAT,
