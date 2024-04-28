@@ -38,7 +38,7 @@ PITY_W5STAR[1:66] = 0.008
 PITY_W5STAR[66:80] = np.arange(1, 15) * 0.07 + 0.008
 PITY_W5STAR[80] = 1
 # 星穹铁道武器池4星保底概率表
-PITY_W4STAR = np.array([0,0.066,0.066,0.066,0.066,0.066,0.066,0.066,0.066*7.1,0.066*13.1,1])
+PITY_W4STAR = np.array([0,0.066,0.066,0.066,0.066,0.066,0.066,0.066,0.466,0.866,1])
 
 # 定义获取星级物品的模型
 common_5star = PityModel(PITY_5STAR)
@@ -57,6 +57,8 @@ up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/3
 
 if __name__ == '__main__':
     # print(PITY_W5STAR)
+    print(1/common_4star_weapon(1).exp)
+    exit()
     # 计算分位点
     quantile_pos = [0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
     print("选择分位点"+str(quantile_pos))

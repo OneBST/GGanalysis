@@ -17,7 +17,7 @@ class ScoredItem():
         '''使用分数分布和副词条期望完成初始化，可选副词条方差'''
         self.score_dist = FiniteDist(score_dist)    # 得分分布
         self.stats_score = stats_score
-        self.sub_stats_exp = sub_stats_exp          # 每种副词条的期望
+        self.sub_stats_exp = sub_stats_exp          # 每种副词条在每个得分下的期望
         self.drop_p = drop_p
         if self.drop_p < 0 or self.drop_p > 1:
             raise ValueError("drop_p should between 0 and 1!")
@@ -51,7 +51,11 @@ class ScoredItem():
         return ans
 
     def repeat(self, n: int=1, p=None) -> 'ScoredItem':
-        '''重复n次获取道具尝试，每次有p概率获得道具后获得的最大值分布'''
+        '''
+            重复n次获取道具尝试
+            每次有p概率获得道具后获得的最大值分布
+            若不指定p则按self.drop_p为掉落概率
+        '''
         if n == 0:
             return ScoredItem([1], stats_score=self.stats_score)
         if p is None:
@@ -63,6 +67,9 @@ class ScoredItem():
         cdf = (use_p * np.cumsum(self.score_dist.dist) + 1 - use_p) ** n
         return ScoredItem(cdf2dist(cdf), self.sub_stats_exp, stats_score=self.stats_score)
     
+    def get_sub_stat_avg(self, key):
+        return np.sum(self.sub_stats_exp[key] * self.score_dist.dist)
+
     def __getattr__(self, key):  # 访问未计算的属性时进行计算
         # 基本统计属性
         if key in ['exp', 'var']:
@@ -152,7 +159,11 @@ class ScoredItemSet():
         self.item_set[item_name] = item
 
     def combine_set(self, n=1):
-        '''计算每个道具获取n次道具后套装中道具的最佳得分分布'''
+        '''
+            计算套装内每个道具获取n次道具后套装中道具最佳得分和的分布
+            若道具有设定掉落概率则按设定掉落概率处理
+            n较大时可以近似为这一套装总的得分分布
+        '''
         ans = ScoredItem([1], stats_score=list(self.item_set.values())[0].stats_score)
         for key in self.item_set.keys():
             ans *= self.item_set[key].repeat(n)
