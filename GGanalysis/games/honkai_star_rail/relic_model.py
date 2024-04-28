@@ -165,7 +165,7 @@ class StarRailRelic(ScoredItem):
         main_stat: str = None,  # 主词条属性
         sub_stats_select_weight: dict = W_SUB_STAT,  # 副词条抽取权重
         stats_score: dict = DEFAULT_STAT_SCORE,  # 词条评分权重
-        p_4sub: float = P_INIT4_DROP,  # 4件套掉落率
+        p_4sub: float = P_INIT4_DROP,  # 初始4词条掉落率
         sub_stats_filter: Callable[..., bool] = None, # 设定副词条过滤器，若函数判断False直接丢掉被过滤的情况
         forced_combinations = None, # 直接设定初始词条组合
     ) -> None:
