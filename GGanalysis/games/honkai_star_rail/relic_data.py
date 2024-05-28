@@ -1,5 +1,5 @@
 '''
-崩铁遗器数值表
+    崩铁遗器数值表
 ''' 
 RELIC_TYPES = ['head', 'hands', 'body', 'feet', 'link rope', 'planar sphere']
 
@@ -65,11 +65,11 @@ W_MAIN_STAT = {
         'speed': 625,
     },
     'link rope': {
-        'hpp': 1300,
-        'atkp': 1400,
-        'defp': 1250,
+        'hpp': 1375,
+        'atkp': 1375,
+        'defp': 1225,
         'be': 750,
-        'err': 300,
+        'err': 275,
     },
     'planar sphere': {
         'hpp': 625,
