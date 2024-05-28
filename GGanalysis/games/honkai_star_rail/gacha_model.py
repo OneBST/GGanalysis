@@ -1,5 +1,5 @@
 '''
-    注意，本模块使用概率模型仅为推测，不能保证完全准确
+    本模块五星及四星概率上升模型可信度很高，其余部分可能存在没有完全覆盖的机制
 '''
 from GGanalysis.distribution_1d import *
 from GGanalysis.gacha_layers import *
