@@ -118,14 +118,13 @@ MAIN_STAT_MAX = {
     'speed': 25.032,
     'be': 0.648,
     'err': 0.194394,
-    'pyroDB': 0.388803,
-    'hydroDB': 0.388803,
-    'anemoDB': 0.388803,
-    'electroDB': 0.388803,
-    'dendroDB': 0.388803,
-    'cryoDB': 0.388803,
-    'geoDB': 0.388803,
     'physicalDB': 0.388803,
+    'fireDB': 0.388803,
+    'iceDB': 0.388803,
+    'lightningDB': 0.388803,
+    'windDB': 0.388803,
+    'quantumDB': 0.388803,
+    'imaginaryDB': 0.388803,
 }
 
 # 五星副词条单次升级最大值，升级挡位为三挡比例 8:9:10
