@@ -36,7 +36,7 @@ PITY_4STAR[10] = 1
 # 绝区零音擎5星保底概率表 基础概率1% 综合概率2% 80保底 75%概率单UP
 PITY_W5STAR = np.zeros(81)
 PITY_W5STAR[1:64] = 0.01
-PITY_W5STAR[64:80] = np.arange(1, 17) * 0.04 + 0.01
+PITY_W5STAR[61:80] = np.arange(1, 20) * 0.05 + 0.01
 PITY_W5STAR[80] = 1
 # 绝区零音擎4星保底概率表 基础概率15% 其中音擎占13.125% 角色占1.875% 10抽保底 综合概率18% 75%概率UP
 # 音擎池暂时理解为没有UP机制介入时音擎占比 7/8 角色占比 1/8
@@ -65,16 +65,16 @@ if __name__ == '__main__':
     print(1/weapon_5star(1).exp)
     print(1/common_4star(1).exp)
     print(1/weapon_4star(1).exp)
+
     '''
-    print(PITY_W5STAR[70:])
     close_dis = 1
     pity_begin = 0
     p_raise = 0
-    for i in range(50, 75+1):
+    for i in range(60, 75+1):
         # 枚举开始上升位置
         PITY_5STAR = np.zeros(81)
         PITY_5STAR[1:i] = 0.01
-        for j in range(1, 10):
+        for j in range(5, 10):
             # 枚举每抽上升概率
             p_step = j / 100
             PITY_5STAR[i:80] = np.arange(1, 80-i+1) * p_step + 0.01
