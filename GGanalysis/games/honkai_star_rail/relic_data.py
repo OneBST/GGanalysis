@@ -127,7 +127,7 @@ MAIN_STAT_MAX = {
     'imaginaryDB': 0.388803,
 }
 
-# 五星副词条单次升级最大值，升级挡位为三挡比例 8:9:10
+# 五星副词条单次升级最大值，升级挡位为三挡比例 8:9:10 https://honkai-star-rail.fandom.com/wiki/Relic/Stats
 SUB_STAT_MAX = {
     'hp': 42.338,
     'atk': 21.169,
@@ -157,6 +157,29 @@ DEFAULT_STAT_SCORE = {
     'ehr': 0,
     'er': 0,
     'be': 0,
+}
+
+# 默认主词条得分
+DEFAULT_MAIN_STAT_SCORE = {
+    'hp': 0,
+    'atk': 0,
+    'hpp': 0,
+    'atkp': 0,
+    'defp': 0,
+    'cr': 0,
+    'cd': 0,
+    'hb': 0,
+    'ehr': 0,
+    'speed': 0,
+    'be': 0,
+    'err': 0,
+    'physicalDB': 0,
+    'fireDB': 0,
+    'iceDB': 0,
+    'lightningDB': 0,
+    'windDB': 0,
+    'quantumDB': 0,
+    'imaginaryDB': 0,
 }
 
 # 默认主属性选择

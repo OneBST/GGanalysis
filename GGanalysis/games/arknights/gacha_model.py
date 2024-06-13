@@ -72,7 +72,7 @@ class AK_Limit_Model(CommonGachaModel):
 
 class HardTypePityDP():
     '''
-        类型硬保底DP（这里称原神的“平稳机制”为类型软包保底，是一个类型的机制）
+        类型硬保底DP（这里称原神的“平稳机制”为类型软保底，是一个类型的机制）
         描述超过一定抽数没有获取某类道具时，下次再获取道具时必为某类道具之一，直至某类道具获得完全的模型
         调用返回获得1个指定类型道具所需抽数分布
         TODO 稍加修改改为集齐k种道具所需的抽数分布
@@ -223,7 +223,7 @@ triple_up_specific_5star = BernoulliGachaModel(P_5STAR_AVG * 0.6 / 3)
 # 注意有定向选调的情况只处理了第一个，接下来的没有处理，是有缺陷的，之后需要重写DP
 # 获取普通6星
 common_6star = PityModel(PITY_6STAR)
-# 获取单UP6星 无定向选调及有定向选调
+# 获取单UP6星 无定向选调及有定向选调 定向选调见 https://www.bilibili.com/read/cv22596510/
 single_up_6star_old = PityBernoulliModel(PITY_6STAR, 1 / 2)
 single_up_6star = AKDirectionalModel(single_up_6star_old(1), p2dist(PITY_6STAR), type_pity_gap=150, item_types=1,
                                      up_rate=0.5)

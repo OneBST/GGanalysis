@@ -135,6 +135,21 @@ def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos):
     ans[0] = 0
     return ans/sum(ans)
 
+def calc_item_num_dist(dist_list: list['FiniteDist'], pull):
+    '''
+    根据的获得 0-k 个道具所需抽数分布列表计算使用 pull 抽时获得道具数量分布（第k个位置表达的是≥k的概率）
+    此方法会忽略概率太低的长尾部分，并将其概率累加到 k 个道具位置
+    '''
+    item_num = len(dist_list) - 1
+    ans = np.zeros(item_num+1)
+    for i in range(0, item_num+1):
+        if len(dist_list[i]) <= pull+1:
+            ans[i] = 1
+        else:
+            ans[i] = dist_list[i].cdf[pull]
+    ans[0:-1] -= ans[1:].copy()
+    return FiniteDist(ans)
+
 class FiniteDist(object):  # 随机事件为有限个数的分布
     '''**有限长一维分布**
 
