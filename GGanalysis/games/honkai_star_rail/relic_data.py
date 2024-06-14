@@ -118,17 +118,16 @@ MAIN_STAT_MAX = {
     'speed': 25.032,
     'be': 0.648,
     'err': 0.194394,
-    'pyroDB': 0.388803,
-    'hydroDB': 0.388803,
-    'anemoDB': 0.388803,
-    'electroDB': 0.388803,
-    'dendroDB': 0.388803,
-    'cryoDB': 0.388803,
-    'geoDB': 0.388803,
     'physicalDB': 0.388803,
+    'fireDB': 0.388803,
+    'iceDB': 0.388803,
+    'lightningDB': 0.388803,
+    'windDB': 0.388803,
+    'quantumDB': 0.388803,
+    'imaginaryDB': 0.388803,
 }
 
-# 五星副词条单次升级最大值，升级挡位为三挡比例 8:9:10
+# 五星副词条单次升级最大值，升级挡位为三挡比例 8:9:10 https://honkai-star-rail.fandom.com/wiki/Relic/Stats
 SUB_STAT_MAX = {
     'hp': 42.338,
     'atk': 21.169,
@@ -150,7 +149,7 @@ DEFAULT_STAT_SCORE = {
     'atk': 0,
     'def': 0,
     'hpp': 0,
-    'atkp': 1,
+    'atkp': 0.5,
     'defp': 0,
     'speed': 1,
     'cr': 1,
@@ -158,6 +157,29 @@ DEFAULT_STAT_SCORE = {
     'ehr': 0,
     'er': 0,
     'be': 0,
+}
+
+# 默认主词条得分
+DEFAULT_MAIN_STAT_SCORE = {
+    'hp': 0,
+    'atk': 0,
+    'hpp': 0,
+    'atkp': 0,
+    'defp': 0,
+    'cr': 0,
+    'cd': 0,
+    'hb': 0,
+    'ehr': 0,
+    'speed': 0,
+    'be': 0,
+    'err': 0,
+    'physicalDB': 0,
+    'fireDB': 0,
+    'iceDB': 0,
+    'lightningDB': 0,
+    'windDB': 0,
+    'quantumDB': 0,
+    'imaginaryDB': 0,
 }
 
 # 默认主属性选择

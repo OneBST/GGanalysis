@@ -4,6 +4,7 @@ from itertools import permutations
 from typing import Callable
 
 import numpy as np
+import math
 
 from GGanalysis.games.honkai_star_rail.relic_data import *
 from GGanalysis.ScoredItem.scored_item import ScoredItem, ScoredItemSet
@@ -66,12 +67,12 @@ def get_combinations_p(stats_p: dict, select_num=4):
     return ans
 
 @lru_cache(maxsize=65536)
-def get_init_state(stat_comb, default_weight=0) -> ScoredItem:
+def get_init_state(stat_comb, default_weight=0, init_score=0) -> ScoredItem:
     """获得拥有4个副词条的五星遗器初始得分分布，及得分下每个副词条的条件期望"""
-    score_dist = np.zeros(40 * RANK_MULTI + 1)
+    score_dist = np.zeros(40 * RANK_MULTI + math.ceil(init_score * RANK_MULTI) + 1)
     sub_stat_exp = {}
     for m in stat_comb:
-        sub_stat_exp[m] = np.zeros(40 * RANK_MULTI + 1)
+        sub_stat_exp[m] = np.zeros(40 * RANK_MULTI + math.ceil(init_score * RANK_MULTI) + 1)
     # 枚举4个词条的初始数值，共3^4=81种
     for i in range(8, 11):
         s1 = STATS_WEIGHTS.get(stat_comb[0], default_weight) * i * RANK_MULTI
@@ -89,6 +90,7 @@ def get_init_state(stat_comb, default_weight=0) -> ScoredItem:
                         + STATS_WEIGHTS.get(stat_comb[3], default_weight)
                         * l
                         * RANK_MULTI
+                        + init_score * RANK_MULTI
                     )
                     # 采用比例分配
                     L = int(s4)
@@ -164,6 +166,7 @@ class StarRailRelic(ScoredItem):
         type_p = 1/4,  # 每次获得道具是是类型道具概率
         main_stat: str = None,  # 主词条属性
         sub_stats_select_weight: dict = W_SUB_STAT,  # 副词条抽取权重
+        main_stat_score: dict = DEFAULT_MAIN_STAT_SCORE,  # 主词条默认计算属性
         stats_score: dict = DEFAULT_STAT_SCORE,  # 词条评分权重
         p_4sub: float = P_INIT4_DROP,  # 初始4词条掉落率
         sub_stats_filter: Callable[..., bool] = None, # 设定副词条过滤器，若函数判断False直接丢掉被过滤的情况
@@ -171,6 +174,7 @@ class StarRailRelic(ScoredItem):
     ) -> None:
         # 计算获得主词条概率
         self.type = type
+        self.main_stat_score = main_stat_score
         if main_stat is not None:
             self.main_stat = main_stat
         else:
@@ -203,7 +207,7 @@ class StarRailRelic(ScoredItem):
             if sub_stats_filter is not None:
                 if sub_stats_filter(stat_comb) is False:
                     continue
-            temp_base = get_init_state(stat_comb)
+            temp_base = get_init_state(stat_comb, init_score=self.main_stat_score[self.main_stat])
             temp_level_up = get_state_level_up(stat_comb)
             # 初始3词条和初始四词条的情况
             temp_3 = (
@@ -223,6 +227,7 @@ class StarRailRelicSet(ScoredItemSet):
     def __init__(
         self,
         main_stat: dict = DEFAULT_MAIN_STAT,
+        main_stat_score: dict = DEFAULT_MAIN_STAT_SCORE,
         stats_score: dict = DEFAULT_STAT_SCORE,
         set_types: list = CAVERN_RELICS,
         p_4sub: float = P_INIT4_DROP,  # 根据圣遗物掉落来源确定4件套掉落率
@@ -231,6 +236,7 @@ class StarRailRelicSet(ScoredItemSet):
     ) -> None:
         # 初始化道具
         self.main_stat = main_stat
+        self.main_stat_score = main_stat_score
         self.stats_score = stats_score
         self.p_4sub = p_4sub
         self.set_types = set_types
@@ -240,6 +246,7 @@ class StarRailRelicSet(ScoredItemSet):
                 type=type,
                 type_p=type_p,
                 main_stat=main_stat[type],
+                main_stat_score=main_stat_score,
                 stats_score=stats_score,
                 p_4sub=self.p_4sub,
                 sub_stats_filter=sub_stats_filter,
@@ -251,6 +258,7 @@ class StarRailCavernRelics(StarRailRelicSet):
     def __init__(
         self,
         main_stat: dict = DEFAULT_MAIN_STAT,
+        main_stat_score: dict = DEFAULT_MAIN_STAT_SCORE,
         stats_score: dict = DEFAULT_STAT_SCORE,
         set_types: list = CAVERN_RELICS,
         p_4sub: float = P_INIT4_DROP,  # 根据圣遗物掉落来源确定4件套掉落率
@@ -259,6 +267,7 @@ class StarRailCavernRelics(StarRailRelicSet):
     ) -> None:
         super().__init__(
             main_stat = main_stat,
+            main_stat_score = main_stat_score,
             stats_score = stats_score,
             set_types = set_types,
             p_4sub = p_4sub,
@@ -271,6 +280,7 @@ class StarRailPlanarOrnaments(StarRailRelicSet):
     def __init__(
         self,
         main_stat: dict = DEFAULT_MAIN_STAT,
+        main_stat_score: dict = DEFAULT_MAIN_STAT_SCORE,
         stats_score: dict = DEFAULT_STAT_SCORE,
         set_types: list = PLANAR_ORNAMENTS,
         p_4sub: float = P_INIT4_DROP,  # 根据圣遗物掉落来源确定4件套掉落率
@@ -279,6 +289,7 @@ class StarRailPlanarOrnaments(StarRailRelicSet):
     ) -> None:
         super().__init__(
             main_stat = main_stat,
+            main_stat_score = main_stat_score,
             stats_score = stats_score,
             set_types = set_types,
             p_4sub = p_4sub,
