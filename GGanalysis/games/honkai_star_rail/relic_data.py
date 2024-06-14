@@ -149,7 +149,7 @@ DEFAULT_STAT_SCORE = {
     'atk': 0,
     'def': 0,
     'hpp': 0,
-    'atkp': 1,
+    'atkp': 0.5,
     'defp': 0,
     'speed': 1,
     'cr': 1,

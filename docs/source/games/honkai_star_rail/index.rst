@@ -5,4 +5,5 @@
    :caption: 目录
 
    gacha_models
+   relic_models
    
