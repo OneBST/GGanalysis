@@ -91,7 +91,7 @@ class HoyoItemSetSim():
 
     def sim_player_group(self, player_num, n, record_sub_stat_dist=False):
         # 总共 player_num 个玩家，每个玩家获得 n 件道具
-        score_record = Statistics(record_dist=True)
+        score_record = Statistics(is_record_dist=True)
         stat_record = {}
 
         def record_sub_stat(stat_value):
@@ -116,7 +116,7 @@ class HoyoItemSetSim():
             # 使用map方法将计算任务分发给所有进程
             results = list(tqdm(pool.imap(self.sample_best, [n]*player_num), total=player_num))
 
-        score_record = Statistics(record_dist=True)
+        score_record = Statistics(is_record_dist=True)
         stat_record = {}
         def record_sub_stat(stat_value):
             for key in self.stat_score.keys():

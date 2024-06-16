@@ -25,7 +25,7 @@ PITY_5STAR[70:80] = np.arange(1, 10+1) * 0.08 + 0.008
 PITY_5STAR[80] = 1
 # 鸣潮普通4星保底概率表
 PITY_4STAR = np.zeros(11)
-PITY_4STAR[1:9] = 0.06
+PITY_4STAR[1:10] = 0.06
 PITY_4STAR[10] = 1
 
 # 定义获取星级物品的模型

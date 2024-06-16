@@ -1,5 +1,8 @@
 class Statistics():
-    def __init__(self, record_dist=False) -> None:
+    '''
+    统计记录类
+    '''
+    def __init__(self, is_record_dist=False) -> None:
         '''
             使用 Welford 方法更新均值与方差
             默认不记录分布，若需要记录分布则使用字典记录（等效于散列表）
@@ -10,10 +13,11 @@ class Statistics():
         self.max = None
         self.min = None
         # 分布记录
-        self.record_dist = record_dist
-        if record_dist:
-            self.dist_map = {}
+        self.is_record_dist = is_record_dist
+        if is_record_dist:
+            self.dist = {}
     def update(self, x):
+        '''记录新加入记录并更新当前统计量'''
         self.count += 1
         if self.max is None or x > self.max:
             self.max = x
@@ -25,11 +29,11 @@ class Statistics():
         delta2 = x - self.mean
         self.M2 += delta * delta2
         # 分布记录
-        if self.record_dist:
-            if x in self.dist_map:
-                self.dist_map[x] += 1
+        if self.is_record_dist:
+            if x in self.dist:
+                self.dist[x] += 1
             else:
-                self.dist_map[x] = 1
+                self.dist[x] = 1
     
     def __str__(self) -> str:
         return f"(mean={self.mean:.4f}, svar={self.svar:.4f})"
@@ -52,7 +56,7 @@ class Statistics():
     def __add__(self, other):
         if not isinstance(other, Statistics):
             return NotImplemented
-        result = Statistics(record_dist=self.record_dist and other.record_dist)
+        result = Statistics(is_record_dist=self.is_record_dist and other.is_record_dist)
         if self.max is not None and other.max is not None:
             result.max = max(self.max, other.max)
             result.min = min(self.min, other.min)
@@ -70,15 +74,15 @@ class Statistics():
         result.mean = weighted_mean
         result.M2 = self.M2 + other.M2 + delta**2 * self.count * other.count / result.count
         # 分布合并
-        if result.record_dist:
-            result.dist_map = self.dist_map.copy()
-            for key, value in other.dist_map.items():
-                if key in result.dist_map:
-                    result.dist_map[key] += value
+        if result.is_record_dist:
+            result.dist = self.dist.copy()
+            for key, value in other.dist.items():
+                if key in result.dist:
+                    result.dist[key] += value
                 else:
-                    result.dist_map[key] = value
+                    result.dist[key] = value
         return result
-    
+
 if __name__ == '__main__':
     import numpy as np
 
