@@ -72,6 +72,14 @@ def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
         temp *= (1-pity_p[i])
     return FiniteDist(dist)
 
+def dist2p(dist: Union[np.ndarray, 'FiniteDist', list]) -> list:
+    '''将分布转换为条件概率表'''
+    if isinstance(dist, FiniteDist):
+        dist = dist.dist
+    dist = np.array(dist)
+    left_p = np.cumsum(dist[::-1])[::-1]
+    return np.divide(dist, left_p, where=left_p!=0, out=np.zeros_like(dist))
+
 def p2exp(pity_p: Union[list, np.ndarray]):
     '''
     对于列表，认为是概率提升表，返回对应期望
