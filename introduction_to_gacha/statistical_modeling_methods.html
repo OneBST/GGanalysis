@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="索引" href="../genindex.html" /><link rel="search" title="搜索" href="../search.html" /><link rel="next" title="基本概念约定" href="foundations.html" /><link rel="prev" title="白夜极光" href="../games/girls_frontline2_exilium/index.html" />
+<link rel="index" title="索引" href="../genindex.html" /><link rel="search" title="搜索" href="../search.html" /><link rel="next" title="道具返还问题" href="feedback_item_problem.html" /><link rel="prev" title="基本概念约定" href="foundations.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.svg"/><!-- Generated with Sphinx 6.1.3 and Furo 2023.03.27 -->
-        <title>抽卡导论 - GGanalysis</title>
+        <title>简单保底抽卡模型的统计建模方法 - GGanalysis</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -196,9 +196,9 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">抽卡导论</span></p>
 <ul class="current">
-<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">抽卡导论</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">抽卡导论</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="foundations.html">基本概念约定</a></li>
-<li class="toctree-l2"><a class="reference internal" href="statistical_modeling_methods.html">简单保底抽卡模型的统计建模方法</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">简单保底抽卡模型的统计建模方法</a></li>
 <li class="toctree-l2"><a class="reference internal" href="feedback_item_problem.html">道具返还问题</a></li>
 </ul>
 </li>
@@ -222,7 +222,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/OneBST/GGanalysis/edit/develop/docs/source/introduction_to_gacha/index.rst" title="Edit this page">
+  <a class="muted-link" href="https://github.com/OneBST/GGanalysis/edit/develop/docs/source/introduction_to_gacha/statistical_modeling_methods.rst" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -238,32 +238,70 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
           <section id="id1">
-<h1>抽卡导论<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
-<p>一直想要编写一些文字来说明如何为特定的抽卡问题进行建模，或者设计高效的算法，并给出一步步的数学证明说明为什么这样做是对的。这部分内容计划收集大量和抽卡相关的抽象问题，并给出在具体游戏中的对应，并给出部分代码和使用 GGanalysis 工具包解决具体问题的例子。我想把这部分集合了大量抽卡相关的问题的内容叫做 <strong>抽卡导论（Introduction to Gacha）</strong>。</p>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">目录</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="foundations.html">基本概念约定</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="foundations.html#id2">简单抽卡模型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="foundations.html#id3">简单保底抽卡模型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="foundations.html#id4">简单保底抽卡模型的性质</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="statistical_modeling_methods.html">简单保底抽卡模型的统计建模方法</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="statistical_modeling_methods.html#id2">进行玩家数据统计的困难</a></li>
-<li class="toctree-l2"><a class="reference internal" href="statistical_modeling_methods.html#unbiased-statistic-for-simple-pity-model">简单保底抽卡模型综合概率的无偏统计量</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="feedback_item_problem.html">道具返还问题</a></li>
-</ul>
+<h1>简单保底抽卡模型的统计建模方法<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
+<p>我们讨论简单保底抽卡模型应该怎样进行统计，因为这类模型是在当前流行的抽卡游戏中应用最广的模式（原神、崩坏：星穹铁道、明日方舟等）。
+如果出现一个具体抽卡机制不明确的新游戏，不妨先认为其采用简单保底抽卡模型，如果后续发现不能很好建模再进行其他尝试。</p>
+<section id="id2">
+<h2>进行玩家数据统计的困难<a class="headerlink" href="#id2" title="此标题的永久链接">#</a></h2>
+<p>对于简单保底抽卡模型，第一步肯定希望检验其综合概率是否准确。
+综合概率的数学意义是当同一个玩家进行了无穷次抽卡尝试后道具出现的频数。
+如果想要对道具的综合概率进行统计检验，显然抽无穷次是不可能的。
+要达到有效的统计量，只能通过使用多个抽数有限的玩家的记录进行统计。
+而这样面临的问题有三：</p>
+<blockquote>
+<div><p>1. <strong>无法收集到足够多的玩家数据</strong> 如果你想统计的的是一个小众游戏，那么你将面临无数据可用的情况。
+没有人建设抽卡数据统计网站，没有玩家联系你提供抽卡数据，甚至连在视频网站上寻找主播抽卡视频都是一种奢望。
+对于小众游戏，基本不能通过统计方法得到准确的抽卡模型。</p>
+<p>2. <strong>采样到的玩家数据有系统性偏差</strong> 会提供抽卡数据的玩家，大概率是还在玩游戏的玩家。
+而如果玩家抽卡时运气太差则会倾向于不继续玩游戏，能被采样的玩家更多的是运气好的“幸存者”，会使得统计综合概率偏高。
+同时，提供数据的玩家出于炫耀或是诉苦的心理，其获得道具的表现也更极端：运气好的玩家和运气差的玩家占比相比实际更高。
+不过如果只采用投入总抽数高的玩家的数据，可以大大缓解这些现象。</p>
+<p>3. <strong>使用的统计量需要保证无偏</strong> 行千里，先定方向。如果在统计中不使用无偏统计量，获得的数据越多反而会让人向错误的方向走更远。
+无偏统计量的选择会在 <a class="reference internal" href="#unbiased-statistic-for-simple-pity-model"><span class="std std-ref">下一节</span></a> 中解释。</p>
+</div></blockquote>
+<p>而如果能够解决以上三个问题，通过统计破解简单保底抽卡模型是相当容易的。</p>
+<div class="note admonition">
+<p class="admonition-title">常见问题</p>
+<p>对于原神这类有“大小保底”设定的游戏，有的朋友认为玩家会一直抽卡直到抽到UP角色，而这会引入系统偏差使得统计到的UP角色占比偏高。
+而实际上这并不会，这个问题等价于：一直生孩子直到生出男孩会不会影响性别比例。一个经典的停时问题，实际上并不会对概率有影响。</p>
 </div>
+</section>
+<section id="unbiased-statistic-for-simple-pity-model">
+<span id="id3"></span><h2>简单保底抽卡模型综合概率的无偏统计量<a class="headerlink" href="#unbiased-statistic-for-simple-pity-model" title="此标题的永久链接">#</a></h2>
+<p>通过使用多个抽数有限的玩家的记录对综合概率进行统计时，如何选取统计量是有讲究的。
+最朴素的方法是直接统计所有玩家记录中出现的道具总数，然后除以所有玩家的总抽数作为综合概率的估计量。
+但这对于简单保底抽卡模型来说是有偏的：道具有概率上升段，存在玩家末尾位置抽数还没有到达概率开始上升阶段，但这一段的抽数依旧被纳入统计，估计出的综合概率一定是偏小的。</p>
+<p>一个改进的方法是，不计玩家记录中获得最后一个道具后剩余的抽数。
+统计所有记录中获得每个道具对应所用的抽数，将其加和作为统计抽数，然后将记录中的总道具数除以统计抽数用于估计综合概率。</p>
+<blockquote>
+<div><p>拿原神的抽卡系统举例，原神中获取五星道具至多需要抽90抽。
+如一个玩家总计抽卡200抽获得了5个五星，第1个五星耗费70抽，第2个五星耗费10抽，第3个五星耗费80抽，第4个五星耗费20抽，第5个五星耗费10抽，获得第5个五星后还剩10抽没有再获得五星。
+此时获得总共5个五星，统计抽数190抽，估计综合概率为 <span class="math notranslate nohighlight">\(\hat P_{avg}(X)=4/180 \approx 2.63%\)</span>。</p>
+</div></blockquote>
+<p>这样似乎得到了一个相当合理的统计量，但实际上这个方法也是有偏的，会使得统计得到的综合概率偏大。</p>
+<a class="reference internal image-reference" href="../_images/biased_estimator_for_simple_pity_model.svg"><img alt="简单保底抽卡模型在到达保底前截断会导致有偏" class="align-center" src="../_images/biased_estimator_for_simple_pity_model.svg" width="800px" /></a>
+<p>为了直观说明这个问题，继续拿原神的抽卡系统举例：</p>
+<blockquote>
+<div><p>假设统计样本中的所有玩家都只抽30抽，那么所有观察到的五星所用抽数都必定小于30。
+在这种情况下如果只记录获得每个道具对应所用的抽数，那么获得五星道具所需抽数超过30的可能性被忽略了。
+此时统计得到的综合概率必定大于3.33%，和实际的1.605%差异很大。</p>
+</div></blockquote>
+<p>消除这样的偏误的方法很简单：对于一个硬保底位置为 <span class="math notranslate nohighlight">\(n\)</span> 的简单保底抽卡系统，道具只要满足其自身花费抽数加上道具获取位置到抽卡记录结束位置的抽数大于等于硬保底抽数，即可被认为可无偏采样。
+统计所有记录中可无偏采样道具对应所用的抽数，将其加和作为统计抽数，然后将记录中的总可无偏采样道具数除以统计抽数用于估计综合概率。</p>
+<blockquote>
+<div><p>继续刚才的例子，玩家总计抽卡200抽获得了5个五星，第1个五星耗费70抽，第2个五星耗费10抽，第3个五星耗费80抽，第4个五星耗费20抽，第5个五星耗费10抽，获得第5个五星后还剩10抽没有再获得五星。
+其中第1/2/3个五星均为可无偏采样五星。而第4个五星耗费抽数和剩余抽数之和为40，第5个五星耗费抽数和剩余抽数之和为20，均不满足大于等于保底数90抽的条件，被剔除。
+此时统计总共3个可无偏采样五星，统计抽数160抽，估计综合概率为 <span class="math notranslate nohighlight">\(\hat P_{avg}(X)=3/160=1.875%\)</span>。</p>
+</div></blockquote>
+<p>这样得到的简单保底抽卡系统的综合概率统计量是无偏的。且相比统计时的采样偏误，很多时候将有偏统计量切换为无偏统计量对误差的减小更为明细。</p>
+</section>
 </section>
 
         </article>
@@ -271,23 +309,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="foundations.html">
+          <a class="next-page" href="feedback_item_problem.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">基本概念约定</div>
+                <div class="title">道具返还问题</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../games/girls_frontline2_exilium/index.html">
+          <a class="prev-page" href="foundations.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">白夜极光</div>
+                <div class="title">基本概念约定</div>
                 
               </div>
             </a>
@@ -316,8 +354,28 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">简单保底抽卡模型的统计建模方法</a><ul>
+<li><a class="reference internal" href="#id2">进行玩家数据统计的困难</a></li>
+<li><a class="reference internal" href="#unbiased-statistic-for-simple-pity-model">简单保底抽卡模型综合概率的无偏统计量</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
@@ -329,5 +387,6 @@
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/translations.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>
