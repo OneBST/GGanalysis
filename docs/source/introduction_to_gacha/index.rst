@@ -11,6 +11,5 @@
    :caption: 目录
 
    foundations
+   statistical_modeling_methods
    feedback_item_problem
-   
-   
