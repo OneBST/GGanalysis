@@ -12,8 +12,8 @@ __all__ = [
     'PITY_W4STAR',
     'common_5star',
     'common_4star',
-    'weapon_5star',
-    'weapon_4star',
+    'common_5star_weapon',
+    'common_4star_weapon',
     'up_5star_character',
     'up_4star_character',
     'up_4star_specific_character',
@@ -35,8 +35,8 @@ PITY_4STAR[10] = 1
 
 # 绝区零音擎5星保底概率表 基础概率1% 综合概率2% 80保底 75%概率单UP
 PITY_W5STAR = np.zeros(81)
-PITY_W5STAR[1:64] = 0.01
-PITY_W5STAR[61:80] = np.arange(1, 20) * 0.05 + 0.01
+PITY_W5STAR[1:65] = 0.01
+PITY_W5STAR[65:80] = np.arange(1, 16) * 0.06 + 0.01
 PITY_W5STAR[80] = 1
 # 绝区零音擎4星保底概率表 基础概率15% 其中音擎占13.125% 角色占1.875% 10抽保底 综合概率18% 75%概率UP
 # 音擎池暂时理解为没有UP机制介入时音擎占比 7/8 角色占比 1/8
@@ -47,25 +47,26 @@ PITY_W4STAR[10] = 1
 # 定义获取星级物品的模型
 common_5star = PityModel(PITY_5STAR)
 common_4star = PityModel(PITY_4STAR)
-weapon_5star = PityModel(PITY_W5STAR)
-weapon_4star = PityModel(PITY_W4STAR)
 # 定义绝区零角色池模型
 up_5star_character = DualPityModel(PITY_5STAR, [0, 0.5, 1])
 up_4star_character = DualPityModel(PITY_4STAR, [0, 0.5, 1])
 up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/2)
 # 定义绝区零武器池模型
+common_5star_weapon = PityModel(PITY_W5STAR)
+common_4star_weapon = PityModel(PITY_W4STAR)
 up_5star_weapon = DualPityModel(PITY_W5STAR, [0, 0.75, 1])
 up_4star_weapon = DualPityModel(PITY_W4STAR, [0, 0.75, 1])
 up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/2)
 # 定义绝区零邦布池模型
-# 暂时没写
+bangboo_5star = PityModel(PITY_5STAR)
+bangboo_4star = PityModel(PITY_4STAR)
 
 if __name__ == '__main__':
-    print(1/common_5star(1).exp)
-    print(1/weapon_5star(1).exp)
-    print(1/common_4star(1).exp)
-    print(1/weapon_4star(1).exp)
-
+    print(common_5star(1).exp)
+    print(common_5star_weapon(1).exp)
+    print(common_4star(1).exp)
+    print(common_4star_weapon(1).exp)
+    print(up_5star_weapon(1).exp)
     '''
     close_dis = 1
     pity_begin = 0

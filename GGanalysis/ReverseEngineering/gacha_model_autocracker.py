@@ -73,9 +73,11 @@ class LinearAutoCracker():
         return (self.base_p, upper_pity_pos, upper_step_p, upper_p), (self.base_p, lower_pity_pos, lower_step_p, lower_p)
 
 if __name__ == '__main__':
-    genshin_cracker = LinearAutoCracker(0.006, 0.016, 90)
-    print(genshin_cracker.search_params(step_value=0.01))
-    hsr_weapon_cracker = LinearAutoCracker(0.008, 0.0187, 80)
-    print(hsr_weapon_cracker.search_params(step_value=0.01))
-    wuwa_cracker = LinearAutoCracker(0.008, 0.018, 80, pity_begin=66, forced_hard_pity=True)
-    print(wuwa_cracker.search_params(step_value=0.04))
+    # genshin_cracker = LinearAutoCracker(0.006, 0.016, 90)
+    # print(genshin_cracker.search_params(step_value=0.01))
+    # hsr_weapon_cracker = LinearAutoCracker(0.008, 0.0187, 80)
+    # print(hsr_weapon_cracker.search_params(step_value=0.01))
+    # wuwa_cracker = LinearAutoCracker(0.008, 0.018, 80, pity_begin=66, forced_hard_pity=True)
+    # print(wuwa_cracker.search_params(step_value=0.04))
+    zzz_cracker = LinearAutoCracker(0.01, 0.02, 80, pity_begin=65, forced_hard_pity=True)
+    print(zzz_cracker.search_params(step_value=0.01))
