@@ -72,7 +72,7 @@ def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
         temp *= (1-pity_p[i])
     return FiniteDist(dist)
 
-def dist2p(dist: Union[np.ndarray, 'FiniteDist', list]) -> list:
+def dist2p(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
     '''将分布转换为条件概率表'''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
