@@ -20,8 +20,9 @@ __all__ = [
 
 # 鸣潮普通5星保底概率表
 PITY_5STAR = np.zeros(81)
-PITY_5STAR[1:70] = 0.008
-PITY_5STAR[70:80] = np.arange(1, 10+1) * 0.08 + 0.008
+PITY_5STAR[1:66] = 0.008
+PITY_5STAR[66:71] = np.arange(1, 5+1) * 0.04 + PITY_5STAR[65]
+PITY_5STAR[71:81] = np.arange(1, 10+1) * 0.08 + PITY_5STAR[70]
 PITY_5STAR[80] = 1
 # 鸣潮普通4星保底概率表
 PITY_4STAR = np.zeros(11)
