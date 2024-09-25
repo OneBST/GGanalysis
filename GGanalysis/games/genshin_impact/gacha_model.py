@@ -27,9 +27,12 @@ __all__ = [
     'up_5star_specific_weapon',
     'up_4star_weapon',
     'up_4star_specific_weapon',
-    'up_5star_ep_weapon',
+    'up_5star_weapon',
     'stander_5star_character_in_up',
     'stander_5star_weapon_in_up',
+    'classic_up_5star_character',
+    'classic_up_5star_ep_weapon',
+    'classic_up_5star_specific_weapon',
 ]
 
 # 原神普通5星保底概率表
@@ -57,19 +60,21 @@ PITY_W4STAR[9] = 1
 common_5star = PityModel(PITY_5STAR)
 common_4star = PityModel(PITY_4STAR)
 # 定义原神角色池模型
-up_5star_character = DualPityModel(PITY_5STAR, [0, 0.5, 1])
+classic_up_5star_character = DualPityModel(PITY_5STAR, [0, 0.5, 1])
+up_5star_character = DualPityModel(PITY_5STAR, [0, 0.55, 1])  # To be checked
 up_4star_character = DualPityModel(PITY_4STAR, [0, 0.5, 1])
 up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/3)
 # 定义原神武器池模型
 common_5star_weapon = PityModel(PITY_W5STAR)
 common_4star_weapon = PityModel(PITY_W4STAR)
 up_5star_weapon = DualPityModel(PITY_W5STAR, [0, 0.75, 1])
-up_5star_specific_weapon = DualPityBernoulliModel(PITY_W5STAR, [0, 0.75, 1], 1/2)
+up_5star_specific_weapon = DualPityModel(PITY_W5STAR, [0, 0.375, 1])  # 5.0后命定值为1的武器池
+classic_up_5star_specific_weapon = DualPityBernoulliModel(PITY_W5STAR, [0, 0.75, 1], 1/2)  # 2.0前无定轨的武器池
 up_4star_weapon = DualPityModel(PITY_W4STAR, [0, 0.75, 1])
 up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/5)
 
-# 定轨获取特定UP5星武器
-class Genshin5starEPWeaponModel(CommonGachaModel):
+# 5.0前命定值为2的定轨获取特定UP5星武器
+class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
     def __init__(self) -> None:
         super().__init__()
         self.state_num = {'get':0, 'fate0pity':1, 'fate1':2, 'fate1pity':3, 'fate2':4}
@@ -108,11 +113,11 @@ class Genshin5starEPWeaponModel(CommonGachaModel):
         parameter_list = [l1_param, l2_param]
         return parameter_list
 
-up_5star_ep_weapon = Genshin5starEPWeaponModel()
+classic_up_5star_ep_weapon = ClassicGenshin5starEPWeaponModel()
 
 
 class GenshinCommon5starInUPpoolModel(CommonGachaModel):
-    def __init__(self, up_rate=0.5, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
+    def __init__(self, up_rate=0.55, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.layers.append(PityLayer(PITY_5STAR))
         self.layers.append(GenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, need_type, max_dist_len))
@@ -127,7 +132,7 @@ class GenshinCommon5starInUPpoolModel(CommonGachaModel):
 
 class GenshinCommon5starInUPpoolLayer(GachaLayer):
     # 原神常驻歪UP层 修改自 PityLayer
-    def __init__(self, up_rate=0.5, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
+    def __init__(self, up_rate=0.55, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.up_rate = up_rate
         self.stander_item = stander_item
@@ -198,5 +203,7 @@ stander_5star_weapon_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.75, stand
 
 
 if __name__ == '__main__':
-    print(up_5star_ep_weapon(1).exp)
+    print(up_5star_character(1).exp)
+    print(up_5star_specific_weapon(1).exp)
+    print(common_5star_weapon(1).exp)
     pass

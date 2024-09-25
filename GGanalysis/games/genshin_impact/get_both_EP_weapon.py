@@ -1,7 +1,7 @@
 import numpy as np
 
-def calc_EP_weapon(a, b):
-    # 计算恰好花费k个五星后恰好抽到a个A限定UP五星和b个B限定UP五星的概率
+def calc_EP_weapon_classic(a, b):
+    # 计算5.0前2.0后命定值为2的情况下，恰好花费k个五星后恰好抽到a个A限定UP五星和b个B限定UP五星的概率
     # 抽取时采用最优策略，若a=b，则定轨当前离要求数量较远的一个限定UP五星
     # 若a≠b，则同样定轨当前离要求数量较远的限定UP五星，当离要求数量一致时，转化为a=b问题
     # 若a=b，至多需要获取3*a个五星；若a≠b，至多需要获取3*max(a,b)个五星
@@ -51,5 +51,58 @@ def calc_EP_weapon(a, b):
     if abs(np.sum(ans_dist)-1)> 0.00001:
         print("ERROR: sum of ans is not equal to 1!", np.sum(ans_dist))
         exit()
-    print(E, E*53.250)
+    print(E, E*53.25039058538857)
     return num_dist
+
+
+def calc_EP_weapon(a, b):
+    # 计算5.0后命定值为1的情况下，恰好花费k个五星后恰好抽到a个A限定UP五星和b个B限定UP五星的概率
+    # 抽取时采用最优策略，若a=b，则定轨当前离要求数量较远的一个限定UP五星
+    # 若a≠b，则同样定轨当前离要求数量较远的限定UP五星，当离要求数量一致时，转化为a=b问题
+    # 至多需要获取2*(a+b)个五星 (重复 常驻-UP 的循环，每个UP需要消耗两个五星)
+
+    # S 第0维表示获得A的数量 第1维表示获得B的数量 第2维表示获得常驻的数量
+    S = np.zeros((60, 60, 60))
+    S[(0, 0, 0)] = 1
+    N = np.zeros((60, 60, 60))
+    # 记录最后到达每个状态概率
+    ans_dist = np.zeros((60, 60, 60))
+    num_dist = np.zeros(200)
+    # 控制状态更新，注意同样的状态可以在不同轮进行反复更新
+
+    E = 0  # 期望值
+    # 枚举定轨轮数
+    for ep in range(2*(a+b)+1):  # 此处+1是为了扫尾
+        for i in range(a+b+1):  # 获得A的数量
+            for j in range(a+b+1):  # 获得B的数量
+                for k in range(a+b+1):  # 获得常驻的数量
+                    # 若已经满足条件，则不继续
+                    if i>=a and j >=b:
+                        ans_dist[i][j][k] += S[i][j][k]
+                        num_dist[i+j+k] += S[i][j][k]
+                        E += (i + j + k) * S[i][j][k]
+                        S[i][j][k] = 0  # 虽然是多余的还是可以写在这hhh
+                        continue
+                    # 定轨A进行抽取的情况
+                    if a-i >= b-j:
+                        N[i+1][j][k] += (3/8)*S[i][j][k]
+                        N[i+1][j+1][k] += (3/8)*S[i][j][k]
+                        N[i+1][j][k+1] += (1/4)*S[i][j][k]
+                    # 定轨B进行抽取的情况
+                    if a-i < b-j:
+                        N[i][j+1][k] += (3/8)*S[i][j][k]
+                        N[i+1][j+1][k] += (3/8)*S[i][j][k]
+                        N[i][j+1][k+1] += (1/4)*S[i][j][k]
+        # 完成一轮后
+        S = N
+        N = 0 * N
+
+    if abs(np.sum(ans_dist)-1)> 0.00001:
+        print("ERROR: sum of ans is not equal to 1!", np.sum(ans_dist))
+        exit()
+    print(E, E*53.25039058538857)
+    return num_dist
+
+if __name__ == '__main__':
+    calc_EP_weapon(1, 1)
+    pass
