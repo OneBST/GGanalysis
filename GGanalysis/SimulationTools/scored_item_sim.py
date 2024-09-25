@@ -144,7 +144,7 @@ if __name__ == '__main__':
     # print(test_item.sample())
     # print(test_item.sample_best(1000))
     
-    test_item_set = HoyoItemSetSim([test_item], [1])
+    test_item_set = HoyoItemSetSim([test_item], [1], 1/2, DEFAULT_STAT_SCORE)
     # print(test_item_set.sample_best(1000))
     import time
     t0 = time.time()
