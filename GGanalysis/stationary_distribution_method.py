@@ -14,6 +14,8 @@ def calc_stationary_distribution(M):
     转移矩阵如下，平稳分布为列向量
     |1 0.5|   |x|
     |0 0.5|   |y|
+    x = x + 0.5y
+    y = 0.5y
     所得平稳分布为转移矩阵特征值1对应的特征向量
     '''
     matrix_shape = np.shape(M)
