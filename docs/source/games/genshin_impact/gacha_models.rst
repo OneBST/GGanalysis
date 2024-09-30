@@ -7,8 +7,8 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 
 此外，还针对性编写了如下模板模型：
 
-    适用于计算武器活动祈愿定轨时获取道具问题的模型
-    :class:`~GGanalysis.games.genshin_impact.Genshin5starEPWeaponModel`
+    适用于计算5.0版本前武器活动祈愿定轨时获取道具问题的模型
+    :class:`~GGanalysis.games.genshin_impact.ClassicGenshin5starEPWeaponModel`
 
     适用于计算在活动祈愿中获得常驻祈愿五星/四星道具的模型
     :class:`~GGanalysis.games.genshin_impact.GenshinCommon5starInUPpoolModel` 
@@ -44,9 +44,15 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 角色活动祈愿模型
 ------------------------
 
-**角色活动祈愿获得UP五星角色的模型**
+**角色活动祈愿5.0版本后获得UP五星角色的模型**
+
+    注意此模型为当前为近似模型，仅将UP概率改为了55%。
 
 .. automethod:: GGanalysis.games.genshin_impact.gacha_model.up_5star_character
+
+**角色活动祈愿5.0版本前获得UP五星角色的模型**
+
+.. automethod:: GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_character
 
 **角色活动祈愿获得任意UP四星角色的模型**
 
@@ -79,11 +85,11 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 
 **武器活动祈愿无定轨情况下获得特定UP五星武器的模型**
 
-    注意此模型建模的是无定轨情况下获得特定UP五星武器
+    注意此模型建模的是2.0前无定轨情况下获得特定UP五星武器的情况
 
-.. automethod:: GGanalysis.games.genshin_impact.gacha_model.up_5star_specific_weapon
+.. automethod:: GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_specific_weapon
 
-**武器活动祈愿定轨情况下获得特定UP五星武器的模型**
+**武器活动祈愿5.0版本后定轨情况下获得特定UP五星武器的模型**
 
 .. automethod:: GGanalysis.games.genshin_impact.gacha_model.up_5star_ep_weapon
 
