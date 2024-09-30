@@ -24,10 +24,9 @@ __all__ = [
     'common_5star_weapon',
     'common_4star_weapon',
     'up_5star_weapon',
-    'up_5star_specific_weapon',
+    'up_5star_ep_weapon',
     'up_4star_weapon',
     'up_4star_specific_weapon',
-    'up_5star_weapon',
     'stander_5star_character_in_up',
     'stander_5star_weapon_in_up',
     'classic_up_5star_character',
@@ -68,7 +67,7 @@ up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/
 common_5star_weapon = PityModel(PITY_W5STAR)
 common_4star_weapon = PityModel(PITY_W4STAR)
 up_5star_weapon = DualPityModel(PITY_W5STAR, [0, 0.75, 1])
-up_5star_specific_weapon = DualPityModel(PITY_W5STAR, [0, 0.375, 1])  # 5.0后命定值为1的武器池
+up_5star_ep_weapon = DualPityModel(PITY_W5STAR, [0, 0.375, 1])  # 5.0后命定值为1的武器池
 classic_up_5star_specific_weapon = DualPityBernoulliModel(PITY_W5STAR, [0, 0.75, 1], 1/2)  # 2.0前无定轨的武器池
 up_4star_weapon = DualPityModel(PITY_W4STAR, [0, 0.75, 1])
 up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/5)
