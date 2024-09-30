@@ -181,10 +181,16 @@
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../honkai_star_rail/index.html">崩坏：星穹铁道</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../honkai_star_rail/gacha_models.html">崩坏：星穹铁道抽卡模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../honkai_star_rail/relic_models.html">崩坏：星穹铁道遗器模型</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../arknights/index.html">明日方舟抽卡模型</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../azur_lane/index.html">碧蓝航线抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wuthering_waves/index.html">鸣潮</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../blue_archive/index.html">蔚蓝档案</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reverse_1999/index.html">重返未来：1999</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../alchemy_stars/index.html">少女前线2：追放</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../girls_frontline2_exilium/index.html">白夜极光</a></li>
 </ul>
 </li>
 </ul>
@@ -192,6 +198,7 @@
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../introduction_to_gacha/index.html">抽卡导论</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../introduction_to_gacha/foundations.html">基本概念约定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction_to_gacha/statistical_modeling_methods.html">简单保底抽卡模型的统计建模方法</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../introduction_to_gacha/feedback_item_problem.html">道具返还问题</a></li>
 </ul>
 </li>
@@ -242,8 +249,8 @@
 <p>GGanalysis 使用基本的抽卡模板模型结合 <a class="reference external" href="https://www.bilibili.com/read/cv10468091">原神抽卡系统参数</a> 定义了一系列可以直接取用的抽卡模型。</p>
 <p>此外，还针对性编写了如下模板模型：</p>
 <blockquote>
-<div><p>适用于计算武器活动祈愿定轨时获取道具问题的模型
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Genshin5starEPWeaponModel</span></code></p>
+<div><p>适用于计算5.0版本前武器活动祈愿定轨时获取道具问题的模型
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ClassicGenshin5starEPWeaponModel</span></code></p>
 <p>适用于计算在活动祈愿中获得常驻祈愿五星/四星道具的模型
 <code class="xref py py-class docutils literal notranslate"><span class="pre">GenshinCommon5starInUPpoolModel</span></code></p>
 </div></blockquote>
@@ -282,10 +289,20 @@
 </section>
 <section id="id5">
 <h2>角色活动祈愿模型<a class="headerlink" href="#id5" title="此标题的永久链接">#</a></h2>
-<p><strong>角色活动祈愿获得UP五星角色的模型</strong></p>
+<p><strong>角色活动祈愿5.0版本后获得UP五星角色的模型</strong></p>
+<blockquote>
+<div><p>注意此模型为当前为近似模型，仅将UP概率改为了55%。</p>
+</div></blockquote>
 <dl class="py method">
 <dt class="sig sig-object py" id="GGanalysis.games.genshin_impact.gacha_model.up_5star_character">
 <span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">up_5star_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_character" title="永久链接至目标">#</a></dt>
+<dd><p>双重保底抽卡类</p>
+</dd></dl>
+
+<p><strong>角色活动祈愿5.0版本前获得UP五星角色的模型</strong></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_character">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">classic_up_5star_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_character" title="永久链接至目标">#</a></dt>
 <dd><p>双重保底抽卡类</p>
 </dd></dl>
 
@@ -332,19 +349,20 @@
 
 <p><strong>武器活动祈愿无定轨情况下获得特定UP五星武器的模型</strong></p>
 <blockquote>
-<div><p>注意此模型建模的是无定轨情况下获得特定UP五星武器</p>
+<div><p>注意此模型建模的是2.0前无定轨情况下获得特定UP五星武器的情况</p>
 </div></blockquote>
 <dl class="py method">
-<dt class="sig sig-object py" id="GGanalysis.games.genshin_impact.gacha_model.up_5star_specific_weapon">
-<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">up_5star_specific_weapon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_specific_weapon" title="永久链接至目标">#</a></dt>
+<dt class="sig sig-object py" id="GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_specific_weapon">
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">classic_up_5star_specific_weapon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_specific_weapon" title="永久链接至目标">#</a></dt>
 <dd><p>双重保底伯努利类</p>
 </dd></dl>
 
-<p><strong>武器活动祈愿定轨情况下获得特定UP五星武器的模型</strong></p>
+<p><strong>武器活动祈愿5.0版本后定轨情况下获得特定UP五星武器的模型</strong></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="GGanalysis.games.genshin_impact.gacha_model.up_5star_ep_weapon">
-<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">up_5star_ep_weapon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fate_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_ep_weapon" title="永久链接至目标">#</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">gacha_model.</span></span><span class="sig-name descname"><span class="pre">up_5star_ep_weapon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multi_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FiniteDist</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_ep_weapon" title="永久链接至目标">#</a></dt>
+<dd><p>双重保底抽卡类</p>
+</dd></dl>
 
 <p><strong>武器活动祈愿获得四星武器的模型</strong></p>
 <dl class="py method">
@@ -476,6 +494,7 @@
 </li>
 <li><a class="reference internal" href="#id5">角色活动祈愿模型</a><ul>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_character"><code class="docutils literal notranslate"><span class="pre">gacha_model.up_5star_character()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_character"><code class="docutils literal notranslate"><span class="pre">gacha_model.classic_up_5star_character()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.up_4star_character"><code class="docutils literal notranslate"><span class="pre">gacha_model.up_4star_character()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.up_4star_specific_character"><code class="docutils literal notranslate"><span class="pre">gacha_model.up_4star_specific_character()</span></code></a></li>
 </ul>
@@ -483,7 +502,7 @@
 <li><a class="reference internal" href="#id6">武器活动祈愿模型</a><ul>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.common_5star_weapon"><code class="docutils literal notranslate"><span class="pre">gacha_model.common_5star_weapon()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_weapon"><code class="docutils literal notranslate"><span class="pre">gacha_model.up_5star_weapon()</span></code></a></li>
-<li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_specific_weapon"><code class="docutils literal notranslate"><span class="pre">gacha_model.up_5star_specific_weapon()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.classic_up_5star_specific_weapon"><code class="docutils literal notranslate"><span class="pre">gacha_model.classic_up_5star_specific_weapon()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.up_5star_ep_weapon"><code class="docutils literal notranslate"><span class="pre">gacha_model.up_5star_ep_weapon()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.common_4star_weapon"><code class="docutils literal notranslate"><span class="pre">gacha_model.common_4star_weapon()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.games.genshin_impact.gacha_model.up_4star_weapon"><code class="docutils literal notranslate"><span class="pre">gacha_model.up_4star_weapon()</span></code></a></li>

@@ -5,9 +5,9 @@
 ### 配置方法
 
 ``` shell
-pip install Sphinx
-pip install furo
-pip install sphinx-copybutton
+pip install Sphinx==6.1.3
+pip install furo==2023.3.27
+pip install sphinx-copybutton==0.5.1
 ```
 
 ### 生成 html 文件
