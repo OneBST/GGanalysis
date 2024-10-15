@@ -203,6 +203,6 @@ stander_5star_weapon_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.75, stand
 
 if __name__ == '__main__':
     print(up_5star_character(1).exp)
-    print(up_5star_specific_weapon(1).exp)
+    print(classic_up_5star_specific_weapon(1).exp)
     print(common_5star_weapon(1).exp)
     pass
