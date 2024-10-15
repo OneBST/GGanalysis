@@ -7,6 +7,7 @@
    genshin_impact/index
    honkai_star_rail/index
    arknights/index
+   zenless_zone_zero/index
    azur_lane/index
    wuthering_waves/index
    blue_archive/index
