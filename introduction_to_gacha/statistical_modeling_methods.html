@@ -185,6 +185,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../games/arknights/index.html">明日方舟抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/zenless_zone_zero/index.html">绝区零抽卡模型</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../games/azur_lane/index.html">碧蓝航线抽卡模型</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../games/wuthering_waves/index.html">鸣潮</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../games/blue_archive/index.html">蔚蓝档案</a></li>
@@ -304,6 +305,10 @@
 此时统计总共3个可无偏采样五星，统计抽数160抽，估计综合概率为 <span class="math notranslate nohighlight">\(\hat P_{avg}(X)=3/160=1.875\%\)</span>。</p>
 </div></blockquote>
 <p>这样得到的简单保底抽卡系统的综合概率统计量是无偏的。且相比统计时的采样偏误，很多时候将有偏统计量切换为无偏统计量对误差的减小更为明细。</p>
+<p>当然，如果 <strong>不需要画出玩家获得道具花费抽数的分布</strong>，直接统计玩家获得道具的条件概率是更为方便且没有系统偏差的办法。这种办法可以较为细致的研究不同星级道具间的互相影响。并且不同于依靠获得分布的方法为了保证无偏需要丢弃一部分数据，这样的统计方法对数据的利用更充分，且可以自由的统计不同时段的区别。</p>
+<blockquote>
+<div><p>对于原神来说，以当前已有N抽没有获得五星道具、已有M抽没有获得四星道具为状态，统计每种记录状态下进行抽卡时获得道具星级的情况。最后通过该状态下抽卡获得某星级的次数除以该状态下总共统计的抽卡次数来估计该状态下抽卡获得某星级的概率。</p>
+</div></blockquote>
 </section>
 <section id="id4">
 <h2>理解玩家对游戏概率的感受<a class="headerlink" href="#id4" title="此标题的永久链接">#</a></h2>
