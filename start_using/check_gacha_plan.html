@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
-<link rel="index" title="索引" href="../genindex.html" /><link rel="search" title="搜索" href="../search.html" /><link rel="next" title="简单保底抽卡模型的统计建模方法" href="statistical_modeling_methods.html" /><link rel="prev" title="抽卡导论" href="index.html" />
+<link rel="index" title="索引" href="../genindex.html" /><link rel="search" title="搜索" href="../search.html" /><link rel="next" title="平稳分布时概率的计算工具" href="stationary_distribution.html" /><link rel="prev" title="自定义抽卡模型" href="custom_gacha_model.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.svg"/><!-- Generated with Sphinx 6.1.3 and Furo 2023.03.27 -->
-        <title>基本概念约定 - GGanalysis</title>
+        <title>检查抽卡计划可行性 - GGanalysis</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
@@ -136,7 +136,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -160,15 +160,15 @@
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">快速上手</span></p>
-<ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../start_using/index.html">快速使用</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../start_using/environment_installation.html">配置环境并安装工具包</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../start_using/basic_concepts.html">基本概念</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../start_using/use_predefined_model.html">使用预定义的抽卡模型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../start_using/custom_gacha_model.html">自定义抽卡模型</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../start_using/check_gacha_plan.html">检查抽卡计划可行性</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../start_using/stationary_distribution.html">平稳分布时概率的计算工具</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../start_using/quick_visualization.html">快速可视化</a></li>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">快速使用</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="environment_installation.html">配置环境并安装工具包</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_concepts.html">基本概念</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use_predefined_model.html">使用预定义的抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_gacha_model.html">自定义抽卡模型</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">检查抽卡计划可行性</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stationary_distribution.html">平稳分布时概率的计算工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_visualization.html">快速可视化</a></li>
 </ul>
 </li>
 </ul>
@@ -197,11 +197,11 @@
 </li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">抽卡导论</span></p>
-<ul class="current">
-<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">抽卡导论</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">基本概念约定</a></li>
-<li class="toctree-l2"><a class="reference internal" href="statistical_modeling_methods.html">简单保底抽卡模型的统计建模方法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feedback_item_problem.html">道具返还问题</a></li>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../introduction_to_gacha/index.html">抽卡导论</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/foundations.html">基本概念约定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/statistical_modeling_methods.html">简单保底抽卡模型的统计建模方法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/feedback_item_problem.html">道具返还问题</a></li>
 </ul>
 </li>
 </ul>
@@ -224,7 +224,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/OneBST/GGanalysis/edit/develop/docs/source/introduction_to_gacha/foundations.rst" title="Edit this page">
+  <a class="muted-link" href="https://github.com/OneBST/GGanalysis/edit/develop/docs/source/start_using/check_gacha_plan.rst" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -240,49 +240,50 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main">
           <section id="id1">
-<h1>基本概念约定<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
-<section id="id2">
-<h2>简单抽卡模型<a class="headerlink" href="#id2" title="此标题的永久链接">#</a></h2>
-<p>定义每次抽卡至多获得一个道具，每次获得道具所需抽数为独立同分布的随机变量 <span class="math notranslate nohighlight">\(X\)</span> ，且所有概率都分布在正整数范围上，那么此抽卡模型为简单抽卡模型。
-如每次抽卡都是独立伯努利试验，固定概率为 <span class="math notranslate nohighlight">\(P\)</span> 的抽卡模型是简单抽卡模型，其获得道具所需抽数分布为几何分布。</p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p>现实情况中很少出现一抽能同时获得多个道具的情况，将讨论局限于简单抽卡模型是有好处的。
-如简单抽卡模型中，可以将所有当前条件概率的表述等价转化为当前获取道具所需抽数分布的形式，同理也可以反向转换。这样的性质可以为很多操作带来方便。
-以 <span class="math notranslate nohighlight">\(E(X)\)</span> 表示模型获得道具的期望，<span class="math notranslate nohighlight">\(P_{avg}(X)\)</span> 表示模型获得道具的综合概率。</p>
-</div>
-</section>
-<section id="id3">
-<h2>简单保底抽卡模型<a class="headerlink" href="#id3" title="此标题的永久链接">#</a></h2>
-<p>如果一个简单抽卡模型获得道具所需抽数是具有 <strong>有限支持</strong> (finite support)的，即随机变量的概率分布在有限个值上的取值不为零，有限个值之外的所有其他值上，概率分布为零。则将这种抽卡模型称为 <strong>简单保底抽卡模型</strong>。
-常见带保底的抽卡模型大都可以归类为简单保底抽卡模型。例如原神获取五星物品的模型，每次获得五星物品所耗费抽数都是独立同分布的，并在有限抽内一定能获得五星物品。</p>
-</section>
-<section id="id4">
-<h2>简单保底抽卡模型的性质<a class="headerlink" href="#id4" title="此标题的永久链接">#</a></h2>
+<h1>检查抽卡计划可行性<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
+<p>在现实中，玩家会因为游戏中道具会分时间段开放抽取，不同时间段抽卡资源投放也不同，经常需要评估一个抽卡规划的可行性。
+我们可以用在限制条件下能有多大概率达成目标来描述计划的可行性。</p>
 <div class="note admonition">
-<p class="admonition-title">符号约定</p>
-<p><span class="math notranslate nohighlight">\(p_i\)</span> 表示在前 <code class="docutils literal notranslate"><span class="pre">i-1</span></code> 抽没有获得道具，第 <code class="docutils literal notranslate"><span class="pre">i</span></code> 抽获得道具的条件概率。</p>
-<p><span class="math notranslate nohighlight">\(P(X=i)\)</span> 表示获得一个道具时，恰好用了 <code class="docutils literal notranslate"><span class="pre">i</span></code> 抽的概率。或 <span class="math notranslate nohighlight">\(X\)</span> 的分布律在 <code class="docutils literal notranslate"><span class="pre">i</span></code> 处的值。</p>
-<p><span class="math notranslate nohighlight">\(n\)</span> 表示硬保底抽数，也即简单保底抽卡模型至多使用多少抽才可以获得道具，也是随机变量分布有概率位置的最大值。</p>
+<p class="admonition-title">抽卡问题例子</p>
+<p>以绝区零为例，假设1.0版本可以获得200抽，这时候计划在1.0版本下半抽一个限定S级角色加一个限定S级武器，
+1.1版本上半可获得74抽，计划在抽一个限定S级角色，1.1版本下半可获得40抽，计划此时再抽一个限定S级角色加一个限定S级武器，
+那么按照计划把这些武器和角色都抽出来的概率有多大？</p>
 </div>
-<p><strong>求简单保底抽卡模型的期望与综合概率</strong></p>
-<p>简单保底抽卡模型的期望为 <span class="math notranslate nohighlight">\(E(X)=\sum_{k=1}^{n}{p_k\cdot k}\)</span> 。其综合概率 <span class="math notranslate nohighlight">\(P_{avg}(X)=1/E(X)\)</span> ，意义为同一个玩家进行了无穷次抽卡尝试后道具出现的频数。</p>
-<p><strong>已知条件概率求抽数分布</strong></p>
-<p>获得一个道具时，恰好花费 <code class="docutils literal notranslate"><span class="pre">i</span></code> 抽的概率 <span class="math notranslate nohighlight">\(P(X=i)=p_i\prod_{n=1}^{i-1}{(1-p_n)}\)</span></p>
-<p><strong>已知抽数分布求条件概率</strong></p>
-<p>在已经有 <code class="docutils literal notranslate"><span class="pre">i-1</span></code> 抽没有获得道具的情况下，第 <code class="docutils literal notranslate"><span class="pre">i</span></code> 抽获得道具的条件概率 <span class="math notranslate nohighlight">\(p_i=\frac{P(X=i)}{\sum_{k=i}^{n}{P(X=k)}}\)</span></p>
-<div class="admonition note">
-<p class="admonition-title">备注</p>
-<p>简单保底抽卡模型第 <code class="docutils literal notranslate"><span class="pre">n</span></code> 抽的位置对应条件概率为1，即保底位置一定能获得道具。</p>
+<p>在这个问题中要计算多大概率可以达到目标，本质上是计算能在各个阶段的抽数限制下都能达成目标的玩家占比，
+只需要 <strong>在每个阶段中剔除超出抽数限制部分玩家对应概率空间</strong> 即可。
+以下代码给出了计算刚才例子中抽卡计划达成概率的可能性及达成计划的玩家中抽数花费的分布。</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">GGanalysis</span> <span class="kn">import</span> <span class="n">FiniteDist</span>
+<span class="kn">import</span> <span class="nn">GGanalysis.games.zenless_zone_zero</span> <span class="k">as</span> <span class="nn">ZZZ</span>
+<span class="c1"># 设定要抽的角色数量/武器数量以及阶段预算</span>
+<span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">74</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">40</span><span class="p">],</span>
+<span class="p">]</span>
+<span class="n">total_c</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">total_w</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">total_pulls</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">ans_dist</span> <span class="o">=</span> <span class="n">FiniteDist</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">num_c</span><span class="p">,</span> <span class="n">num_w</span><span class="p">,</span> <span class="n">task_pulls</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+    <span class="n">total_c</span> <span class="o">+=</span> <span class="n">num_c</span>
+    <span class="n">total_w</span> <span class="o">+=</span> <span class="n">num_w</span>
+    <span class="n">total_pulls</span> <span class="o">+=</span> <span class="n">task_pulls</span>
+    <span class="n">ans_dist</span> <span class="o">*=</span> <span class="n">ZZZ</span><span class="o">.</span><span class="n">up_5star_character</span><span class="p">(</span><span class="n">num_c</span><span class="p">)</span> <span class="o">*</span> <span class="n">ZZZ</span><span class="o">.</span><span class="n">up_5star_weapon</span><span class="p">(</span><span class="n">num_w</span><span class="p">)</span>
+    <span class="n">ans_dist</span><span class="o">.</span><span class="n">dist</span> <span class="o">=</span> <span class="n">ans_dist</span><span class="o">.</span><span class="n">dist</span><span class="p">[:</span><span class="n">total_pulls</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;成功概率&quot;</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ans_dist</span><span class="o">.</span><span class="n">dist</span><span class="p">))</span>
+<span class="n">ans_dist</span><span class="o">.</span><span class="n">p_normalization</span><span class="p">()</span>  <span class="c1"># 归一化</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;成功玩家期望抽数消耗&quot;</span><span class="p">,</span> <span class="n">ans_dist</span><span class="o">.</span><span class="n">exp</span><span class="p">)</span>
+<span class="n">full_dist</span> <span class="o">=</span> <span class="n">ZZZ</span><span class="o">.</span><span class="n">up_5star_character</span><span class="p">(</span><span class="n">total_c</span><span class="p">)</span><span class="o">*</span><span class="n">ZZZ</span><span class="o">.</span><span class="n">up_5star_weapon</span><span class="p">(</span><span class="n">total_w</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;获得计划道具期望&quot;</span><span class="p">,</span> <span class="n">full_dist</span><span class="o">.</span><span class="n">exp</span><span class="p">)</span>
+</pre></div>
 </div>
-</section>
 </section>
 
         </article>
@@ -290,23 +291,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="statistical_modeling_methods.html">
+          <a class="next-page" href="stationary_distribution.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">简单保底抽卡模型的统计建模方法</div>
+                <div class="title">平稳分布时概率的计算工具</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="index.html">
+          <a class="prev-page" href="custom_gacha_model.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">抽卡导论</div>
+                <div class="title">自定义抽卡模型</div>
                 
               </div>
             </a>
@@ -335,29 +336,8 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">基本概念约定</a><ul>
-<li><a class="reference internal" href="#id2">简单抽卡模型</a></li>
-<li><a class="reference internal" href="#id3">简单保底抽卡模型</a></li>
-<li><a class="reference internal" href="#id4">简单保底抽卡模型的性质</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>
@@ -369,6 +349,5 @@
     <script src="../_static/clipboard.min.js"></script>
     <script src="../_static/copybutton.js"></script>
     <script src="../_static/translations.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

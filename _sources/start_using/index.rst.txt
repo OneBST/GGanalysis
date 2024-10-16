@@ -8,6 +8,7 @@
    basic_concepts
    use_predefined_model
    custom_gacha_model
+   check_gacha_plan
    stationary_distribution
    quick_visualization
    
