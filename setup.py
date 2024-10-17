@@ -5,8 +5,8 @@ DESCRIPTION = 'A simple and efficient computing package for gacha game analysis.
 URL = 'https://github.com/OneBST/GGanalysis'
 EMAIL = 'onebst@foxmail.com'
 AUTHOR = 'OneBST'
-REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.4.0'
+REQUIRES_PYTHON = '>=3.9.0'
+VERSION = '0.4.1'
 REQUIRED = [
     'numpy', 'scipy', 'matplotlib'
 ]

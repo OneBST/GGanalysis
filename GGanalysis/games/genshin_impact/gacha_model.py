@@ -93,8 +93,8 @@ class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
         self.layers.append(PityLayer(PITY_W5STAR))
         self.layers.append(MarkovLayer(M))
 
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, up_pity = 0, fate_point = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, item_pity, up_pity, fate_point, *args, **kwds)
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, up_pity = 0, fate_point = 0) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity, up_pity, fate_point)
 
     def _build_parameter_list(self, item_pity: int=0, up_pity: int=0, fate_point: int=0) -> list:
         if fate_point >= 2:
@@ -120,8 +120,9 @@ class GenshinCommon5starInUPpoolModel(CommonGachaModel):
         super().__init__()
         self.layers.append(PityLayer(PITY_5STAR))
         self.layers.append(GenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, need_type, max_dist_len))
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, is_last_UP=False, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, item_pity, is_last_UP, *args, **kwds)
+    
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, is_last_UP=False) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity, is_last_UP)
 
     def _build_parameter_list(self, item_pity: int=0, is_last_UP: bool=False) -> list:
         l1_param = [[], {'item_pity':item_pity}]
@@ -158,6 +159,8 @@ class GenshinCommon5starInUPpoolLayer(GachaLayer):
     
     def __str__(self) -> str:
         return f"GenshinCommon5starInUPpoolLayer UP rate={round(self.up_rate, 2)} Stander Item={self.stander_item} DP Lenth={self.dp_lenth}"
+    
+    @lru_cache
     def _forward(self, input, full_mode, is_last_UP=False) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -194,7 +197,7 @@ class GenshinCommon5starInUPpoolLayer(GachaLayer):
         output_dist.exp = output_E
         output_dist.var = output_D
         if len(output_dist) > self.max_dist_len:
-            output_dist.dist = output_dist.dist[:int(self.max_dist_len)]
+            output_dist.__dist = output_dist.__dist[:int(self.max_dist_len)]
         return output_dist
     
 stander_5star_character_in_up = GenshinCommon5starInUPpoolModel(up_rate=0.5, stander_item=7, dp_lenth=300, need_type=1)

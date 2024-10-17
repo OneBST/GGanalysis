@@ -3,6 +3,7 @@ from typing import Union
 from scipy.fftpack import fft,ifft
 from scipy.special import comb
 from scipy.stats import binom
+from functools import lru_cache
 import numpy as np
 import warnings
 
@@ -16,6 +17,7 @@ class GachaLayer(object):
     def __call__(self, input: tuple=None, *args: any, **kwds: any) -> tuple:
         # 返回一个元组 (完整分布, 条件分布)
         return self._forward(input, 1), self._forward(input, 0, *args, **kwds)
+    @lru_cache
     def _forward(self, input, full_mode, *args, **kwds) -> FiniteDist:
         # 根据full_mode在这项里进行完整分布或条件分布的计算，返回一个分布
         pass
@@ -37,6 +39,8 @@ class PityLayer(GachaLayer):
         self.var = self.dist.var
     def __str__(self) -> str:
         return f"Pity Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
+    
+    @lru_cache
     def _forward(self, input, full_mode, item_pity=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -79,6 +83,8 @@ class BernoulliLayer(GachaLayer):
             self.var = (p**2-2*p+1)/((1-p)*p**2)
     def __str__(self) -> str:
         return f"Bernoulli Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
+    
+    @lru_cache
     def _forward(self, input, full_mode) -> FiniteDist:
         # 作为第一层（不过一般不会当做第一层吧）
         if input is None:
@@ -110,10 +116,8 @@ class BernoulliLayer(GachaLayer):
             return c_dist
         output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
         output_D = self._calc_combined_2nd_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
-        # print(output_E, output_D)
         test_len = int(output_E+10*output_D**0.5)
         while True:
-            # print('范围', test_len)
             # 通过频域关系进行计算
             F_f = fft(pad_zero(f_dist.dist, test_len))
             F_c = fft(pad_zero(c_dist.dist, test_len))
@@ -163,6 +167,7 @@ class MarkovLayer(GachaLayer):
             X[0] = 0
         return FiniteDist(dist)
 
+    @lru_cache
     def _forward(self, input, full_mode, begin_pos=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -197,6 +202,8 @@ class DynamicProgrammingLayer(GachaLayer):
         self.dp_function = dp_function
     def __str__(self) -> str:
         return f"DP Layer {self.dp_function}"
+    
+    @lru_cache
     def _forward(self, input, full_mode, *args: any, **kwds: any) -> FiniteDist:
         # 以下代码修改自 PityLayer
         # 输入为空，本层为第一层，返回初始分布
@@ -263,6 +270,7 @@ class CouponCollectorLayer(GachaLayer):
     def _calc_coefficient_3(self, i, j, initial_types, target_types):
         return (target_types-initial_types+i-j-1) / self.types
 
+    @lru_cache
     def _forward(self, input, full_mode, initial_types=0, target_types=None) -> FiniteDist:
         # 便于和推导统一的标记，同时自动识别应该如何处理
         if target_types is not None:
@@ -343,16 +351,12 @@ class CouponCollectorLayer(GachaLayer):
                             ((1-C3)*E2f*((n-2)*C3-n+1)-(Ef**2)*((n**2-5*n+6)*(C3**2)-2*(n**2-4*n+3)*C3+n**2-3*n+2)))
                     
                     ans_temp += C1*C2*(C3**n)*(Ef*((n-2)*C3-n+1)+(C3-1)*Ec)/(C3-1)**2
-                    # print(C1, C2, C3, ans_ij)
                     ans_2moment += C2 / C3 * ans_ij
             ans_2moment *= C1
-            # print('calcE', ans_temp)
             return ans_2moment
         output_D = calc_combined_output_2nd_moment() - output_E**2  # 叠加后的方差
-        # print('Check:', output_E, output_D, calc_combined_output_2nd_moment())
         test_len = int(output_E+10*output_D**0.5)
         while True:
-            # print('范围', test_len)
             # 通过频域关系进行计算
             F_f = fft(pad_zero(f_dist.dist, test_len))
             F_c = fft(pad_zero(c_dist.dist, test_len))
@@ -369,8 +373,6 @@ class CouponCollectorLayer(GachaLayer):
                     C3 = self._calc_coefficient_3(i, j, a, k)
                     output_dist += (C2/C3) *  (C3**(k-a)*buff_F_f_multi / (1-C3*F_f))
             output_dist = output_dist * C1 * F_c / F_f
-            # return output_dist
-            # print('out_0', output_dist[0], output_dist[1], output_dist[2])
             output_dist = FiniteDist(abs(ifft(output_dist)))
             # 解决输出位置0处不是0的问题
             output_dist[0] = 0
