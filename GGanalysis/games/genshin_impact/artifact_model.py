@@ -327,7 +327,7 @@ if __name__ == "__main__":
     print('atkp', flower.sub_stats_exp['atkp'])
     print('cr', flower.sub_stats_exp['cr'])
     print('cd', flower.sub_stats_exp['cd'])
-    plt.plot(flower.score_dist.dist, color='C1')
+    plt.plot(flower.score_dist.__dist, color='C1')
     plt.show()
     """
     # 检查4+1正确性

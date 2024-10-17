@@ -38,6 +38,7 @@ class CommonGachaModel(GachaModel):
         return parameter_list
 
     # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
+    
     def _get_multi_dist(self, end_pos: int, parameter_list: list=None):
         input_dist = self._forward(parameter_list)
         ans_list = [FiniteDist([1]), input_dist[1]]
@@ -121,8 +122,8 @@ class CouponCollectorModel(CommonGachaModel):
         super().__init__()
         self.layers.append(CouponCollectorLayer(item_types, None, e_error, max_dist_len))
     
-    def __call__(self, initial_types: int = 0, target_types: int = None, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(1, False, initial_types, target_types, *args, **kwds)
+    def __call__(self, initial_types: int = 0, target_types: int = None) -> Union[FiniteDist, list]:
+        return super().__call__(1, False, initial_types, target_types)
 
     def _build_parameter_list(self, initial_types: int = 0, target_types: int = None) -> list:
         parameter_list = [
@@ -137,8 +138,8 @@ class PityCouponCollectorModel(CommonGachaModel):
         self.layers.append(PityLayer(pity_p))
         self.layers.append(CouponCollectorLayer(item_types, None, e_error, max_dist_len))
     
-    def __call__(self, initial_types: int = 0, item_pity = 0, target_types: int = None, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(1, False, item_pity, initial_types, target_types, *args, **kwds)
+    def __call__(self, initial_types: int = 0, item_pity = 0, target_types: int = None) -> Union[FiniteDist, list]:
+        return super().__call__(1, False, item_pity, initial_types, target_types)
 
     def _build_parameter_list(self, item_pity: int=0, initial_types: int = 0, target_types: int = None) -> list:
         parameter_list = [
@@ -155,8 +156,8 @@ class DualPityCouponCollectorModel(CommonGachaModel):
         self.layers.append(PityLayer(pity_p2))
         self.layers.append(CouponCollectorLayer(item_types, None, e_error, max_dist_len))
     
-    def __call__(self, initial_types: int = 0, item_pity = 0, up_pity: int = 0, target_types: int = None, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(1, False, item_pity, up_pity, initial_types, target_types, *args, **kwds)
+    def __call__(self, initial_types: int = 0, item_pity = 0, up_pity: int = 0, target_types: int = None) -> Union[FiniteDist, list]:
+        return super().__call__(1, False, item_pity, up_pity, initial_types, target_types)
 
     def _build_parameter_list(self, item_pity: int = 0, up_pity:int = 0, initial_types: int = 0, target_types: int = None) -> list:
         parameter_list = [
@@ -202,8 +203,8 @@ class PityModel(CommonGachaModel):
         super().__init__()
         self.layers.append(PityLayer(pity_p))
     
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, item_pity, *args, **kwds)
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity)
 
     def _build_parameter_list(self, item_pity: int=0) -> list:
         parameter_list = [[[], {'item_pity':item_pity}]]
@@ -216,8 +217,8 @@ class DualPityModel(CommonGachaModel):
         self.layers.append(PityLayer(pity_p1))
         self.layers.append(PityLayer(pity_p2))
 
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, up_pity = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, item_pity, up_pity, *args, **kwds)
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, up_pity = 0) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity, up_pity)
 
     def _build_parameter_list(self, item_pity: int=0, up_pity: int=0) -> list:
         parameter_list = [
@@ -232,9 +233,9 @@ class PityBernoulliModel(CommonGachaModel):
         super().__init__()
         self.layers.append(PityLayer(pity_p))
         self.layers.append(BernoulliLayer(p, e_error, max_dist_len))
-    
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity=0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, item_pity, *args, **kwds)
+
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity=0) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity)
 
     def _build_parameter_list(self, item_pity: int=0) -> list:
         parameter_list = [
@@ -251,8 +252,8 @@ class DualPityBernoulliModel(CommonGachaModel):
         self.layers.append(PityLayer(pity_p2))
         self.layers.append(BernoulliLayer(p, e_error, max_dist_len))
     
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, up_pity = 0, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        return super().__call__(item_num, multi_dist, item_pity, up_pity, *args, **kwds)
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity = 0, up_pity = 0) -> Union[FiniteDist, list]:
+        return super().__call__(item_num, multi_dist, item_pity, up_pity)
 
     def _build_parameter_list(self, item_pity: int=0, up_pity: int=0) -> list:
         parameter_list = [
