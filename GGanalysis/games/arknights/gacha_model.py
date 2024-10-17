@@ -176,10 +176,10 @@ class AKDirectionalModel(CommonGachaModel):
             return FiniteDist(self.DP_module(item_pity, type_pity))
         # 第一个保底的概率分布 (没有归一化)
         c_dist = FiniteDist(self.DP_module(item_pity, type_pity))
-        c_dist.__dist[:self.type_pity_gap + self.type_pull_shift - type_pity + 1] = 0
+        c_dist[:self.type_pity_gap + self.type_pull_shift - type_pity + 1] = 0
         # 其他保底的概率分布 (没有归一化)
         f_dist = FiniteDist(self.DP_module(0, 0))
-        f_dist.__dist[:self.type_pity_gap + self.type_pull_shift + 1] = 0
+        f_dist[:self.type_pity_gap + self.type_pull_shift + 1] = 0
         # 第一个不保底的概率分布 (没有归一化)
         first_lucky = FiniteDist(
             self.DP_module(item_pity, type_pity)[:self.type_pity_gap + self.type_pull_shift - type_pity + 1])
