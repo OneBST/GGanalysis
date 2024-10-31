@@ -6,7 +6,7 @@ URL = 'https://github.com/OneBST/GGanalysis'
 EMAIL = 'onebst@foxmail.com'
 AUTHOR = 'OneBST'
 REQUIRES_PYTHON = '>=3.9.0'
-VERSION = '0.4.1'
+VERSION = '0.4.2'
 REQUIRED = [
     'numpy', 'scipy', 'matplotlib'
 ]

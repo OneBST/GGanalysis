@@ -20,6 +20,7 @@ release = '0.3.0'
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.githubpages',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
@@ -33,6 +34,8 @@ exclude_patterns = []
 
 language = 'zh_CN'
 html_search_language = 'zh'
+# Automatically generate stub pages when using the .. autosummary directive
+autosummary_generate = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

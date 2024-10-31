@@ -4,16 +4,57 @@ from GGanalysis.distribution_1d import *
 from GGanalysis.basic_models import PityModel
 
 '''
-基于解平稳分布的分析工具
+基于解马尔科夫链平稳分布的分析工具
 '''
+def table2matrix(state_num, state_trans):
+    '''
+    将邻接表变为邻接矩阵
+
+    - ``state_num`` : 状态数量
+    - ``state_trans`` ：邻接表
+
+    根据 state_num 和 state_trans 构造矩阵示例
+    
+    .. code:: Python
+    
+        # Epitomized Path & Fate Points
+        state_num = {'get':0, 'fate1UP':1, 'fate1':2, 'fate2':3}
+        state_trans = [
+            ['get', 'get', 0.375],
+            ['get', 'fate1UP', 0.375],
+            ['get', 'fate1', 0.25],
+            ['fate1UP', 'get', 0.375],
+            ['fate1UP', 'fate2', 1-0.375],
+            ['fate1', 'get', 0.5],
+            ['fate1', 'fate2', 0.5],
+            ['fate2', 'get', 1]
+        ]
+        matrix = table2matrix(state_num, state_trans)
+    '''
+    M = np.zeros((len(state_num), len(state_num)))
+    for name_a, name_b, p in state_trans:
+        a = state_num[name_a]
+        b = state_num[name_b]
+        M[b][a] = p
+    # 检查每个节点出口概率和是否为1, 但这个并不是特别广义
+    '''
+    for index, element in enumerate(np.sum(M, axis=0)):
+        if element != 1:
+            raise Warning('The sum of probabilities is not 1 at position '+str(index))
+    '''
+    return M
 
 def calc_stationary_distribution(M):
     '''
     计算转移矩阵对应平稳分布
 
     转移矩阵如下，平稳分布为列向量
-    |1 0.5|   |x|
-    |0 0.5|   |y|
+
+    .. code-block:: none
+    
+        |1 0.5|   |x|
+        |0 0.5|   |y|
+        
     x = x + 0.5y
     y = 0.5y
     所得平稳分布为转移矩阵特征值1对应的特征向量

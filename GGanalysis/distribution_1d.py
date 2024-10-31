@@ -6,7 +6,12 @@ from collections import OrderedDict
 
 def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
     '''
-    建立线性递增模型的保底参数
+    计算线性递增模型的保底参数
+
+    - ``base_p`` : 基础概率
+    - ``pity_begin`` ：概率开始上升位置
+    - ``step`` ：每次上升概率
+    - ``hard_pity`` ：硬保底位置
     '''
     ans = np.zeros(hard_pity+1)
     ans[1:pity_begin] = base_p
@@ -15,7 +20,7 @@ def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
 
 def calc_expectation(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     '''
-    输入离散分布列计算期望
+    计算离散分布列的期望
     '''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
@@ -25,7 +30,7 @@ def calc_expectation(dist: Union['FiniteDist', list, np.ndarray]) -> float:
 
 def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     '''
-    输入离散分布列计算方差
+    计算离散分布列的方差
     '''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
@@ -47,13 +52,17 @@ def dist_squeeze(dist: Union['FiniteDist', list, np.ndarray], squeeze_factor) ->
     return FiniteDist(new_arr)
 
 def dist2cdf(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
-    '''简单封装一下numpy的cumsum'''
+    '''
+    将分布转为cdf
+    '''
     if isinstance(dist, FiniteDist):
         return np.cumsum(dist.dist)
     return np.cumsum(dist)
 
 def cdf2dist(cdf: np.ndarray) -> 'FiniteDist':
-    '''将cdf转化为分布'''
+    '''
+    将cdf转化为分布
+    '''
     if len(cdf) == 1:
         # 长度为1 返回必然事件分布
         return FiniteDist([1])
@@ -74,7 +83,9 @@ def p2dist(pity_p: Union[list, np.ndarray]) -> 'FiniteDist':
     return FiniteDist(dist)
 
 def dist2p(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
-    '''将分布转换为条件概率表'''
+    '''
+    将分布转换为条件概率表
+    '''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
     dist = np.array(dist)
@@ -83,46 +94,15 @@ def dist2p(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
 
 def p2exp(pity_p: Union[list, np.ndarray]):
     '''
-    对于列表，认为是概率提升表，返回对应期望
+    对于列表，认为是概率提升表，返回对应分布期望
     '''
     return calc_expectation(p2dist(pity_p))
 
 def p2var(pity_p: Union[list, np.ndarray]):
     '''
-    对于列表，认为是概率提升表，返回对应方差
+    对于列表，认为是概率提升表，返回对应分布方差
     '''
     return calc_variance(p2dist(pity_p))
-
-def table2matrix(state_num, state_trans):
-    '''
-    将邻接表变为邻接矩阵
-
-    构造 state_num 和 state_trans 示例
-    Epitomized Path & Fate Points
-    state_num = {'get':0, 'fate1UP':1, 'fate1':2, 'fate2':3}
-    state_trans = [
-        ['get', 'get', 0.375],
-        ['get', 'fate1UP', 0.375],
-        ['get', 'fate1', 0.25],
-        ['fate1UP', 'get', 0.375],
-        ['fate1UP', 'fate2', 1-0.375],
-        ['fate1', 'get', 0.5],
-        ['fate1', 'fate2', 0.5],
-        ['fate2', 'get', 1]
-    ]
-    '''
-    M = np.zeros((len(state_num), len(state_num)))
-    for name_a, name_b, p in state_trans:
-        a = state_num[name_a]
-        b = state_num[name_b]
-        M[b][a] = p
-    # 检查每个节点出口概率和是否为1, 但这个并不是特别广义
-    '''
-    for index, element in enumerate(np.sum(M, axis=0)):
-        if element != 1:
-            raise Warning('The sum of probabilities is not 1 at position '+str(index))
-    '''
-    return M
 
 def pad_zero(dist:np.ndarray, target_len):
     '''
@@ -160,22 +140,52 @@ def calc_item_num_dist(dist_list: list['FiniteDist'], pull):
     return FiniteDist(ans)
 
 class FiniteDist(object):  # 随机事件为有限个数的分布
-    '''**有限长一维分布**
+    '''
+    **有限长一维分布**
 
-    不能在外部直接修改 dist 变量，以免使得缓存信息与分布不对应导致出错，要修改 dist 需要使用 ``set_dist()`` 函数重设
-    - ``dist`` : 用列表、numpy数组、FiniteDist表示在自然数位置的分布。默认为全部概率集中在0位置，即离散卷积运算的幺元。不可从外部直接修改。
+    用于快速进行有限长一维离散分布的相关计算，创建时通过传入分布数组进行初始化，可以代表一个随机变量。
+    本质上是对一个 ``numpy`` 数组的封装，通过利用 FFT、快速幂思想、局部缓存等方法使得各类分布相关的运算能方便高效的进行，有良好的算法复杂度。
+
+    - 定义两个 ``FiniteDist`` 类型之间的 ``*`` 运算为卷积，即计算两个随机变量相加的分布。
+    - 定义 ``FiniteDist`` 类型和数值之间的 ``*`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果。
+    - 定义 ``FiniteDist`` 类型和数值之间的 ``/`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果。
+    - 定义两个 ``FiniteDist`` 类型之间的 ``+`` 运算为分布叠加，将返回将两个 ``FiniteDist.dist`` 加和后的结果。
+    - 定义 ``FiniteDist`` 类型与整数的 ``**`` 运算为自卷积，将返回卷积自身数值次后的结果。
+
+    **类属性**
+
+    - ``dist`` : 用列表、numpy数组、FiniteDist表示在自然数位置的分布。若不传入初始化分布默认为全部概率集中在0位置，即离散卷积运算的幺元。
     - ``exp`` ：这个一维分布的期望
     - ``var`` ：这个一维分布的方差
     - ``p_sum`` ：这个一维分布所有位置的概率的和
     - ``entropy_rate`` ：这个一维分布的熵率，即分布的熵除其期望，意义为平均每次尝试的信息量
     - ``randomness_rate`` ：此处定义的随机度为此分布熵率和概率为 :math:`\\frac{1}{exp}`. 的伯努利信源的熵率的比值，越低则说明信息量越低
     
+    .. attention:: 
+    
+        不能在外部直接修改 dist 变量，以免使得缓存信息与分布不对应导致出错，``FiniteDist.dist`` 获得的是一个不可编辑的副本。要修改 dist 需使用 ``set_dist()`` 函数进行重设。
+    
+    **用例**
+
+    .. code:: Python
+
+        # 定义随机变量 dist_a
+        dist_a = FiniteDist([0.5, 0.5])
+        # 定义随机变量 dist_b
+        dist_b = FiniteDist([0, 1])
+        # 通过卷积计算两个随机变量叠加 dist_a + dist_b 的分布
+        dist_a * dist_b
+        # 计算独立同分布的随机变量 dist_b 累加 10 次后的分布
+        dist_b ** 10
     '''
-    def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1], cache_size: int = 128) -> None:
+    _cache_size: int = 128  # 默认缓存临时分布数量上限
+    def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1]) -> None:
         self.set_dist(dist)
-        self._cache_size = cache_size
 
     def set_dist(self, dist: Union[list, np.ndarray, 'FiniteDist']):
+        '''
+        用于设置有限长一维分布的值
+        '''
         # 注意，构造dist时一定要重新创建新的内存空间进行深拷贝
         if dist is None:
             return
@@ -270,7 +280,7 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         return np.searchsorted(self.cdf, quantile_p, side='left')
 
     def p_normalization(self) -> None:
-        # 分布概率归一
+        '''将当前记录分布进行归一化'''
         self.set_dist(self.__dist/sum(self.__dist))
         self.calc_dist_attribution()
 

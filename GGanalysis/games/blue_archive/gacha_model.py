@@ -1,5 +1,5 @@
 from GGanalysis.basic_models import cdf2dist
-from GGanalysis.recursion_methods import GeneralCouponCollection
+from GGanalysis.coupon_collection import GeneralCouponCollection
 from GGanalysis.basic_models import *
 
 __all__ = [

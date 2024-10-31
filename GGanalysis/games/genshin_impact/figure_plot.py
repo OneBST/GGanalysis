@@ -50,6 +50,18 @@ GI_fig = QuantileFunction(
         is_finite=True)
 GI_fig.show_figure(dpi=300, savefig=True)
 
+GI_fig = QuantileFunction(
+        GI.classic_up_5star_ep_weapon(item_num=5, multi_dist=True),
+        title='旧版本-原神5.0前定轨UP五星武器抽取概率',
+        item_name='定轨五星武器',
+        text_head='采用www.bilibili.com/read/cv10468091模型\n本算例中UP物品均不在常驻祈愿中',
+        text_tail='@一棵平衡树 '+time.strftime('%Y-%m-%d',time.localtime(time.time())),
+        max_pull=1200,
+        mark_func=gi_weapon,
+        line_colors=cm.Reds(np.linspace(0.5, 0.9, 5+1)),
+        is_finite=True)
+GI_fig.show_figure(dpi=300, savefig=True)
+
 # 原神不定轨UP五星武器
 GI_fig = QuantileFunction(
         GI.classic_up_5star_specific_weapon(item_num=5, multi_dist=True),

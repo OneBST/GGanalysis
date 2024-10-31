@@ -8,6 +8,7 @@
     见 https://github.com/OneBST/GGanalysis
 '''
 from GGanalysis.distribution_1d import *
+from GGanalysis.markov_method import table2matrix
 from GGanalysis.gacha_layers import *
 from GGanalysis.basic_models import *
 

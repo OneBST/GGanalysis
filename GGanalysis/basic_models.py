@@ -1,6 +1,6 @@
 from GGanalysis.distribution_1d import *
 from GGanalysis.gacha_layers import *
-from GGanalysis.recursion_methods import GeneralCouponCollection
+from GGanalysis.coupon_collection import GeneralCouponCollection
 from typing import Union
 
 class GachaModel(object):
