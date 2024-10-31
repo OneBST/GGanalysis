@@ -21,13 +21,14 @@ GGanalysis 也提供计算极端情况发生的平均回归时、计算广义 Co
 
 .. toctree::
    :maxdepth: 2
-   :caption: 快速上手
+   :caption: 上手文档
 
    start_using/index
+   reference_manual/index
 
 .. toctree::
    :maxdepth: 2
-   :caption: 支持的游戏
+   :caption: 具体游戏支持
 
    games/index
 

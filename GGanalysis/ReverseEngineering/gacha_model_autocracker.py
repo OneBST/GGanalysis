@@ -70,7 +70,7 @@ class LinearAutoCracker():
                         lower_pity_pos = i
                         lower_step_p = step_p
                         lower_p = estimated_p
-        return (self.base_p, upper_pity_pos, upper_step_p, upper_p), (self.base_p, lower_pity_pos, lower_step_p, lower_p)
+        return (self.base_p, upper_pity_pos, upper_step_p, float(upper_p)), (self.base_p, lower_pity_pos, lower_step_p, float(lower_p))
 
 if __name__ == '__main__':
     # genshin_cracker = LinearAutoCracker(0.006, 0.016, 90)

@@ -1,5 +1,5 @@
 from GGanalysis.games.wuthering_waves import PITY_5STAR, PITY_4STAR
-from GGanalysis.stationary_distribution_method import PriorityPitySystem
+from GGanalysis.markov_method import PriorityPitySystem
 
 # 调用预置工具计算在1.0版本之后五星四星耦合情况下的概率
 common_gacha_system = PriorityPitySystem([PITY_5STAR, PITY_4STAR, [0, 1]], remove_pity=True)
