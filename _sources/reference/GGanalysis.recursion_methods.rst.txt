@@ -1,0 +1,39 @@
+recursion\_methods
+==================
+
+.. currentmodule:: GGanalysis.recursion_methods
+
+.. automodule:: GGanalysis.recursion_methods
+
+   
+   
+   .. autoaliasattr:: GGanalysis.recursion_methods
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: .
+      :nosignatures:
+      
+        GeneralCouponCollection
+      
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   
+   .. autofunction:: get_equal_coupon_collection_exp
+   
+   
+
+   
+   
+   
+
+
+

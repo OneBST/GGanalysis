@@ -1,0 +1,29 @@
+GGanalysis.games.alchemy\_stars.figure\_plot
+============================================
+
+.. automodule:: GGanalysis.games.alchemy_stars.figure_plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      AS_character
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

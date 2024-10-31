@@ -1,0 +1,54 @@
+basic\_models
+=============
+
+.. currentmodule:: GGanalysis.basic_models
+
+.. automodule:: GGanalysis.basic_models
+
+   
+   
+   .. autoaliasattr:: GGanalysis.basic_models
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: .
+      :nosignatures:
+      
+        BernoulliGachaModel
+      
+        CommonGachaModel
+      
+        CouponCollectorModel
+      
+        DualPityBernoulliModel
+      
+        DualPityCouponCollectorModel
+      
+        DualPityModel
+      
+        GachaModel
+      
+        GeneralCouponCollectorModel
+      
+        PityBernoulliModel
+      
+        PityCouponCollectorModel
+      
+        PityModel
+      
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

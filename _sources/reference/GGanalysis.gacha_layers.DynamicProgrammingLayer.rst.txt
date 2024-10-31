@@ -1,0 +1,20 @@
+DynamicProgrammingLayer
+=======================
+
+.. currentmodule:: GGanalysis.gacha_layers
+
+.. autoclass:: DynamicProgrammingLayer
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

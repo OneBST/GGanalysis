@@ -1,0 +1,20 @@
+StarRailRelicCavernRelicsSim
+============================
+
+.. currentmodule:: GGanalysis.games.honkai_star_rail.relic_sim
+
+.. autoclass:: StarRailRelicCavernRelicsSim
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

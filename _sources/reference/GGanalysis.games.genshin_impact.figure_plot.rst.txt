@@ -1,0 +1,30 @@
+GGanalysis.games.genshin\_impact.figure\_plot
+=============================================
+
+.. automodule:: GGanalysis.games.genshin_impact.figure_plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gi_character
+      gi_weapon
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

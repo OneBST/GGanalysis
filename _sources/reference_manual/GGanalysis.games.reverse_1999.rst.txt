@@ -1,0 +1,37 @@
+GGanalysis.games.reverse\_1999 package
+======================================
+
+Submodules
+----------
+
+GGanalysis.games.reverse\_1999.figure\_plot module
+--------------------------------------------------
+
+.. automodule:: GGanalysis.games.reverse_1999.figure_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.reverse\_1999.gacha\_model module
+--------------------------------------------------
+
+.. automodule:: GGanalysis.games.reverse_1999.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.reverse\_1999.stationary\_p module
+---------------------------------------------------
+
+.. automodule:: GGanalysis.games.reverse_1999.stationary_p
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.reverse_1999
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,37 @@
+GGanalysis.ScoredItem package
+=============================
+
+Submodules
+----------
+
+GGanalysis.ScoredItem.scored\_item module
+-----------------------------------------
+
+.. automodule:: GGanalysis.ScoredItem.scored_item
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.ScoredItem.scored\_item\_plot module
+-----------------------------------------------
+
+.. automodule:: GGanalysis.ScoredItem.scored_item_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.ScoredItem.scored\_item\_tools module
+------------------------------------------------
+
+.. automodule:: GGanalysis.ScoredItem.scored_item_tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.ScoredItem
+   :members:
+   :undoc-members:
+   :show-inheritance:

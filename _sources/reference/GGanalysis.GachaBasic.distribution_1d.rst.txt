@@ -1,0 +1,48 @@
+GGanalysis.GachaBasic.distribution\_1d
+======================================
+
+.. automodule:: GGanalysis.GachaBasic.distribution_1d
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      calc_expectation
+      calc_item_num_dist
+      calc_variance
+      cdf2dist
+      cut_dist
+      dist2cdf
+      dist2p
+      dist_squeeze
+      linear_p_increase
+      p2dist
+      p2exp
+      p2var
+      pad_zero
+      table2matrix
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FiniteDist
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,30 @@
+GGanalysis.ScoredItem.scored\_item
+==================================
+
+.. automodule:: GGanalysis.ScoredItem.scored_item
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ScoredItem
+      ScoredItemSet
+   
+   
+
+   
+   
+   
+
+
+

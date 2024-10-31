@@ -1,0 +1,36 @@
+GGanalysis.GachaBasic.stationary\_distribution\_method
+======================================================
+
+.. automodule:: GGanalysis.GachaBasic.stationary_distribution_method
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      calc_stationary_distribution
+      multi_item_rarity
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PriorityPitySystem
+   
+   
+
+   
+   
+   
+
+
+

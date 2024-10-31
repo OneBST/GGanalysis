@@ -1,0 +1,33 @@
+GGanalysis.games.arknights
+==========================
+
+.. automodule:: GGanalysis.games.arknights
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.arknights.figure_plot
+   GGanalysis.games.arknights.gacha_model
+   GGanalysis.games.arknights.stationary_p
+

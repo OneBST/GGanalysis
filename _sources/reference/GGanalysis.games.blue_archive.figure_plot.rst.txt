@@ -1,0 +1,32 @@
+GGanalysis.games.blue\_archive.figure\_plot
+===========================================
+
+.. automodule:: GGanalysis.games.blue_archive.figure_plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      BA_character
+      get_dual_description
+      plot_dual_collection_p
+      plot_refund
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

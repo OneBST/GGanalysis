@@ -1,0 +1,25 @@
+DrawDistribution
+================
+
+.. currentmodule:: GGanalysis.gacha_plot
+
+.. autoclass:: DrawDistribution
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~DrawDistribution.add_cdf
+      ~DrawDistribution.add_dist
+      ~DrawDistribution.show_cdf
+      ~DrawDistribution.show_dist
+      ~DrawDistribution.show_two_graph
+
+   
+   

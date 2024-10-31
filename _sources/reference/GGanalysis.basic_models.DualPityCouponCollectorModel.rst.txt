@@ -1,0 +1,20 @@
+DualPityCouponCollectorModel
+============================
+
+.. currentmodule:: GGanalysis.basic_models
+
+.. autoclass:: DualPityCouponCollectorModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

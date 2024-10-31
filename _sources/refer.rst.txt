@@ -1,0 +1,4 @@
+.. automodule:: GGanalysis
+    :members:
+    :undoc-members:
+    :show-inheritance:

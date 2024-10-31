@@ -1,0 +1,33 @@
+GGanalysis.games.alchemy\_stars
+===============================
+
+.. automodule:: GGanalysis.games.alchemy_stars
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.alchemy_stars.figure_plot
+   GGanalysis.games.alchemy_stars.gacha_model
+   GGanalysis.games.alchemy_stars.stationary_p
+

@@ -1,0 +1,53 @@
+GGanalysis.games.honkai\_star\_rail package
+===========================================
+
+Submodules
+----------
+
+GGanalysis.games.honkai\_star\_rail.gacha\_model module
+-------------------------------------------------------
+
+.. automodule:: GGanalysis.games.honkai_star_rail.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.honkai\_star\_rail.relic\_data module
+------------------------------------------------------
+
+.. automodule:: GGanalysis.games.honkai_star_rail.relic_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.honkai\_star\_rail.relic\_model module
+-------------------------------------------------------
+
+.. automodule:: GGanalysis.games.honkai_star_rail.relic_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.honkai\_star\_rail.relic\_sim module
+-----------------------------------------------------
+
+.. automodule:: GGanalysis.games.honkai_star_rail.relic_sim
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.honkai\_star\_rail.stationary\_p module
+--------------------------------------------------------
+
+.. automodule:: GGanalysis.games.honkai_star_rail.stationary_p
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.honkai_star_rail
+   :members:
+   :undoc-members:
+   :show-inheritance:

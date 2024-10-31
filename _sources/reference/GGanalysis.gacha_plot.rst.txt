@@ -1,0 +1,36 @@
+gacha\_plot
+===========
+
+.. currentmodule:: GGanalysis.gacha_plot
+
+.. automodule:: GGanalysis.gacha_plot
+
+   
+   
+   .. autoaliasattr:: GGanalysis.gacha_plot
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: .
+      :nosignatures:
+      
+        DrawDistribution
+      
+        QuantileFunction
+      
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,21 @@
+GGanalysis.games.azur\_lane package
+===================================
+
+Submodules
+----------
+
+GGanalysis.games.azur\_lane.gacha\_model module
+-----------------------------------------------
+
+.. automodule:: GGanalysis.games.azur_lane.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.azur_lane
+   :members:
+   :undoc-members:
+   :show-inheritance:

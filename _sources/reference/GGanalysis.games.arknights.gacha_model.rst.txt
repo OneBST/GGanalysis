@@ -1,0 +1,32 @@
+GGanalysis.games.arknights.gacha\_model
+=======================================
+
+.. automodule:: GGanalysis.games.arknights.gacha_model
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AKDirectionalModel
+      AKHardPityModel
+      AK_Limit_Model
+      HardTypePityDP
+   
+   
+
+   
+   
+   
+
+
+

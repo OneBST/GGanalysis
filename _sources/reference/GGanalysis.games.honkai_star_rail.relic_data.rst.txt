@@ -1,0 +1,23 @@
+GGanalysis.games.honkai\_star\_rail.relic\_data
+===============================================
+
+.. automodule:: GGanalysis.games.honkai_star_rail.relic_data
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

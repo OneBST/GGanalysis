@@ -1,0 +1,23 @@
+GenshinArtifactSet
+==================
+
+.. currentmodule:: GGanalysis.games.genshin_impact.artifact_model
+
+.. autoclass:: GenshinArtifactSet
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~GenshinArtifactSet.get_4piece_under_condition
+      ~GenshinArtifactSet.select_best_2piece
+      ~GenshinArtifactSet.select_best_4piece
+
+   
+   

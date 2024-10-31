@@ -1,0 +1,34 @@
+GGanalysis.GachaBasic.gacha\_layers
+===================================
+
+.. automodule:: GGanalysis.GachaBasic.gacha_layers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BernoulliLayer
+      CouponCollectorLayer
+      DynamicProgrammingLayer
+      GachaLayer
+      MarkovLayer
+      PityLayer
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,33 @@
+GGanalysis.games.reverse\_1999
+==============================
+
+.. automodule:: GGanalysis.games.reverse_1999
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.reverse_1999.figure_plot
+   GGanalysis.games.reverse_1999.gacha_model
+   GGanalysis.games.reverse_1999.stationary_p
+

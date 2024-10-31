@@ -1,0 +1,20 @@
+GenshinArtifact
+===============
+
+.. currentmodule:: GGanalysis.games.genshin_impact.artifact_model
+
+.. autoclass:: GenshinArtifact
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

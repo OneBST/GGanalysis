@@ -1,0 +1,20 @@
+PityCouponCollectorModel
+========================
+
+.. currentmodule:: GGanalysis.basic_models
+
+.. autoclass:: PityCouponCollectorModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

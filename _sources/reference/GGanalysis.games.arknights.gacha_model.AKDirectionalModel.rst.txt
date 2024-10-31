@@ -1,0 +1,20 @@
+AKDirectionalModel
+==================
+
+.. currentmodule:: GGanalysis.games.arknights.gacha_model
+
+.. autoclass:: AKDirectionalModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

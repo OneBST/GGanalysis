@@ -1,0 +1,33 @@
+GGanalysis.games.girls\_frontline2\_exilium
+===========================================
+
+.. automodule:: GGanalysis.games.girls_frontline2_exilium
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.girls_frontline2_exilium.figure_plot
+   GGanalysis.games.girls_frontline2_exilium.gacha_model
+   GGanalysis.games.girls_frontline2_exilium.stationary_p
+

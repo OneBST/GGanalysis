@@ -1,0 +1,29 @@
+GGanalysis.games.blue\_archive package
+======================================
+
+Submodules
+----------
+
+GGanalysis.games.blue\_archive.figure\_plot module
+--------------------------------------------------
+
+.. automodule:: GGanalysis.games.blue_archive.figure_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.blue\_archive.gacha\_model module
+--------------------------------------------------
+
+.. automodule:: GGanalysis.games.blue_archive.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.blue_archive
+   :members:
+   :undoc-members:
+   :show-inheritance:

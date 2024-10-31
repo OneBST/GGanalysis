@@ -1,0 +1,20 @@
+GachaLayer
+==========
+
+.. currentmodule:: GGanalysis.gacha_layers
+
+.. autoclass:: GachaLayer
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

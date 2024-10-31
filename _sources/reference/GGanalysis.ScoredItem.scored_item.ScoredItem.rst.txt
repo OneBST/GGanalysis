@@ -1,0 +1,26 @@
+ScoredItem
+==========
+
+.. currentmodule:: GGanalysis.ScoredItem.scored_item
+
+.. autoclass:: ScoredItem
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~ScoredItem.check_subexp_sum
+      ~ScoredItem.fit_sub_stats
+      ~ScoredItem.get_sub_stat_avg
+      ~ScoredItem.is_null
+      ~ScoredItem.repeat
+      ~ScoredItem.sub_stats_clear
+
+   
+   

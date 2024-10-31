@@ -1,0 +1,36 @@
+GGanalysis.GachaBasic.plot\_tools
+=================================
+
+.. automodule:: GGanalysis.GachaBasic.plot_tools
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_quantile_line
+      add_stroke_dot
+      add_vertical_quantile_pmf
+      default_item_num_mark
+      get_default_description
+      plot_cdf
+      plot_pmf
+      set_square_grid_fig
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

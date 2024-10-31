@@ -1,0 +1,29 @@
+GGanalysis.games.genshin\_impact.predict\_next\_type
+====================================================
+
+.. automodule:: GGanalysis.games.genshin_impact.predict_next_type
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      calc_type_P
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

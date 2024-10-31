@@ -1,0 +1,30 @@
+GGanalysis.games.genshin\_impact.get\_both\_EP\_weapon
+======================================================
+
+.. automodule:: GGanalysis.games.genshin_impact.get_both_EP_weapon
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      calc_EP_weapon
+      calc_EP_weapon_classic
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

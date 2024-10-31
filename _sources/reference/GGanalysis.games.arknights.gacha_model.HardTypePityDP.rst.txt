@@ -1,0 +1,20 @@
+HardTypePityDP
+==============
+
+.. currentmodule:: GGanalysis.games.arknights.gacha_model
+
+.. autoclass:: HardTypePityDP
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

@@ -1,0 +1,20 @@
+StarRailRelicSim
+================
+
+.. currentmodule:: GGanalysis.games.honkai_star_rail.relic_sim
+
+.. autoclass:: StarRailRelicSim
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

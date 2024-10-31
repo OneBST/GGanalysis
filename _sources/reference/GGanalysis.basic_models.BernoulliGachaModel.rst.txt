@@ -1,0 +1,20 @@
+BernoulliGachaModel
+===================
+
+.. currentmodule:: GGanalysis.basic_models
+
+.. autoclass:: BernoulliGachaModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

@@ -1,0 +1,39 @@
+GGanalysis.GachaBasic.basic\_models
+===================================
+
+.. automodule:: GGanalysis.GachaBasic.basic_models
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BernoulliGachaModel
+      CommonGachaModel
+      CouponCollectorModel
+      DualPityBernoulliModel
+      DualPityCouponCollectorModel
+      DualPityModel
+      GachaModel
+      GeneralCouponCollectorModel
+      PityBernoulliModel
+      PityCouponCollectorModel
+      PityModel
+   
+   
+
+   
+   
+   
+
+
+

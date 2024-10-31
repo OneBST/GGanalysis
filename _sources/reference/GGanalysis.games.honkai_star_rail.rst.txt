@@ -1,0 +1,35 @@
+GGanalysis.games.honkai\_star\_rail
+===================================
+
+.. automodule:: GGanalysis.games.honkai_star_rail
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.honkai_star_rail.gacha_model
+   GGanalysis.games.honkai_star_rail.relic_data
+   GGanalysis.games.honkai_star_rail.relic_model
+   GGanalysis.games.honkai_star_rail.relic_sim
+   GGanalysis.games.honkai_star_rail.stationary_p
+

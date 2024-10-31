@@ -1,0 +1,32 @@
+GGanalysis.games.blue\_archive
+==============================
+
+.. automodule:: GGanalysis.games.blue_archive
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.blue_archive.figure_plot
+   GGanalysis.games.blue_archive.gacha_model
+

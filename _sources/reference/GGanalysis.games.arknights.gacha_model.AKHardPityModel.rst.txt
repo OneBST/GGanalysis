@@ -1,0 +1,20 @@
+AKHardPityModel
+===============
+
+.. currentmodule:: GGanalysis.games.arknights.gacha_model
+
+.. autoclass:: AKHardPityModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

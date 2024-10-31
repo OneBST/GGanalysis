@@ -1,0 +1,20 @@
+GGanalysis package
+==================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   GGanalysis.GachaBasic
+   GGanalysis.ScoredItem
+   GGanalysis.games
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis
+   :members:
+   :undoc-members:
+   :show-inheritance:

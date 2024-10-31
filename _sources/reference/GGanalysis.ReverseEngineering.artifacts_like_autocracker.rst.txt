@@ -1,0 +1,30 @@
+GGanalysis.ReverseEngineering.artifacts\_like\_autocracker
+==========================================================
+
+.. automodule:: GGanalysis.ReverseEngineering.artifacts_like_autocracker
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      calc_weighted_selection_logp
+      construct_likelihood_function
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

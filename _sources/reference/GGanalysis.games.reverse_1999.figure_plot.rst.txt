@@ -1,0 +1,31 @@
+GGanalysis.games.reverse\_1999.figure\_plot
+===========================================
+
+.. automodule:: GGanalysis.games.reverse_1999.figure_plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      RV_character
+      RV_collection
+      collection_description
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,40 @@
+stationary\_distribution\_method
+================================
+
+.. currentmodule:: GGanalysis.stationary_distribution_method
+
+.. automodule:: GGanalysis.stationary_distribution_method
+
+   
+   
+   .. autoaliasattr:: GGanalysis.stationary_distribution_method
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: .
+      :nosignatures:
+      
+        PriorityPitySystem
+      
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   
+   .. autofunction:: calc_stationary_distribution
+   .. autofunction:: multi_item_rarity
+   
+   
+
+   
+   
+   
+
+
+

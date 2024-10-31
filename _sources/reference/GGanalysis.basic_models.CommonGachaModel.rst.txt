@@ -1,0 +1,20 @@
+CommonGachaModel
+================
+
+.. currentmodule:: GGanalysis.basic_models
+
+.. autoclass:: CommonGachaModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

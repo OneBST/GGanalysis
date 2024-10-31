@@ -1,0 +1,20 @@
+PityModel
+=========
+
+.. currentmodule:: GGanalysis.basic_models
+
+.. autoclass:: PityModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

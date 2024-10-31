@@ -1,0 +1,37 @@
+plot\_tools
+===========
+
+.. currentmodule:: GGanalysis.plot_tools
+
+.. automodule:: GGanalysis.plot_tools
+
+   
+   
+   .. autoaliasattr:: GGanalysis.plot_tools
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   
+   .. autofunction:: add_quantile_line
+   .. autofunction:: add_stroke_dot
+   .. autofunction:: add_vertical_quantile_pmf
+   .. autofunction:: default_item_num_mark
+   .. autofunction:: get_default_description
+   .. autofunction:: plot_cdf
+   .. autofunction:: plot_pmf
+   .. autofunction:: set_square_grid_fig
+   
+   
+
+   
+   
+   
+
+
+

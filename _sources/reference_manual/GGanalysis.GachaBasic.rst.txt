@@ -1,0 +1,69 @@
+GGanalysis.GachaBasic package
+=============================
+
+Submodules
+----------
+
+GGanalysis.GachaBasic.basic\_models module
+------------------------------------------
+
+.. automodule:: GGanalysis.GachaBasic.basic_models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.GachaBasic.distribution\_1d module
+---------------------------------------------
+
+.. automodule:: GGanalysis.GachaBasic.distribution_1d
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.GachaBasic.gacha\_layers module
+------------------------------------------
+
+.. automodule:: GGanalysis.GachaBasic.gacha_layers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.GachaBasic.gacha\_plot module
+----------------------------------------
+
+.. automodule:: GGanalysis.GachaBasic.gacha_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.GachaBasic.plot\_tools module
+----------------------------------------
+
+.. automodule:: GGanalysis.GachaBasic.plot_tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.GachaBasic.recursion\_methods module
+-----------------------------------------------
+
+.. automodule:: GGanalysis.GachaBasic.recursion_methods
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.GachaBasic.stationary\_distribution\_method module
+-------------------------------------------------------------
+
+.. automodule:: GGanalysis.GachaBasic.stationary_distribution_method
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.GachaBasic
+   :members:
+   :undoc-members:
+   :show-inheritance:

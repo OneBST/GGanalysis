@@ -1,0 +1,33 @@
+GGanalysis.games.wuthering\_waves
+=================================
+
+.. automodule:: GGanalysis.games.wuthering_waves
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.wuthering_waves.figure_plot
+   GGanalysis.games.wuthering_waves.gacha_model
+   GGanalysis.games.wuthering_waves.stationary_p
+

@@ -1,0 +1,20 @@
+GeneralCouponCollectorModel
+===========================
+
+.. currentmodule:: GGanalysis.basic_models
+
+.. autoclass:: GeneralCouponCollectorModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

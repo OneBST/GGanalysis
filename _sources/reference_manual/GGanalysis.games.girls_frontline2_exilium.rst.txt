@@ -1,0 +1,37 @@
+GGanalysis.games.girls\_frontline2\_exilium package
+===================================================
+
+Submodules
+----------
+
+GGanalysis.games.girls\_frontline2\_exilium.figure\_plot module
+---------------------------------------------------------------
+
+.. automodule:: GGanalysis.games.girls_frontline2_exilium.figure_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.girls\_frontline2\_exilium.gacha\_model module
+---------------------------------------------------------------
+
+.. automodule:: GGanalysis.games.girls_frontline2_exilium.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.girls\_frontline2\_exilium.stationary\_p module
+----------------------------------------------------------------
+
+.. automodule:: GGanalysis.games.girls_frontline2_exilium.stationary_p
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.girls_frontline2_exilium
+   :members:
+   :undoc-members:
+   :show-inheritance:

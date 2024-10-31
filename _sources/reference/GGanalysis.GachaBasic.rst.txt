@@ -1,0 +1,37 @@
+﻿GGanalysis.GachaBasic
+=====================
+
+.. automodule:: GGanalysis.GachaBasic
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.GachaBasic.basic_models
+   GGanalysis.GachaBasic.distribution_1d
+   GGanalysis.GachaBasic.gacha_layers
+   GGanalysis.GachaBasic.gacha_plot
+   GGanalysis.GachaBasic.plot_tools
+   GGanalysis.GachaBasic.recursion_methods
+   GGanalysis.GachaBasic.stationary_distribution_method
+

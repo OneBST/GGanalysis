@@ -1,0 +1,6 @@
+﻿GGanalysis.distribution\_1d.linear\_p\_increase
+===============================================
+
+.. currentmodule:: GGanalysis.distribution_1d
+
+.. autofunction:: linear_p_increase

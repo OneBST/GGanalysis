@@ -1,0 +1,37 @@
+GGanalysis.games.alchemy\_stars package
+=======================================
+
+Submodules
+----------
+
+GGanalysis.games.alchemy\_stars.figure\_plot module
+---------------------------------------------------
+
+.. automodule:: GGanalysis.games.alchemy_stars.figure_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.alchemy\_stars.gacha\_model module
+---------------------------------------------------
+
+.. automodule:: GGanalysis.games.alchemy_stars.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.alchemy\_stars.stationary\_p module
+----------------------------------------------------
+
+.. automodule:: GGanalysis.games.alchemy_stars.stationary_p
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.alchemy_stars
+   :members:
+   :undoc-members:
+   :show-inheritance:

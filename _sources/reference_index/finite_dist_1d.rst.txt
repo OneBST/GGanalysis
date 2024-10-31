@@ -1,0 +1,8 @@
+有限长一维分布
+========================
+
+.. autosummary::
+    :toctree: ../reference
+    :recursive:
+    
+    GGanalysis

@@ -1,0 +1,703 @@
+<!doctype html>
+<html class="no-js" lang="zh-CN">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+<link rel="index" title="索引" href="../genindex.html" /><link rel="search" title="搜索" href="../search.html" /><link rel="next" title="支持的游戏" href="../games/index.html" /><link rel="prev" title="参考手册" href="index.html" />
+
+    <link rel="shortcut icon" href="../_static/favicon.svg"/><!-- Generated with Sphinx 6.1.3 and Furo 2023.03.27 -->
+        <title>基础工具 - GGanalysis</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=fad236701ea90a88636c2a8c73b44ae642ed2a53" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">GGanalysis</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/light_logo.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/dark_logo.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="搜索" name="q" aria-label="搜索">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">上手文档</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../start_using/index.html">快速使用</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../start_using/environment_installation.html">配置环境并安装工具包</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../start_using/basic_concepts.html">基本概念</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../start_using/use_predefined_model.html">使用预定义的抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../start_using/custom_gacha_model.html">自定义抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../start_using/check_gacha_plan.html">检查抽卡计划可行性</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../start_using/stationary_distribution.html">平稳分布时概率的计算工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../start_using/quick_visualization.html">快速可视化</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">参考手册</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">基础工具</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">具体游戏支持</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../games/index.html">支持的游戏</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../games/genshin_impact/index.html">原神</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../games/genshin_impact/gacha_models.html">原神抽卡模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../games/genshin_impact/artifact_models.html">原神圣遗物模型</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../games/honkai_star_rail/index.html">崩坏：星穹铁道</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../games/honkai_star_rail/gacha_models.html">崩坏：星穹铁道抽卡模型</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../games/honkai_star_rail/relic_models.html">崩坏：星穹铁道遗器模型</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../games/arknights/index.html">明日方舟抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/zenless_zone_zero/index.html">绝区零抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/azur_lane/index.html">碧蓝航线抽卡模型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/wuthering_waves/index.html">鸣潮</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/blue_archive/index.html">蔚蓝档案</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/reverse_1999/index.html">重返未来：1999</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/alchemy_stars/index.html">少女前线2：追放</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../games/girls_frontline2_exilium/index.html">白夜极光</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">抽卡导论</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../introduction_to_gacha/index.html">抽卡导论</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/foundations.html">基本概念约定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/statistical_modeling_methods.html">简单保底抽卡模型的统计建模方法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction_to_gacha/feedback_item_problem.html">道具返还问题</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/OneBST/GGanalysis/edit/develop/docs/source/reference_manual/basic_tools.rst" title="Edit this page">
+    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
+      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
+    </svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="id1">
+<h1>基础工具<a class="headerlink" href="#id1" title="此标题的永久链接">#</a></h1>
+<section id="id2">
+<h2>随机变量分布处理工具<a class="headerlink" href="#id2" title="此标题的永久链接">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GGanalysis.distribution_1d.</span></span><span class="sig-name descname"><span class="pre">FiniteDist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist" title="GGanalysis.distribution_1d.FiniteDist"><span class="pre">FiniteDist</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[1]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist" title="永久链接至目标">#</a></dt>
+<dd><p><strong>有限长一维分布</strong></p>
+<p>用于快速进行有限长一维离散分布的相关计算，创建时通过传入分布数组进行初始化，可以代表一个随机变量。
+本质上是对一个 <code class="docutils literal notranslate"><span class="pre">numpy</span></code> 数组的封装，通过利用 FFT、快速幂思想、局部缓存等方法使得各类分布相关的运算能方便高效的进行，有良好的算法复杂度。</p>
+<ul class="simple">
+<li><p>定义两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型之间的 <code class="docutils literal notranslate"><span class="pre">*</span></code> 运算为卷积，即计算两个随机变量相加的分布。</p></li>
+<li><p>定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型和数值之间的 <code class="docutils literal notranslate"><span class="pre">*</span></code> 运算为数值乘，将返回 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 和数值进行数乘后的结果。</p></li>
+<li><p>定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型和数值之间的 <code class="docutils literal notranslate"><span class="pre">/</span></code> 运算为数值乘，将返回 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 和数值进行数乘后的结果。</p></li>
+<li><p>定义两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型之间的 <code class="docutils literal notranslate"><span class="pre">+</span></code> 运算为分布叠加，将返回将两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 加和后的结果。</p></li>
+<li><p>定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型与整数的 <code class="docutils literal notranslate"><span class="pre">**</span></code> 运算为自卷积，将返回卷积自身数值次后的结果。</p></li>
+</ul>
+<p><strong>类属性</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dist</span></code> : 用列表、numpy数组、FiniteDist表示在自然数位置的分布。若不传入初始化分布默认为全部概率集中在0位置，即离散卷积运算的幺元。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exp</span></code> ：这个一维分布的期望</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">var</span></code> ：这个一维分布的方差</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p_sum</span></code> ：这个一维分布所有位置的概率的和</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entropy_rate</span></code> ：这个一维分布的熵率，即分布的熵除其期望，意义为平均每次尝试的信息量</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">randomness_rate</span></code> ：此处定义的随机度为此分布熵率和概率为 <span class="math notranslate nohighlight">\(\frac{1}{exp}\)</span>. 的伯努利信源的熵率的比值，越低则说明信息量越低</p></li>
+</ul>
+<div class="admonition attention">
+<p class="admonition-title">注意</p>
+<p>不能在外部直接修改 dist 变量，以免使得缓存信息与分布不对应导致出错，<code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 获得的是一个不可编辑的副本。要修改 dist 需使用 <code class="docutils literal notranslate"><span class="pre">set_dist()</span></code> 函数进行重设。</p>
+</div>
+<p><strong>用例</strong></p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 定义随机变量 dist_a</span>
+<span class="n">dist_a</span> <span class="o">=</span> <span class="n">FiniteDist</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
+<span class="c1"># 定义随机变量 dist_b</span>
+<span class="n">dist_b</span> <span class="o">=</span> <span class="n">FiniteDist</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="c1"># 通过卷积计算两个随机变量叠加 dist_a + dist_b 的分布</span>
+<span class="n">dist_a</span> <span class="o">*</span> <span class="n">dist_b</span>
+<span class="c1"># 计算独立同分布的随机变量 dist_b 累加 10 次后的分布</span>
+<span class="n">dist_b</span> <span class="o">**</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.calc_cdf">
+<span class="sig-name descname"><span class="pre">calc_cdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.calc_cdf" title="永久链接至目标">#</a></dt>
+<dd><p>将自身分布转为cdf返回</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.calc_dist_attribution">
+<span class="sig-name descname"><span class="pre">calc_dist_attribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.calc_dist_attribution" title="永久链接至目标">#</a></dt>
+<dd><p>计算分布的基本属性 <code class="docutils literal notranslate"><span class="pre">exp</span></code> <code class="docutils literal notranslate"><span class="pre">var</span></code> <code class="docutils literal notranslate"><span class="pre">p_sum</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">p_error</span></code> ： 容许 <code class="docutils literal notranslate"><span class="pre">p_sum</span></code> 和 1 之间的差距，默认为 1e-6</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.calc_entropy_attribution">
+<span class="sig-name descname"><span class="pre">calc_entropy_attribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.calc_entropy_attribution" title="永久链接至目标">#</a></dt>
+<dd><p>计算分布熵相关属性 <code class="docutils literal notranslate"><span class="pre">entropy_rate</span></code> <code class="docutils literal notranslate"><span class="pre">randomness_rate</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">p_error</span></code> ： 容许 <code class="docutils literal notranslate"><span class="pre">p_sum</span></code> 和 1 之间的差距，默认为 1e-6</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.p_normalization">
+<span class="sig-name descname"><span class="pre">p_normalization</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.p_normalization" title="永久链接至目标">#</a></dt>
+<dd><p>将当前记录分布进行归一化</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.quantile_point">
+<span class="sig-name descname"><span class="pre">quantile_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.quantile_point" title="永久链接至目标">#</a></dt>
+<dd><p>返回分位点位置</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.set_dist">
+<span class="sig-name descname"><span class="pre">set_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist" title="GGanalysis.distribution_1d.FiniteDist"><span class="pre">FiniteDist</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.set_dist" title="永久链接至目标">#</a></dt>
+<dd><p>用于设置有限长一维分布的值</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.pad_zero">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">pad_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_len</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.pad_zero" title="永久链接至目标">#</a></dt>
+<dd><p>给 numpy 数组末尾补零至指定长度</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.cut_dist">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">cut_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cut_pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.cut_dist" title="永久链接至目标">#</a></dt>
+<dd><p>切除分布并重新进行概率归一化，默认切除头部</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.calc_expectation">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">calc_expectation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.calc_expectation" title="永久链接至目标">#</a></dt>
+<dd><p>计算离散分布列的期望</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.calc_variance">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">calc_variance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.calc_variance" title="永久链接至目标">#</a></dt>
+<dd><p>计算离散分布列的方差</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.dist2cdf">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">dist2cdf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.dist2cdf" title="永久链接至目标">#</a></dt>
+<dd><p>将分布转为cdf</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.cdf2dist">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">cdf2dist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist" title="GGanalysis.distribution_1d.FiniteDist"><span class="pre">FiniteDist</span></a></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.cdf2dist" title="永久链接至目标">#</a></dt>
+<dd><p>将cdf转化为分布</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.linear_p_increase">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">linear_p_increase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pity_begin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hard_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.linear_p_increase" title="永久链接至目标">#</a></dt>
+<dd><p>计算线性递增模型的保底参数</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">base_p</span></code> : 基础概率</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pity_begin</span></code> ：概率开始上升位置</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step</span></code> ：每次上升概率</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hard_pity</span></code> ：硬保底位置</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.p2dist">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">p2dist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist" title="GGanalysis.distribution_1d.FiniteDist"><span class="pre">FiniteDist</span></a></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.p2dist" title="永久链接至目标">#</a></dt>
+<dd><p>将保底概率参数转化为分布列</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.dist2p">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">dist2p</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.dist2p" title="永久链接至目标">#</a></dt>
+<dd><p>将分布转换为条件概率表</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.p2exp">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">p2exp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.p2exp" title="永久链接至目标">#</a></dt>
+<dd><p>对于列表，认为是概率提升表，返回对应分布期望</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.p2var">
+<span class="sig-prename descclassname"><span class="pre">distribution_1d.</span></span><span class="sig-name descname"><span class="pre">p2var</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.p2var" title="永久链接至目标">#</a></dt>
+<dd><p>对于列表，认为是概率提升表，返回对应分布方差</p>
+</dd></dl>
+
+</section>
+<section id="id3">
+<h2>马尔可夫链处理工具<a class="headerlink" href="#id3" title="此标题的永久链接">#</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.table2matrix">
+<span class="sig-prename descclassname"><span class="pre">markov_method.</span></span><span class="sig-name descname"><span class="pre">table2matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_trans</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.markov_method.table2matrix" title="永久链接至目标">#</a></dt>
+<dd><p>将邻接表变为邻接矩阵</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">state_num</span></code> : 状态数量</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_trans</span></code> ：邻接表</p></li>
+</ul>
+<p>根据 state_num 和 state_trans 构造矩阵示例</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Epitomized Path &amp; Fate Points</span>
+<span class="n">state_num</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;get&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;fate1UP&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;fate1&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;fate2&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">}</span>
+<span class="n">state_trans</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="mf">0.375</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="s1">&#39;fate1UP&#39;</span><span class="p">,</span> <span class="mf">0.375</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="s1">&#39;fate1&#39;</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;fate1UP&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="mf">0.375</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;fate1UP&#39;</span><span class="p">,</span> <span class="s1">&#39;fate2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="mf">0.375</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;fate1&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;fate1&#39;</span><span class="p">,</span> <span class="s1">&#39;fate2&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">&#39;fate2&#39;</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="p">]</span>
+<span class="n">matrix</span> <span class="o">=</span> <span class="n">table2matrix</span><span class="p">(</span><span class="n">state_num</span><span class="p">,</span> <span class="n">state_trans</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.calc_stationary_distribution">
+<span class="sig-prename descclassname"><span class="pre">markov_method.</span></span><span class="sig-name descname"><span class="pre">calc_stationary_distribution</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.markov_method.calc_stationary_distribution" title="永久链接至目标">#</a></dt>
+<dd><p>计算转移矩阵对应平稳分布</p>
+<p>转移矩阵如下，平稳分布为列向量</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>|1 0.5|   |x|
+|0 0.5|   |y|
+</pre></div>
+</div>
+<p>x = x + 0.5y
+y = 0.5y
+所得平稳分布为转移矩阵特征值1对应的特征向量</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.multi_item_rarity">
+<span class="sig-prename descclassname"><span class="pre">markov_method.</span></span><span class="sig-name descname"><span class="pre">multi_item_rarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">once_pull_times</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_complete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.markov_method.multi_item_rarity" title="永久链接至目标">#</a></dt>
+<dd><p>计算连抽情况下获得多个道具的概率
+仅仅适用于保底抽卡模型</p>
+<p>采用三阶段计算，主要是因为直接计算数值收敛性不好，此方法兼顾速度和准确
+先得出一直连抽后的保底情况平稳分布，再在平稳分布的基础上计算连抽时首个道具的分布位置
+最后根据第一个分布位置，使用组合数算出概率</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.PriorityPitySystem">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GGanalysis.markov_method.</span></span><span class="sig-name descname"><span class="pre">PriorityPitySystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item_p_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_pity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.markov_method.PriorityPitySystem" title="永久链接至目标">#</a></dt>
+<dd><p>不同道具按照优先级排序的保底系统
+若道具为固定概率p，则传入列表填为 [0, p]</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.PriorityPitySystem.get_next_state">
+<span class="sig-name descname"><span class="pre">get_next_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pity_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_item</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.markov_method.PriorityPitySystem.get_next_state" title="永久链接至目标">#</a></dt>
+<dd><p>返回下一个状态</p>
+<p>pity_state 为当前状态 get_item 为当前获取的道具，若为 None 则表示没有获得数据</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.PriorityPitySystem.get_number">
+<span class="sig-name descname"><span class="pre">get_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pity_state</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#GGanalysis.markov_method.PriorityPitySystem.get_number" title="永久链接至目标">#</a></dt>
+<dd><p>根据保底情况获得状态编号</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.PriorityPitySystem.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_num</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.markov_method.PriorityPitySystem.get_state" title="永久链接至目标">#</a></dt>
+<dd><p>根据状态编号获得保底情况</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.PriorityPitySystem.get_stationary_p">
+<span class="sig-name descname"><span class="pre">get_stationary_p</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#GGanalysis.markov_method.PriorityPitySystem.get_stationary_p" title="永久链接至目标">#</a></dt>
+<dd><p>以列表形式返回每种道具的综合概率</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.PriorityPitySystem.get_transfer_matrix">
+<span class="sig-name descname"><span class="pre">get_transfer_matrix</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#GGanalysis.markov_method.PriorityPitySystem.get_transfer_matrix" title="永久链接至目标">#</a></dt>
+<dd><p>根据当前的设置生成转移矩阵</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.markov_method.PriorityPitySystem.get_type_distribution">
+<span class="sig-name descname"><span class="pre">get_type_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#GGanalysis.markov_method.PriorityPitySystem.get_type_distribution" title="永久链接至目标">#</a></dt>
+<dd><p>获取对于某一类道具花费抽数的分布（平稳分布的情况）</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id4">
+<h2>集齐问题处理工具<a class="headerlink" href="#id4" title="此标题的永久链接">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GGanalysis.coupon_collection.</span></span><span class="sig-name descname"><span class="pre">GeneralCouponCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection" title="永久链接至目标">#</a></dt>
+<dd><p>不同奖券概率不均等的奖券集齐问题类
+默认以集齐为吸收态，状态按照从低到高位对应输入列表的从前往后</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection.collection_dp">
+<span class="sig-name descname"><span class="pre">collection_dp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection.collection_dp" title="永久链接至目标">#</a></dt>
+<dd><p>通过DP计算抽n次后的状态分布，返回DP数组</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection.decode_state_number">
+<span class="sig-name descname"><span class="pre">decode_state_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_num</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection.decode_state_number" title="永久链接至目标">#</a></dt>
+<dd><p>根据对应状态返回状态道具列表</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection.encode_state_number">
+<span class="sig-name descname"><span class="pre">encode_state_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection.encode_state_number" title="永久链接至目标">#</a></dt>
+<dd><p>根据道具列表生成对应状态</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection.get_collection_p">
+<span class="sig-name descname"><span class="pre">get_collection_p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DP_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection.get_collection_p" title="永久链接至目标">#</a></dt>
+<dd><p>返回抽n抽后达到目标状态的概率数组</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection.get_expectation">
+<span class="sig-name descname"><span class="pre">get_expectation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection.get_expectation" title="永久链接至目标">#</a></dt>
+<dd><p>带缓存递归计算抽取奖券到目标态时抽取数量期望</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection.get_satisfying_state">
+<span class="sig-name descname"><span class="pre">get_satisfying_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection.get_satisfying_state" title="永久链接至目标">#</a></dt>
+<dd><p>返回一个标记了满足目标状态要求的01numpy数组</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.GeneralCouponCollection.sim_collection">
+<span class="sig-name descname"><span class="pre">sim_collection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.GeneralCouponCollection.sim_collection" title="永久链接至目标">#</a></dt>
+<dd><p>蒙特卡洛模拟抽取次数，用于验证</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GGanalysis.coupon_collection.get_equal_coupon_collection_exp">
+<span class="sig-prename descclassname"><span class="pre">coupon_collection.</span></span><span class="sig-name descname"><span class="pre">get_equal_coupon_collection_exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.coupon_collection.get_equal_coupon_collection_exp" title="永久链接至目标">#</a></dt>
+<dd><p>获得每样道具均等情况下的集齐期望</p>
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../games/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">支持的游戏</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">参考手册</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2023, OneBST
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/OneBST/GGanalysis" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">基础工具</a><ul>
+<li><a class="reference internal" href="#id2">随机变量分布处理工具</a><ul>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist"><code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code></a><ul>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.calc_cdf"><code class="docutils literal notranslate"><span class="pre">FiniteDist.calc_cdf()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.calc_dist_attribution"><code class="docutils literal notranslate"><span class="pre">FiniteDist.calc_dist_attribution()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.calc_entropy_attribution"><code class="docutils literal notranslate"><span class="pre">FiniteDist.calc_entropy_attribution()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.p_normalization"><code class="docutils literal notranslate"><span class="pre">FiniteDist.p_normalization()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.quantile_point"><code class="docutils literal notranslate"><span class="pre">FiniteDist.quantile_point()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.set_dist"><code class="docutils literal notranslate"><span class="pre">FiniteDist.set_dist()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.pad_zero"><code class="docutils literal notranslate"><span class="pre">distribution_1d.pad_zero()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.cut_dist"><code class="docutils literal notranslate"><span class="pre">distribution_1d.cut_dist()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.calc_expectation"><code class="docutils literal notranslate"><span class="pre">distribution_1d.calc_expectation()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.calc_variance"><code class="docutils literal notranslate"><span class="pre">distribution_1d.calc_variance()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.dist2cdf"><code class="docutils literal notranslate"><span class="pre">distribution_1d.dist2cdf()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.cdf2dist"><code class="docutils literal notranslate"><span class="pre">distribution_1d.cdf2dist()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.linear_p_increase"><code class="docutils literal notranslate"><span class="pre">distribution_1d.linear_p_increase()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.p2dist"><code class="docutils literal notranslate"><span class="pre">distribution_1d.p2dist()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.dist2p"><code class="docutils literal notranslate"><span class="pre">distribution_1d.dist2p()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.p2exp"><code class="docutils literal notranslate"><span class="pre">distribution_1d.p2exp()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.p2var"><code class="docutils literal notranslate"><span class="pre">distribution_1d.p2var()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id3">马尔可夫链处理工具</a><ul>
+<li><a class="reference internal" href="#GGanalysis.markov_method.table2matrix"><code class="docutils literal notranslate"><span class="pre">markov_method.table2matrix()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.calc_stationary_distribution"><code class="docutils literal notranslate"><span class="pre">markov_method.calc_stationary_distribution()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.multi_item_rarity"><code class="docutils literal notranslate"><span class="pre">markov_method.multi_item_rarity()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.PriorityPitySystem"><code class="docutils literal notranslate"><span class="pre">PriorityPitySystem</span></code></a><ul>
+<li><a class="reference internal" href="#GGanalysis.markov_method.PriorityPitySystem.get_next_state"><code class="docutils literal notranslate"><span class="pre">PriorityPitySystem.get_next_state()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.PriorityPitySystem.get_number"><code class="docutils literal notranslate"><span class="pre">PriorityPitySystem.get_number()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.PriorityPitySystem.get_state"><code class="docutils literal notranslate"><span class="pre">PriorityPitySystem.get_state()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.PriorityPitySystem.get_stationary_p"><code class="docutils literal notranslate"><span class="pre">PriorityPitySystem.get_stationary_p()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.PriorityPitySystem.get_transfer_matrix"><code class="docutils literal notranslate"><span class="pre">PriorityPitySystem.get_transfer_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.markov_method.PriorityPitySystem.get_type_distribution"><code class="docutils literal notranslate"><span class="pre">PriorityPitySystem.get_type_distribution()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">集齐问题处理工具</a><ul>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection</span></code></a><ul>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection.collection_dp"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection.collection_dp()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection.decode_state_number"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection.decode_state_number()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection.encode_state_number"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection.encode_state_number()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection.get_collection_p"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection.get_collection_p()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection.get_expectation"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection.get_expectation()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection.get_satisfying_state"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection.get_satisfying_state()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.GeneralCouponCollection.sim_collection"><code class="docutils literal notranslate"><span class="pre">GeneralCouponCollection.sim_collection()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#GGanalysis.coupon_collection.get_equal_coupon_collection_exp"><code class="docutils literal notranslate"><span class="pre">coupon_collection.get_equal_coupon_collection_exp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/scripts/furo.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/translations.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

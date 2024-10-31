@@ -1,0 +1,25 @@
+ScoredItemDistribution
+======================
+
+.. currentmodule:: GGanalysis.ScoredItem.scored_item_plot
+
+.. autoclass:: ScoredItemDistribution
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~ScoredItemDistribution.add_score_dist
+      ~ScoredItemDistribution.add_stats_component
+      ~ScoredItemDistribution.set_xticks
+      ~ScoredItemDistribution.show_dist
+      ~ScoredItemDistribution.show_dist_component
+
+   
+   

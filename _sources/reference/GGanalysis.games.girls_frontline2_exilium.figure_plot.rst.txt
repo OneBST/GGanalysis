@@ -1,0 +1,30 @@
+GGanalysis.games.girls\_frontline2\_exilium.figure\_plot
+========================================================
+
+.. automodule:: GGanalysis.games.girls_frontline2_exilium.figure_plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gf2_character
+      gf2_weapon
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

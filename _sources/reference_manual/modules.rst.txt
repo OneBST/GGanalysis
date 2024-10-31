@@ -1,0 +1,7 @@
+GGanalysis
+==========
+
+.. toctree::
+   :maxdepth: 4
+
+   GGanalysis

@@ -1,0 +1,23 @@
+GGanalysis.games.genshin\_impact.artifact\_data
+===============================================
+
+.. automodule:: GGanalysis.games.genshin_impact.artifact_data
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

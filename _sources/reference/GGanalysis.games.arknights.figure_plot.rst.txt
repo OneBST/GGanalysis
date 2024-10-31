@@ -1,0 +1,29 @@
+GGanalysis.games.arknights.figure\_plot
+=======================================
+
+.. automodule:: GGanalysis.games.arknights.figure_plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      AK_character
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

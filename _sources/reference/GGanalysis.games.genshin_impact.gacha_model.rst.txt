@@ -1,0 +1,31 @@
+GGanalysis.games.genshin\_impact.gacha\_model
+=============================================
+
+.. automodule:: GGanalysis.games.genshin_impact.gacha_model
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ClassicGenshin5starEPWeaponModel
+      GenshinCommon5starInUPpoolLayer
+      GenshinCommon5starInUPpoolModel
+   
+   
+
+   
+   
+   
+
+
+

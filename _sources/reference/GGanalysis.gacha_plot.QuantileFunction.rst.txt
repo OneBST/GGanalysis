@@ -1,0 +1,21 @@
+QuantileFunction
+================
+
+.. currentmodule:: GGanalysis.gacha_plot
+
+.. autoclass:: QuantileFunction
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~QuantileFunction.show_figure
+
+   
+   

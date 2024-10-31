@@ -1,0 +1,32 @@
+GGanalysis.games.genshin\_impact.get\_cost
+==========================================
+
+.. automodule:: GGanalysis.games.genshin_impact.get_cost
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_free_pulls
+      get_gacha_cost
+      get_gacha_price
+      get_resin_cost
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

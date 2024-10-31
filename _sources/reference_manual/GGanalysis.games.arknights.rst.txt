@@ -1,0 +1,37 @@
+GGanalysis.games.arknights package
+==================================
+
+Submodules
+----------
+
+GGanalysis.games.arknights.figure\_plot module
+----------------------------------------------
+
+.. automodule:: GGanalysis.games.arknights.figure_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.arknights.gacha\_model module
+----------------------------------------------
+
+.. automodule:: GGanalysis.games.arknights.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.arknights.stationary\_p module
+-----------------------------------------------
+
+.. automodule:: GGanalysis.games.arknights.stationary_p
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.arknights
+   :members:
+   :undoc-members:
+   :show-inheritance:

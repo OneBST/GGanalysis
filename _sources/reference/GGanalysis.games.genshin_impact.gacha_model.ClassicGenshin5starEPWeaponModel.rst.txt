@@ -1,0 +1,20 @@
+ClassicGenshin5starEPWeaponModel
+================================
+
+.. currentmodule:: GGanalysis.games.genshin_impact.gacha_model
+
+.. autoclass:: ClassicGenshin5starEPWeaponModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

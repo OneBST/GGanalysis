@@ -1,0 +1,29 @@
+GeneralCouponCollection
+=======================
+
+.. currentmodule:: GGanalysis.recursion_methods
+
+.. autoclass:: GeneralCouponCollection
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~GeneralCouponCollection.collection_dp
+      ~GeneralCouponCollection.decode_state_number
+      ~GeneralCouponCollection.encode_state_number
+      ~GeneralCouponCollection.get_collection_p
+      ~GeneralCouponCollection.get_expectation
+      ~GeneralCouponCollection.get_satisfying_state
+      ~GeneralCouponCollection.set_default_init_state
+      ~GeneralCouponCollection.set_default_target_state
+      ~GeneralCouponCollection.sim_collection
+
+   
+   

@@ -1,0 +1,21 @@
+ConditionalScore
+================
+
+.. currentmodule:: GGanalysis.ScoredItem.scored_item_tools
+
+.. autoclass:: ConditionalScore
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~ConditionalScore.next_state
+
+   
+   

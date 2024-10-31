@@ -1,0 +1,41 @@
+﻿GGanalysis.games
+================
+
+.. automodule:: GGanalysis.games
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.alchemy_stars
+   GGanalysis.games.arknights
+   GGanalysis.games.azur_lane
+   GGanalysis.games.blue_archive
+   GGanalysis.games.genshin_impact
+   GGanalysis.games.girls_frontline2_exilium
+   GGanalysis.games.honkai_impact_3rd_v2
+   GGanalysis.games.honkai_star_rail
+   GGanalysis.games.reverse_1999
+   GGanalysis.games.wuthering_waves
+   GGanalysis.games.zenless_zone_zero
+

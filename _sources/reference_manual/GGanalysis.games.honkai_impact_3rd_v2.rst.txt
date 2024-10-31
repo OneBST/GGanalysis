@@ -1,0 +1,21 @@
+GGanalysis.games.honkai\_impact\_3rd\_v2 package
+================================================
+
+Submodules
+----------
+
+GGanalysis.games.honkai\_impact\_3rd\_v2.gacha\_model module
+------------------------------------------------------------
+
+.. automodule:: GGanalysis.games.honkai_impact_3rd_v2.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.honkai_impact_3rd_v2
+   :members:
+   :undoc-members:
+   :show-inheritance:

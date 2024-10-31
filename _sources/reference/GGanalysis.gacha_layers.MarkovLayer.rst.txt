@@ -1,0 +1,20 @@
+MarkovLayer
+===========
+
+.. currentmodule:: GGanalysis.gacha_layers
+
+.. autoclass:: MarkovLayer
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

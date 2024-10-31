@@ -1,0 +1,27 @@
+PriorityPitySystem
+==================
+
+.. currentmodule:: GGanalysis.stationary_distribution_method
+
+.. autoclass:: PriorityPitySystem
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~PriorityPitySystem.get_next_state
+      ~PriorityPitySystem.get_number
+      ~PriorityPitySystem.get_state
+      ~PriorityPitySystem.get_stationary_p
+      ~PriorityPitySystem.get_transfer_matrix
+      ~PriorityPitySystem.get_type_distribution
+      ~PriorityPitySystem.item_pity_p
+
+   
+   

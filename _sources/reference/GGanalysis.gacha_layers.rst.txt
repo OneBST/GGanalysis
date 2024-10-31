@@ -1,0 +1,44 @@
+gacha\_layers
+=============
+
+.. currentmodule:: GGanalysis.gacha_layers
+
+.. automodule:: GGanalysis.gacha_layers
+
+   
+   
+   .. autoaliasattr:: GGanalysis.gacha_layers
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: .
+      :nosignatures:
+      
+        BernoulliLayer
+      
+        CouponCollectorLayer
+      
+        DynamicProgrammingLayer
+      
+        GachaLayer
+      
+        MarkovLayer
+      
+        PityLayer
+      
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

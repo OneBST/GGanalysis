@@ -1,0 +1,23 @@
+GGanalysis.games.reverse\_1999.stationary\_p
+============================================
+
+.. automodule:: GGanalysis.games.reverse_1999.stationary_p
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

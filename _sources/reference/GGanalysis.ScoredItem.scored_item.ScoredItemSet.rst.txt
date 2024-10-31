@@ -1,0 +1,24 @@
+ScoredItemSet
+=============
+
+.. currentmodule:: GGanalysis.ScoredItem.scored_item
+
+.. autoclass:: ScoredItemSet
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~ScoredItemSet.add_item
+      ~ScoredItemSet.combine_set
+      ~ScoredItemSet.repeat
+      ~ScoredItemSet.to_list
+
+   
+   

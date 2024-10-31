@@ -1,0 +1,21 @@
+GenshinCommon5starInUPpoolLayer
+===============================
+
+.. currentmodule:: GGanalysis.games.genshin_impact.gacha_model
+
+.. autoclass:: GenshinCommon5starInUPpoolLayer
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~GenshinCommon5starInUPpoolLayer.calc_5star_number_dist
+
+   
+   

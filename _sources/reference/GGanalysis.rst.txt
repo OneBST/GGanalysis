@@ -1,0 +1,41 @@
+﻿GGanalysis
+==========
+
+.. currentmodule:: GGanalysis
+
+.. automodule:: GGanalysis
+
+   
+   
+   .. autoaliasattr:: GGanalysis
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.ScoredItem
+   GGanalysis.basic_models
+   GGanalysis.distribution_1d
+   GGanalysis.gacha_layers
+   GGanalysis.gacha_plot
+   GGanalysis.games
+   GGanalysis.plot_tools
+   GGanalysis.recursion_methods
+   GGanalysis.stationary_distribution_method
+

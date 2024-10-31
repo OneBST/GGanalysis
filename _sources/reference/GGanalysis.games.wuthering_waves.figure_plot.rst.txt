@@ -1,0 +1,29 @@
+GGanalysis.games.wuthering\_waves.figure\_plot
+==============================================
+
+.. automodule:: GGanalysis.games.wuthering_waves.figure_plot
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      WW_item
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

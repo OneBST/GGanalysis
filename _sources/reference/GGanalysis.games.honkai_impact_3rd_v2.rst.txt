@@ -1,0 +1,31 @@
+GGanalysis.games.honkai\_impact\_3rd\_v2
+========================================
+
+.. automodule:: GGanalysis.games.honkai_impact_3rd_v2
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.honkai_impact_3rd_v2.gacha_model
+

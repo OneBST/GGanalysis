@@ -1,0 +1,20 @@
+GenshinCommon5starInUPpoolModel
+===============================
+
+.. currentmodule:: GGanalysis.games.genshin_impact.gacha_model
+
+.. autoclass:: GenshinCommon5starInUPpoolModel
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

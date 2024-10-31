@@ -1,0 +1,20 @@
+StarRailRelicPlanarOrnamentsSim
+===============================
+
+.. currentmodule:: GGanalysis.games.honkai_star_rail.relic_sim
+
+.. autoclass:: StarRailRelicPlanarOrnamentsSim
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

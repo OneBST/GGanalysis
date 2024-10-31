@@ -1,0 +1,20 @@
+StarRailRelicSet
+================
+
+.. currentmodule:: GGanalysis.games.honkai_star_rail.relic_model
+
+.. autoclass:: StarRailRelicSet
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

@@ -1,0 +1,20 @@
+PityLayer
+=========
+
+.. currentmodule:: GGanalysis.gacha_layers
+
+.. autoclass:: PityLayer
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

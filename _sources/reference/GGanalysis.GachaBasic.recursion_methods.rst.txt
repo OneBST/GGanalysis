@@ -1,0 +1,35 @@
+GGanalysis.GachaBasic.recursion\_methods
+========================================
+
+.. automodule:: GGanalysis.GachaBasic.recursion_methods
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_equal_coupon_collection_exp
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      GeneralCouponCollection
+   
+   
+
+   
+   
+   
+
+
+

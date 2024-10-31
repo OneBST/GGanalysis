@@ -1,0 +1,42 @@
+GGanalysis.ScoredItem.scored\_item\_tools
+=========================================
+
+.. automodule:: GGanalysis.ScoredItem.scored_item_tools
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      combine_items
+      get_info
+      get_mix_dist
+      max_item
+      max_item_set
+      remove_worst_combination
+      select_best_combination
+      sim_select_best_k
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ConditionalScore
+   
+   
+
+   
+   
+   
+
+
+

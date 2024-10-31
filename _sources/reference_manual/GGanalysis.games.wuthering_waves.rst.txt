@@ -1,0 +1,37 @@
+GGanalysis.games.wuthering\_waves package
+=========================================
+
+Submodules
+----------
+
+GGanalysis.games.wuthering\_waves.figure\_plot module
+-----------------------------------------------------
+
+.. automodule:: GGanalysis.games.wuthering_waves.figure_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.wuthering\_waves.gacha\_model module
+-----------------------------------------------------
+
+.. automodule:: GGanalysis.games.wuthering_waves.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.wuthering\_waves.stationary\_p module
+------------------------------------------------------
+
+.. automodule:: GGanalysis.games.wuthering_waves.stationary_p
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.wuthering_waves
+   :members:
+   :undoc-members:
+   :show-inheritance:

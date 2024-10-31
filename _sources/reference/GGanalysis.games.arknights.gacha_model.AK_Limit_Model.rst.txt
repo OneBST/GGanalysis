@@ -1,0 +1,20 @@
+AK\_Limit\_Model
+================
+
+.. currentmodule:: GGanalysis.games.arknights.gacha_model
+
+.. autoclass:: AK_Limit_Model
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+
+   
+   

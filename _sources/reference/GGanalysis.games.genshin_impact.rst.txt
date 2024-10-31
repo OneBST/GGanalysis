@@ -1,0 +1,38 @@
+GGanalysis.games.genshin\_impact
+================================
+
+.. automodule:: GGanalysis.games.genshin_impact
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   GGanalysis.games.genshin_impact.artifact_data
+   GGanalysis.games.genshin_impact.artifact_model
+   GGanalysis.games.genshin_impact.figure_plot
+   GGanalysis.games.genshin_impact.gacha_model
+   GGanalysis.games.genshin_impact.get_both_EP_weapon
+   GGanalysis.games.genshin_impact.get_cost
+   GGanalysis.games.genshin_impact.predict_next_type
+   GGanalysis.games.genshin_impact.stationary_p
+

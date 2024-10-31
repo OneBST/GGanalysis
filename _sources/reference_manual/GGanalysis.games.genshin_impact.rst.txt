@@ -1,0 +1,77 @@
+GGanalysis.games.genshin\_impact package
+========================================
+
+Submodules
+----------
+
+GGanalysis.games.genshin\_impact.artifact\_data module
+------------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.artifact_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.genshin\_impact.artifact\_model module
+-------------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.artifact_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.genshin\_impact.figure\_plot module
+----------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.figure_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.genshin\_impact.gacha\_model module
+----------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.gacha_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.genshin\_impact.get\_both\_EP\_weapon module
+-------------------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.get_both_EP_weapon
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.genshin\_impact.get\_cost module
+-------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.get_cost
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.genshin\_impact.predict\_next\_type module
+-----------------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.predict_next_type
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+GGanalysis.games.genshin\_impact.stationary\_p module
+-----------------------------------------------------
+
+.. automodule:: GGanalysis.games.genshin_impact.stationary_p
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: GGanalysis.games.genshin_impact
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,21 @@
+SimpleDualCollection
+====================
+
+.. currentmodule:: GGanalysis.games.blue_archive.gacha_model
+
+.. autoclass:: SimpleDualCollection
+   :show-inheritance:
+   :members:
+   :private-members:
+
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+      
+      ~SimpleDualCollection.get_dist
+
+   
+   

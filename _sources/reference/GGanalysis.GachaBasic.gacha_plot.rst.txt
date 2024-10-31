@@ -1,0 +1,30 @@
+GGanalysis.GachaBasic.gacha\_plot
+=================================
+
+.. automodule:: GGanalysis.GachaBasic.gacha_plot
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      DrawDistribution
+      QuantileFunction
+   
+   
+
+   
+   
+   
+
+
+

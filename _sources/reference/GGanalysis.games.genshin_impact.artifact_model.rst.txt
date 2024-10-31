@@ -1,0 +1,40 @@
+GGanalysis.games.genshin\_impact.artifact\_model
+================================================
+
+.. automodule:: GGanalysis.games.genshin_impact.artifact_model
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      dict_weight_sum
+      get_combinations_p
+      get_init_state
+      get_state_level_up
+      set_using_weight
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      GenshinArtifact
+      GenshinArtifactSet
+   
+   
+
+   
+   
+   
+
+
+

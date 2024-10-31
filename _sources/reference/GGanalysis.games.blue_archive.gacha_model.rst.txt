@@ -1,0 +1,38 @@
+GGanalysis.games.blue\_archive.gacha\_model
+===========================================
+
+.. automodule:: GGanalysis.games.blue_archive.gacha_model
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_common_refund
+      no_exchange_dp_10
+      pull_exchange_dp_1
+      pull_exchange_dp_10
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SimpleDualCollection
+   
+   
+
+   
+   
+   
+
+
+

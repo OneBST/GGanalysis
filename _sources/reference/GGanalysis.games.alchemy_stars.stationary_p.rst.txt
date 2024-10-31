@@ -1,0 +1,23 @@
+GGanalysis.games.alchemy\_stars.stationary\_p
+=============================================
+
+.. automodule:: GGanalysis.games.alchemy_stars.stationary_p
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
