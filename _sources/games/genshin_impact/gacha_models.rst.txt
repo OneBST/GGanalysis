@@ -30,6 +30,8 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 
     - ``up_pity`` UP道具保底状态，设为 1 即为玩家所说的大保底
 
+    - ``cr_pity`` 「捕获明光」保底状态
+
 基本模型
 ------------------------
 
@@ -45,8 +47,6 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 ------------------------
 
 **角色活动祈愿5.0版本后获得UP五星角色的模型**
-
-    注意此模型为当前为近似模型，仅将UP概率改为了55%。
 
 .. automethod:: GGanalysis.games.genshin_impact.gacha_model.up_5star_character
 
@@ -66,8 +66,8 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 
     import GGanalysis.games.genshin_impact as GI
     # 原神角色池的计算
-    print('角色池在垫了20抽，有大保底的情况下抽3个UP五星抽数的分布')
-    dist_c = GI.up_5star_character(item_num=3, item_pity=20, up_pity=1)
+    print('角色池在垫了20抽，有大保底，已经连歪两次的情况下抽3个UP五星抽数的分布')
+    dist_c = GI.up_5star_character(item_num=3, item_pity=20, up_pity=1, cr_pity=2)
     print('期望为', dist_c.exp, '方差为', dist_c.var, '分布为', dist_c.dist)
 
 武器活动祈愿模型
@@ -115,13 +115,13 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 其它模型
 ------------------------
 
-**从角色活动祈愿中获取位于常驻祈愿的特定五星角色的模型**
+**5.0前从角色活动祈愿中获取位于常驻祈愿的特定五星角色的模型**
 
-.. automethod:: GGanalysis.games.genshin_impact.gacha_model.stander_5star_character_in_up
+.. automethod:: GGanalysis.games.genshin_impact.gacha_model.classic_stander_5star_character_in_up
 
-**从武器活动祈愿中获取位于常驻祈愿的特定五星武器的模型**
+**5.0前从武器活动祈愿中获取位于常驻祈愿的特定五星武器的模型**
 
-.. automethod:: GGanalysis.games.genshin_impact.gacha_model.stander_5star_weapon_in_up
+.. automethod:: GGanalysis.games.genshin_impact.gacha_model.classic_stander_5star_weapon_in_up
 
 其它使用示例
 ------------------------

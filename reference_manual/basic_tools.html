@@ -261,11 +261,9 @@
 <p>用于快速进行有限长一维离散分布的相关计算，创建时通过传入分布数组进行初始化，可以代表一个随机变量。
 本质上是对一个 <code class="docutils literal notranslate"><span class="pre">numpy</span></code> 数组的封装，通过利用 FFT、快速幂思想、局部缓存等方法使得各类分布相关的运算能方便高效的进行，有良好的算法复杂度。</p>
 <ul class="simple">
-<li><p>定义两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型之间的 <code class="docutils literal notranslate"><span class="pre">*</span></code> 运算为卷积，即计算两个随机变量相加的分布。</p></li>
-<li><p>定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型和数值之间的 <code class="docutils literal notranslate"><span class="pre">*</span></code> 运算为数值乘，将返回 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 和数值进行数乘后的结果。</p></li>
-<li><p>定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型和数值之间的 <code class="docutils literal notranslate"><span class="pre">/</span></code> 运算为数值乘，将返回 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 和数值进行数乘后的结果。</p></li>
-<li><p>定义两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型之间的 <code class="docutils literal notranslate"><span class="pre">+</span></code> 运算为分布叠加，将返回将两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 加和后的结果。</p></li>
-<li><p>定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型与整数的 <code class="docutils literal notranslate"><span class="pre">**</span></code> 运算为自卷积，将返回卷积自身数值次后的结果。</p></li>
+<li><p><strong>* 运算</strong> 定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型和数值之间的 <code class="docutils literal notranslate"><span class="pre">*</span></code> 运算为数值乘，将返回 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 和数值进行数乘后的结果；定义两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型之间的 <code class="docutils literal notranslate"><span class="pre">*</span></code> 运算为卷积，即计算两个随机变量相加的分布。</p></li>
+<li><p><strong>/ 运算</strong> 定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型和数值之间的 <code class="docutils literal notranslate"><span class="pre">/</span></code> 运算为数值乘，将返回 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 和数值进行数乘后的结果； 定义两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型之间的 <code class="docutils literal notranslate"><span class="pre">+</span></code> 运算为分布叠加，将返回将两个 <code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 加和后的结果。</p></li>
+<li><p><strong>** 运算</strong> 定义 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型与整数的 <code class="docutils literal notranslate"><span class="pre">**</span></code> 运算为自卷积，将返回卷积自身数值次后的结果；<code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 变量A与另一个 <code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 变量B的 <code class="docutils literal notranslate"><span class="pre">**</span></code> 运算为 <span class="math notranslate nohighlight">\(\sum_{i=0}^{len(B)}{A^B[i]}\)</span>。</p></li>
 </ul>
 <p><strong>类属性</strong></p>
 <ul class="simple">
@@ -278,7 +276,8 @@
 </ul>
 <div class="admonition attention">
 <p class="admonition-title">注意</p>
-<p>不能在外部直接修改 dist 变量，以免使得缓存信息与分布不对应导致出错，<code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 获得的是一个不可编辑的副本。要修改 dist 需使用 <code class="docutils literal notranslate"><span class="pre">set_dist()</span></code> 函数进行重设。</p>
+<p><code class="docutils literal notranslate"><span class="pre">FiniteDist</span></code> 类型默认是不可变的对象，不能在外部直接修改 dist 变量，<code class="docutils literal notranslate"><span class="pre">FiniteDist.dist</span></code> 获得的是一个不可编辑的副本。
+这样设计是为了保证对象内容始终一致，进而能利用缓存信息加速计算。</p>
 </div>
 <p><strong>用例</strong></p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 定义随机变量 dist_a</span>
@@ -316,21 +315,15 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.p_normalization">
-<span class="sig-name descname"><span class="pre">p_normalization</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.p_normalization" title="永久链接至目标">#</a></dt>
-<dd><p>将当前记录分布进行归一化</p>
+<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.normalized">
+<span class="sig-name descname"><span class="pre">normalized</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist" title="GGanalysis.distribution_1d.FiniteDist"><span class="pre">FiniteDist</span></a></span></span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.normalized" title="永久链接至目标">#</a></dt>
+<dd><p>返回分布进行归一化后的结果</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.quantile_point">
 <span class="sig-name descname"><span class="pre">quantile_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantile_p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.quantile_point" title="永久链接至目标">#</a></dt>
 <dd><p>返回分位点位置</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="GGanalysis.distribution_1d.FiniteDist.set_dist">
-<span class="sig-name descname"><span class="pre">set_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist" title="GGanalysis.distribution_1d.FiniteDist"><span class="pre">FiniteDist</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GGanalysis.distribution_1d.FiniteDist.set_dist" title="永久链接至目标">#</a></dt>
-<dd><p>用于设置有限长一维分布的值</p>
 </dd></dl>
 
 </dd></dl>
@@ -633,9 +626,8 @@ y = 0.5y
 <li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.calc_cdf"><code class="docutils literal notranslate"><span class="pre">FiniteDist.calc_cdf()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.calc_dist_attribution"><code class="docutils literal notranslate"><span class="pre">FiniteDist.calc_dist_attribution()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.calc_entropy_attribution"><code class="docutils literal notranslate"><span class="pre">FiniteDist.calc_entropy_attribution()</span></code></a></li>
-<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.p_normalization"><code class="docutils literal notranslate"><span class="pre">FiniteDist.p_normalization()</span></code></a></li>
+<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.normalized"><code class="docutils literal notranslate"><span class="pre">FiniteDist.normalized()</span></code></a></li>
 <li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.quantile_point"><code class="docutils literal notranslate"><span class="pre">FiniteDist.quantile_point()</span></code></a></li>
-<li><a class="reference internal" href="#GGanalysis.distribution_1d.FiniteDist.set_dist"><code class="docutils literal notranslate"><span class="pre">FiniteDist.set_dist()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#GGanalysis.distribution_1d.pad_zero"><code class="docutils literal notranslate"><span class="pre">distribution_1d.pad_zero()</span></code></a></li>
