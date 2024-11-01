@@ -36,7 +36,7 @@
         ans_dist *= ZZZ.up_5star_character(num_c) * ZZZ.up_5star_weapon(num_w)
         ans_dist.dist = ans_dist.dist[:total_pulls+1]
     print("成功概率", sum(ans_dist.dist))
-    ans_dist.p_normalization()  # 归一化
+    ans_dist = ans_dist.normalized()  # 归一化
     print("成功玩家期望抽数消耗", ans_dist.exp)
     full_dist = ZZZ.up_5star_character(total_c)*ZZZ.up_5star_weapon(total_w)
     print("获得计划道具期望", full_dist.exp)
