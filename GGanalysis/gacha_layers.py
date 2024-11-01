@@ -14,7 +14,7 @@ class GachaLayer(object):
         self.dist = FiniteDist([1])
         self.exp = 0
         self.var = 0
-    def __call__(self, input: tuple=None, *args: any, **kwds: any) -> tuple:
+    def __call__(self, input: tuple=None, *args: any, **kwds: any) -> tuple[FiniteDist, FiniteDist]:
         # 返回一个元组 (完整分布, 条件分布)
         return self._forward(input, 1), self._forward(input, 0, *args, **kwds)
     @lru_cache
@@ -54,10 +54,12 @@ class PityLayer(GachaLayer):
             c_dist: FiniteDist = input[1]
         # 处理条件叠加分布
         overlay_dist = FiniteDist(cut_dist(self.dist, item_pity))
-        output_dist = FiniteDist([0])  # 获得一个0分布
+        output_dist = FiniteDist([0])  # 获得一个空分布
         output_E = 0  # 叠加后的期望
         output_D = 0  # 叠加后的方差
         temp_dist = FiniteDist([1]) # 用于优化计算量
+        # 对0位置特殊处理
+        output_dist += float(overlay_dist[0]) * temp_dist
         for i in range(1, len(overlay_dist)):
             c_i = float(overlay_dist[i])  # 防止类型错乱的缓兵之策 如果 c_i 的类型是 numpy 数组，则 numpy 会接管 finite_dist_1D 定义的运算返回错误的类型
             output_dist += c_i * (c_dist * temp_dist)  # 分布累加

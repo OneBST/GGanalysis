@@ -41,7 +41,6 @@ PITY_5STAR[41] = 1
 # 设置5星综合概率，用于近似计算
 P_5STAR_AVG = 0.08948
 
-
 class AK_Limit_Model(CommonGachaModel):
     '''
     方舟限定池同时获取限定6星及陪跑6星模型
@@ -49,7 +48,6 @@ class AK_Limit_Model(CommonGachaModel):
     - ``total_item_types`` 道具的总类别数
     - ``collect_item`` 收集道具的目标类别数
     '''
-
     def __init__(self, pity_p, p, total_item_types=2, collect_item=None, e_error=1e-8, max_dist_len=1e5) -> None:
         super().__init__()
         if collect_item is None:
@@ -69,7 +67,6 @@ class AK_Limit_Model(CommonGachaModel):
         ]
         return parameter_list
 
-
 class HardTypePityDP():
     '''
         类型硬保底DP（这里称原神的“平稳机制”为类型软保底，是一个类型的机制）
@@ -77,7 +74,6 @@ class HardTypePityDP():
         调用返回获得1个指定类型道具所需抽数分布
         TODO 稍加修改改为集齐k种道具所需的抽数分布
     '''
-
     def __init__(self, item_pull_dist, type_pity_gap, item_types=2, up_rate=1, type_pull_shift=0) -> None:
         '''以获取此道具抽数分布、类型保底抽数、道具类别数量初始化'''
         self.item_pull_dist = item_pull_dist
@@ -127,13 +123,12 @@ class HardTypePityDP():
                 M[i, 1] += M[j, 0] * type_p * use_dist[i - j]
         return M[:, 1]
 
-
 class AKHardPityModel(CommonGachaModel):
     '''
     针对通过统计发现的类型保底
     
-    该机制目前仅发现存在于标准寻访-双UP轮换池（不包含中坚寻访-双UP轮换池），尚未知该机制的累计次数是否会跨卡池继承, `详细信息参看一个资深的烧饼-视频 <https://www.bilibili.com/video/BV1ib411f7YF/>`_ '''
-
+    该机制目前仅发现存在于标准寻访-双UP轮换池（不包含中坚寻访-双UP轮换池），尚未知该机制的累计次数是否会跨卡池继承, `详细信息参看一个资深的烧饼-视频 <https://www.bilibili.com/video/BV1ib411f7YF/>`_ 
+    '''
     def __init__(self, no_type_pity_dist: FiniteDist, item_pull_dist, type_pity_gap, item_types=2, up_rate=1,
                  type_pull_shift=0) -> None:
         super().__init__()
@@ -150,7 +145,6 @@ class AKHardPityModel(CommonGachaModel):
                 ans_list.append(ans_list[i - 1] * self.no_type_pity_dist)
             return ans_list
 
-
 class AKDirectionalModel(CommonGachaModel):
     '''
     针对描述的寻访规则调整中提到的 `定向选调机制 <https://www.bilibili.com/read/cv22596510>`_ （在这里称为类型保底）
@@ -160,7 +154,6 @@ class AKDirectionalModel(CommonGachaModel):
     - ``up_rate`` 道具所占比例
     - ``type_pull_shift`` 保底类型偏移量，默认为0（无偏移）
     '''
-
     def __init__(self, no_type_pity_dist: FiniteDist, item_pull_dist, type_pity_gap, item_types=2, up_rate=1,
                  type_pull_shift=0) -> None:
         super().__init__()
@@ -205,7 +198,6 @@ class AKDirectionalModel(CommonGachaModel):
             for i in range(1, item_num + 1):
                 ans_list.append(self._get_dist(i, item_pity, type_pity))
             return ans_list
-
 
 # ★★★★★
 # 5星公示概率为的8%，实际上综合概率为8.948% 这里按照综合概率近似计算

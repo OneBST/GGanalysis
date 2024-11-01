@@ -146,11 +146,9 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     用于快速进行有限长一维离散分布的相关计算，创建时通过传入分布数组进行初始化，可以代表一个随机变量。
     本质上是对一个 ``numpy`` 数组的封装，通过利用 FFT、快速幂思想、局部缓存等方法使得各类分布相关的运算能方便高效的进行，有良好的算法复杂度。
 
-    - 定义两个 ``FiniteDist`` 类型之间的 ``*`` 运算为卷积，即计算两个随机变量相加的分布。
-    - 定义 ``FiniteDist`` 类型和数值之间的 ``*`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果。
-    - 定义 ``FiniteDist`` 类型和数值之间的 ``/`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果。
-    - 定义两个 ``FiniteDist`` 类型之间的 ``+`` 运算为分布叠加，将返回将两个 ``FiniteDist.dist`` 加和后的结果。
-    - 定义 ``FiniteDist`` 类型与整数的 ``**`` 运算为自卷积，将返回卷积自身数值次后的结果。
+    - *** 运算** 定义 ``FiniteDist`` 类型和数值之间的 ``*`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果；定义两个 ``FiniteDist`` 类型之间的 ``*`` 运算为卷积，即计算两个随机变量相加的分布。
+    - **/ 运算** 定义 ``FiniteDist`` 类型和数值之间的 ``/`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果； 定义两个 ``FiniteDist`` 类型之间的 ``+`` 运算为分布叠加，将返回将两个 ``FiniteDist.dist`` 加和后的结果。
+    - **\*\* 运算** 定义 ``FiniteDist`` 类型与整数的 ``**`` 运算为自卷积，将返回卷积自身数值次后的结果；``FiniteDist`` 变量A与另一个 ``FiniteDist`` 变量B的 ``**`` 运算为 :math:`\sum_{i=0}^{len(B)}{A^B[i]}`。
 
     **类属性**
 
@@ -163,7 +161,8 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     
     .. attention:: 
     
-        不能在外部直接修改 dist 变量，以免使得缓存信息与分布不对应导致出错，``FiniteDist.dist`` 获得的是一个不可编辑的副本。要修改 dist 需使用 ``set_dist()`` 函数进行重设。
+        ``FiniteDist`` 类型默认是不可变的对象，不能在外部直接修改 dist 变量，``FiniteDist.dist`` 获得的是一个不可编辑的副本。
+        这样设计是为了保证对象内容始终一致，进而能利用缓存信息加速计算。
     
     **用例**
 
@@ -180,11 +179,11 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     '''
     _cache_size: int = 128  # 默认缓存临时分布数量上限
     def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1]) -> None:
-        self.set_dist(dist)
+        self._set_dist(dist)
 
-    def set_dist(self, dist: Union[list, np.ndarray, 'FiniteDist']):
+    def _set_dist(self, dist: Union[list, np.ndarray, 'FiniteDist']):
         '''
-        用于设置有限长一维分布的值
+        用于设置有限长一维分布的值，不推荐使用（类型默认为不可变，修改dist可能会引发问题）
         '''
         # 注意，构造dist时一定要重新创建新的内存空间进行深拷贝
         if dist is None:
@@ -194,7 +193,7 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         else:
             if len(np.shape(dist)) > 1:
                 raise Exception('Not 1D distribution.')
-            self.__dist = np.array(dist, dtype=float)  # 转化为numpy.ndarray类型
+            self.__dist = np.trim_zeros(np.array(dist, dtype=float), 'b')  # 转化为numpy.ndarray类型并移除分布末尾的0
             if len(self.__dist) == 0:
                 self.__dist = np.zeros(1, dtype=float)
         # TODO 仅仅考虑了单线程，没有加入线程锁防止缓存被不同步修改。不过没关系，现在不会用到多线程。
@@ -279,10 +278,9 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         '''返回分位点位置'''
         return np.searchsorted(self.cdf, quantile_p, side='left')
 
-    def p_normalization(self) -> None:
-        '''将当前记录分布进行归一化'''
-        self.set_dist(self.__dist/sum(self.__dist))
-        self.calc_dist_attribution()
+    def normalized(self) -> 'FiniteDist':
+        '''返回分布进行归一化后的结果'''
+        return FiniteDist(self.__dist/sum(self.__dist))
 
     def __add__(self, other: 'FiniteDist') -> 'FiniteDist':
         '''定义的 + 运算符
@@ -315,54 +313,68 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     
     def _compute_pow(self, pow_times: int) -> np.ndarray:
         """
-        使用快速幂算法计算分布的幂。
+        使用快速幂思想计算分布的自卷积
         """
-        ans = np.ones(1)
-        if pow_times == 0:
-            return ans
-        if pow_times == 1:
-            return self.dist.copy()
-        t = pow_times
-        temp = self.dist.copy()
-        dist_times = 1
-        while t > 0:
-            if t % 2 == 1:
-                ans = convolve(ans, temp)
-            t = t // 2
-            if t > 0:
-                # 利用缓存
-                dist_times *= 2
-                if dist_times in self._pow_cache:
-                    # 将使用过的条目移动到末尾，表示最近使用
-                    self._pow_cache.move_to_end(dist_times)
-                    temp = self._pow_cache[dist_times]
-                else:
-                    temp = convolve(temp, temp)
-                    self._pow_cache[dist_times] = temp
-                    # 如果缓存超过大小限制，移除最久未使用的条目
-                    if len(self._pow_cache) > self._cache_size:
-                        self._pow_cache.popitem(last=False)  # 移除最旧的条目
-        return ans
-
-    def __pow__(self, pow_times: int) -> 'FiniteDist':
-        '''定义的 ** 运算符
-        
-        返回分布为 pow_times 个自身分布相卷积的 FiniteDist 对象
-        '''
-        if not isinstance(pow_times, int):
-            raise TypeError("pow_times must be an integer")
-        if pow_times < 0:
-            raise ValueError("pow_times must be non-negative")
+        # 记忆化返回结果
         if pow_times in self._pow_cache:
             # 将使用过的条目移动到末尾，表示最近使用
             self._pow_cache.move_to_end(pow_times)
-            return FiniteDist(self._pow_cache[pow_times])
-        result_dist = self._compute_pow(pow_times)
-        self._pow_cache[pow_times] = result_dist
+            return self._pow_cache[pow_times]
+        # 特别优化，如果 pow_times-1 已经记录则直接在此基础上卷积，这里不想更复杂的利用缓存的组合实现了
+        if pow_times >= 1 and pow_times-1 in self._pow_cache:
+            ans = convolve(self.dist, self._pow_cache[pow_times-1])
+        # 没有命中缓存则直接用快速幂思想增倍计算
+        else:
+            ans = np.ones(1)
+            if pow_times == 0:
+                return ans
+            if pow_times == 1:
+                return self.dist.copy()
+            t = pow_times
+            temp = self.dist.copy()
+            dist_times = 1
+            while t > 0:
+                if t % 2 == 1:
+                    ans = convolve(ans, temp)
+                t = t // 2
+                if t > 0:
+                    # 利用缓存
+                    dist_times *= 2
+                    if dist_times in self._pow_cache:
+                        # 将使用过的条目移动到末尾，表示最近使用
+                        self._pow_cache.move_to_end(dist_times)
+                        temp = self._pow_cache[dist_times]
+                    else:
+                        temp = convolve(temp, temp)
+                        self._pow_cache[dist_times] = temp
+        
+        # 将计算结果加入缓存
+        self._pow_cache[pow_times] = ans
         # 如果缓存超过大小限制，移除最久未使用的条目
-        if len(self._pow_cache) > self._cache_size:
+        while len(self._pow_cache) > self._cache_size:
             self._pow_cache.popitem(last=False)  # 移除最旧的条目
-        return FiniteDist(result_dist)
+        return ans
+
+    def __pow__(self, pow_times: Union['FiniteDist', int]) -> 'FiniteDist':
+        '''定义的 ** 运算符
+        
+        返回分布为 pow_times 个自身分布相卷积的 FiniteDist 对象
+        广义乘方扩展到两个 FiniteDist AB的运算，将返回 \sum{A**B[i]} 的值
+        '''
+        # 整数乘方
+        if isinstance(pow_times, int):
+            if pow_times < 0:
+                raise ValueError("pow_times must be non-negative")
+            return FiniteDist(self._compute_pow(pow_times))
+        # FiniteDist 乘方
+        elif isinstance(pow_times, FiniteDist):
+            ans = FiniteDist([0])
+            for i in range(len(pow_times)):
+                if pow_times[i] == 0:
+                    continue
+                ans += FiniteDist(pow_times[i] * self._compute_pow(i))
+            return ans
+        raise TypeError("pow_times must be an integer or FiniteDist")
 
     def __str__(self) -> str:
         '''字符化为 finite 1D dist 接内容数组'''

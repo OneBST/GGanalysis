@@ -1,11 +1,15 @@
 import numpy as np
+from GGanalysis import FiniteDist
 
 def calc_EP_weapon_classic(a, b):
-    # 计算5.0前2.0后命定值为2的情况下，恰好花费k个五星后恰好抽到a个A限定UP五星和b个B限定UP五星的概率
-    # 抽取时采用最优策略，若a=b，则定轨当前离要求数量较远的一个限定UP五星
-    # 若a≠b，则同样定轨当前离要求数量较远的限定UP五星，当离要求数量一致时，转化为a=b问题
-    # 若a=b，至多需要获取3*a个五星；若a≠b，至多需要获取3*max(a,b)个五星
+    '''
+    返回原神5.0版本前2.0版本后同卡池抽A限定五星武器a个和B限定五星武器b个所需五星个数分布
 
+    计算5.0前2.0后命定值为2的情况下，恰好花费k个五星后恰好抽到a个A限定UP五星和b个B限定UP五星的概率，
+    抽取时采用最优策略，若a=b，则定轨当前离要求数量较远的一个限定UP五星，
+    若a≠b，则同样定轨当前离要求数量较远的限定UP五星，当离要求数量一致时，转化为a=b问题，
+    若a=b，至多需要获取3*a个五星；若a≠b，至多需要获取3*max(a,b)个五星。
+    '''
     # S 第0维表示获得A的数量 第1维表示获得B的数量 第2维表示获得常驻的数量
     S = np.zeros((60, 60, 60))
     S[(0, 0, 0)] = 1
@@ -47,20 +51,21 @@ def calc_EP_weapon_classic(a, b):
         # 完成一轮后
         S = N
         N = 0 * N
-
     if abs(np.sum(ans_dist)-1)> 0.00001:
         print("ERROR: sum of ans is not equal to 1!", np.sum(ans_dist))
         exit()
-    print(E, E*53.25039058538857)
-    return num_dist
+    return FiniteDist(np.trim_zeros(num_dist, 'b'))
 
 
 def calc_EP_weapon(a, b):
-    # 计算5.0后命定值为1的情况下，恰好花费k个五星后恰好抽到a个A限定UP五星和b个B限定UP五星的概率
-    # 抽取时采用最优策略，若a=b，则定轨当前离要求数量较远的一个限定UP五星
-    # 若a≠b，则同样定轨当前离要求数量较远的限定UP五星，当离要求数量一致时，转化为a=b问题
-    # 至多需要获取2*(a+b)个五星 (重复 常驻-UP 的循环，每个UP需要消耗两个五星)
-
+    '''
+    返回原神5.0版本后同卡池抽A限定五星武器a个和B限定五星武器b个所需五星个数分布
+    
+    计算5.0后命定值为1的情况下，恰好花费k个五星后恰好抽到a个A限定UP五星和b个B限定UP五星的概率，
+    抽取时采用最优策略，若a=b，则定轨当前离要求数量较远的一个限定UP五星，
+    若a≠b，则同样定轨当前离要求数量较远的限定UP五星，当离要求数量一致时，转化为a=b问题，
+    至多需要获取2*(a+b)个五星 (重复 常驻-UP 的循环，每个UP需要消耗两个五星)。
+    '''
     # S 第0维表示获得A的数量 第1维表示获得B的数量 第2维表示获得常驻的数量
     S = np.zeros((60, 60, 60))
     S[(0, 0, 0)] = 1
@@ -96,12 +101,10 @@ def calc_EP_weapon(a, b):
         # 完成一轮后
         S = N
         N = 0 * N
-
     if abs(np.sum(ans_dist)-1)> 0.00001:
         print("ERROR: sum of ans is not equal to 1!", np.sum(ans_dist))
         exit()
-    print(E, E*53.25039058538857)
-    return num_dist
+    return FiniteDist(np.trim_zeros(num_dist, 'b'))
 
 if __name__ == '__main__':
     calc_EP_weapon(1, 1)
