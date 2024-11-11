@@ -8,13 +8,13 @@
 
 ## 安装方法
 
-本工具包的依赖库很简单，只需要在 `Python>=3.9` 环境中安装`numpy`和`scipy`即可。如果需要使用工具包提供的画图代码，还需安装 `matplotlib`。
+本工具包的依赖库很简单，只需要在 `Python>=3.9` 环境中安装`numpy`和`scipy`即可。如果需要使用工具包提供的画图代码，还需安装 `matplotlib`。如果你不需要使用最新版，还可以直接从[PyPI](https://pypi.org/project/GGanalysis/)安装。
 
 ``` shell
-pip install numpy scipy matplotlib
+pip install GGanalysis
 ```
 
-工具包目前还在开发中，如想安装本工具包可以打开终端输入以下指令，安装完成后下载文件可以删除。
+工具包目前还在开发中，如想安装本工具包最新版本，可以打开终端输入以下指令，安装完成后下载文件可以删除。
 
 ```shell
 git clone https://github.com/OneBST/GGanalysis.git
