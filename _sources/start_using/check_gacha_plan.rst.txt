@@ -40,3 +40,7 @@
     print("成功玩家期望抽数消耗", ans_dist.exp)
     full_dist = ZZZ.up_5star_character(total_c)*ZZZ.up_5star_weapon(total_w)
     print("获得计划道具期望", full_dist.exp)
+
+.. attention:: 
+    给出的计算方法只适合于 **每次获得道具独立同分布** 的情况，对于大部分的抽卡游戏来说这个计算方法是准确的。
+    此方法对于原神5.0版本后角色池抽卡不再适用，因为引入的「捕获明光」机制使得每次获得限定五星不再是独立的，采用此方法会低估概率。
