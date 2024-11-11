@@ -14,6 +14,7 @@ GGanalysis.egg-info/
 doctrees/
 figure/
 build/
+dist/
 
 # leave logo file
 !/docs/source/logo.svg
