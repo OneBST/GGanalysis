@@ -4,6 +4,8 @@
         2. 对于UP4星物品，没有考虑UP4星从常驻中也有概率获取的可能性
     计算所得4星综合概率会略高于实际值，获取UP4星的概率略低于实际值，但影响非常微弱可以忽略
     
+    捕获明光机制还没有完全解析，模型计算出来的所需抽数会比实际更高
+
     同时由于复杂性，原神的平稳机制没有纳入计算，其影响也很低。如果想了解平稳机制的影响，可以使用 GGanalysislib 工具包
     见 https://github.com/OneBST/GGanalysis
 '''
@@ -17,7 +19,6 @@ __all__ = [
     'PITY_4STAR',
     'PITY_W5STAR',
     'PITY_W4STAR',
-    'CR_PITY',
     'common_5star',
     'common_4star',
     'up_5star_character',
@@ -56,8 +57,6 @@ PITY_W4STAR = np.zeros(10)
 PITY_W4STAR[1:8] = 0.06
 PITY_W4STAR[8] = 0.06 + 0.6
 PITY_W4STAR[9] = 1
-# 原神「捕获明光」推测UP概率上升表
-CR_PITY = [0, 0.5, 0.55, 0.95, 1]
 
 # 5.0前命定值为2的定轨获取特定UP5星武器
 class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
@@ -186,92 +185,56 @@ class ClassicGenshinCommon5starInUPpoolModel(CommonGachaModel):
         parameter_list = [l1_param, l2_param]
         return parameter_list
     
-def insert_matrix(large_matrix, small_matrix, start_row=0, start_col=0):
-    """
-    将较小的矩阵插入到较大的矩阵中，默认为位置 (0, 0)。
-    """
-    end_row = start_row + small_matrix.shape[0]
-    end_col = start_col + small_matrix.shape[1]
-    # 确保较小矩阵的范围在较大矩阵内
-    if end_row > large_matrix.shape[0] or end_col > large_matrix.shape[1]:
-        raise ValueError("The small matrix exceeds the bounds of the large matrix.")
-    large_matrix[start_row:end_row, start_col:end_col] = small_matrix
-    return large_matrix
+def capturing_radiance_dp(item_num=1, up_pity=0, cr_count=1):
+    # 估计值，是上限，有的情况不会到达
+    max_5star = (item_num // 3 * 5) + item_num % 3 * 2 + int(cr_count==0)
+    # (获取了n个五星时恰好获得了，第m个UP五星，此时的计数器值)
+    M = np.zeros((max_5star+1, item_num+1, 4), dtype=float)
+    # 初始值
+    M[up_pity,up_pity,cr_count] = 1
+    for i in range(1, max_5star+1):
+        for j in range(1, item_num+1):
+            # 本次大保底获得道具
+            if i >= 2:
+                for k in range(1,4):
+                    M[i,j,k] += M[i-2,j-1,k-1] * 0.5
+            # 本次小保底获得道具
+            for k in range(0,2):
+                M[i,j,k] += M[i-1,j-1,k+1] * 0.5
+            M[i,j,0] += M[i-1,j-1,0] * 0.5
+            # 本次计数器为3时捕获明光获得道具
+            M[i,j,1] += M[i-1,j-1,3]
+    # 返回消耗五星分布
+    return np.trim_zeros(np.sum(M[:, item_num, :], axis=1), 'b')
 
-def calc_CR_5star_num_multi(cr_pity_p=CR_PITY, item_num=1, cr_pity=0, up_pity=0, pre_calc_M=None):
+class CapturingRadianceModel(GachaModel):
     '''
-    使用动态规划计算抽 item_num 个UP五星，所需要的五星数分布
-    CR_pity_p[k] 表示已经连续歪了k次时，下一次不歪的概率
-    返回一系列分布
-    约定小保底歪了后用于标记的 cr_pity 就加以，所以可以有 cr_pity=1 up_pity=1 的情况，up_pity==1 时 pity_pos>=1
+    针对原神5.0后加入的「捕获明光」机制的计数器模型
+    模型不完全完善，解析见 https://www.bilibili.com/video/BV13XBiYZErT/
     '''
-    if up_pity > 1 or (up_pity == 1 and cr_pity == 0):
-        raise ValueError("Wrong up_pity value!")
-    cr_pity_p = cr_pity_p[1:]  # 为了统一输入格式开头为0
-    # 第一个维度表示抽了多少个五星，第二个维度表示当前有多少个UP五星，第三个维度表示当前捕获明光进度（当前已经歪了几次）
-    M = np.zeros((item_num*2+1, item_num+1, len(cr_pity_p)), dtype=float)
-    M[up_pity,up_pity,cr_pity] = 1  # 初始化
-    item_begin = 0  # 如果有预先计算的结果，可以直接开始的位置
-    if pre_calc_M is not None:  # 载入预先计算的值
-        item_begin = pre_calc_M.shape[1]
-        M = insert_matrix(M, pre_calc_M)
-    # 进行动态规划计算
-    for i in range(1, item_num*2+1):  # 枚举五星数量
-        for j in range(max(1+up_pity, item_begin), item_num+1):  # 枚举UP道具数量
-            for k in range(0, len(cr_pity_p)):  # 枚举捕获明光进度
-                # 本次为小保底获得的UP道具
-                M[i,j,0] += M[i-1,j-1,k] * cr_pity_p[k]
-            for k in range(1, len(cr_pity_p)):  # 默认最后一个位置是100%概率
-                # 本次为大保底获得的UP道具
-                if i >= 2 and k >= 1:
-                    M[i,j,k] += M[i-2,j-1,k-1] * (1-cr_pity_p[k-1])
-    return M
-
-class CapturingRadianceModel(CommonGachaModel):
-    '''
-    针对原神5.0后加入的「捕获明光」机制的模型
-    '''
-    def __init__(self, pity5_p=PITY_5STAR, cr_pity_p=CR_PITY) -> None:
-        self.cr_pity_p = cr_pity_p  # 「捕获明光」概率上升表
-        self.record_item_num = 0  # 已缓存信息对应获取UP道具数量
-        self.record_up_pity = 0  # 已缓存信息对应大保底状态
-        self.record_pity_pos = 0  # 已缓存信息对应初始状态
+    def __init__(self, pity5_p=PITY_5STAR) -> None:
         self.common_5star = PityModel(pity5_p)
-        self.M = None  # 已缓存DP数组
-
-    def _get_cr_5star_dist(self, item_num, cr_pity=0, up_pity=0):
-        if item_num == 0:
-            return FiniteDist([1])  # 返回单位分布
-        if not (item_num <= self.record_item_num and cr_pity == self.record_pity_pos and up_pity == self.record_up_pity):
-            # 未命中缓存
-            if cr_pity != self.record_pity_pos or up_pity != self.record_up_pity:
-                # 完全不可复用以前计算结果
-                self.M = calc_CR_5star_num_multi(self.cr_pity_p, item_num, cr_pity, up_pity)
-            else:
-                # 可复用部分计算结果
-                self.M = calc_CR_5star_num_multi(self.cr_pity_p, item_num, cr_pity, up_pity, self.M)
-            self.record_item_num = item_num
-            self.record_pity_pos = cr_pity
-            self.record_up_pity = up_pity
-        return FiniteDist(np.sum(self.M[:, item_num, :], axis=1))
-    
-    def _get_dist(self, item_num, item_pity, cr_pity, up_pity):
+    def _get_cr_5star_dist(self, item_num, up_pity=0, cr_counter=0):
+        return FiniteDist(capturing_radiance_dp(item_num, up_pity, cr_counter))
+    def _get_dist(self, item_num, item_pity, up_pity, cr_counter):
         # 计算抽五星所需的抽数分布
         f_dist = self.common_5star(1)
         c_dist = self.common_5star(1, item_pity=item_pity)
         # 「捕获明光」机制下抽 item_num 个UP五星所需的五星层数，使用分布列定义抽卡层
-        cr_layer = PityLayer(self._get_cr_5star_dist(item_num, cr_pity, up_pity))
+        cr_layer = PityLayer(self._get_cr_5star_dist(item_num, up_pity, cr_counter))
         ans = cr_layer._forward((f_dist, c_dist), False, 0)
         return ans
 
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity=0, up_pity=0, cr_pity=0) -> Union[
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity=0, up_pity=0, cr_counter=1) -> Union[
         FiniteDist, list]:
+        if up_pity and cr_counter==0:
+            raise ValueError("up_pity 数值与 cr_counter 数值矛盾")
         if not multi_dist:
-            return self._get_dist(item_num, item_pity, cr_pity, up_pity)
+            return self._get_dist(item_num, item_pity, up_pity, cr_counter)
         else:
             ans_list = [FiniteDist([1])]
             for i in range(1, item_num + 1):
-                ans_list.append(self._get_dist(i, item_pity, cr_pity, up_pity))
+                ans_list.append(self._get_dist(i, item_pity, up_pity, cr_counter))
             return ans_list
 
 # 定义获取星级物品的模型
@@ -279,7 +242,7 @@ common_5star = PityModel(PITY_5STAR)
 common_4star = PityModel(PITY_4STAR)
 # 定义原神角色池模型
 classic_up_5star_character = DualPityModel(PITY_5STAR, [0, 0.5, 1])
-up_5star_character = CapturingRadianceModel(PITY_5STAR, CR_PITY)
+up_5star_character = CapturingRadianceModel(PITY_5STAR)
 up_4star_character = DualPityModel(PITY_4STAR, [0, 0.5, 1])
 up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/3)
 # 定义原神武器池模型
@@ -296,7 +259,7 @@ classic_stander_5star_character_in_up = ClassicGenshinCommon5starInUPpoolModel(u
 classic_stander_5star_weapon_in_up = ClassicGenshinCommon5starInUPpoolModel(up_rate=0.75, stander_item=10, dp_lenth=800, need_type=1)
 
 if __name__ == '__main__':
-    print(up_5star_character(1).exp)
+    print(up_5star_character(1, cr_counter=3).exp)
     print(classic_up_5star_specific_weapon(1).exp)
     print(common_5star_weapon(1).exp)
     pass
