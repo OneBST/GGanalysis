@@ -105,5 +105,4 @@ def calc_EP_weapon_simple(a, b):
     return FiniteDist(np.trim_zeros(num_dist, 'b'))
 
 if __name__ == '__main__':
-    calc_EP_weapon(1, 1)
     pass
