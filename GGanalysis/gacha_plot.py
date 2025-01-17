@@ -10,28 +10,29 @@ __all__ = [
 ]
 
 class QuantileFunction(object):
-    def __init__(self,
-                dist_data: list=None,           # 输入数据，为包含finite_dist_1D类型的列表
-                title='获取物品对抽数的分位函数', # 图表标题
-                item_name='道具',               # 绘图中对道具名称的描述
-                save_path='figure',             # 默认保存路径
-                y_base_gap=50,                  # y轴刻度基本间隔，实际间隔为这个值的整倍数
-                y2x_base=4/3,                   # 基础高宽比
-                y_force_gap=None,               # y轴强制间隔
-                is_finite=True,                 # 是否能在有限次数内达到目标（不包括井）
-                direct_exchange=None,           # 是否有井
-                plot_direct_exchange=False,     # 绘图是否展示井
-                max_pull=None,                  # 绘图时截断的最高抽数
-                line_colors=None,               # 给出使用颜色的列表
-                mark_func=default_item_num_mark,# 标记道具数量的名称 如1精 6命 满潜等
-                mark_offset=-0.3,               # 标记道具的标志的偏移量
-                text_head=None,                 # 标记文字（前）
-                text_tail=None,                 # 标记文字（后）
-                mark_exp=True,                  # 是否在图中标注期望值
-                mark_max_pull=True,             # 是否在图中标注最多需要抽数
-                description_func=get_default_description,
-                cost_name='抽'
-                ) -> None:
+    def __init__(
+            self,
+            dist_data: list=None,           # 输入数据，为包含finite_dist_1D类型的列表
+            title='获取物品对抽数的分位函数', # 图表标题
+            item_name='道具',               # 绘图中对道具名称的描述
+            save_path='figure',             # 默认保存路径
+            y_base_gap=50,                  # y轴刻度基本间隔，实际间隔为这个值的整倍数
+            y2x_base=4/3,                   # 基础高宽比
+            y_force_gap=None,               # y轴强制间隔
+            is_finite=True,                 # 是否能在有限次数内达到目标（不包括井）
+            direct_exchange=None,           # 是否有井
+            plot_direct_exchange=False,     # 绘图是否展示井
+            max_pull=None,                  # 绘图时截断的最高抽数
+            line_colors=None,               # 给出使用颜色的列表
+            mark_func=default_item_num_mark,# 标记道具数量的名称 如1精 6命 满潜等
+            mark_offset=-0.3,               # 标记道具的标志的偏移量
+            text_head=None,                 # 标记文字（前）
+            text_tail=None,                 # 标记文字（后）
+            mark_exp=True,                  # 是否在图中标注期望值
+            mark_max_pull=True,             # 是否在图中标注最多需要抽数
+            description_func=get_default_description,
+            cost_name='抽'
+        ) -> None:
         # 输入检查
         if line_colors is not None and len(dist_data) != len(line_colors):
             raise ValueError("Item number must match colors!")
