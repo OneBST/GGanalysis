@@ -38,7 +38,6 @@ class CommonGachaModel(GachaModel):
         return parameter_list
 
     # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
-    
     def _get_multi_dist(self, end_pos: int, parameter_list: list=None):
         input_dist = self._forward(parameter_list)
         ans_list = [FiniteDist([1]), input_dist[1]]

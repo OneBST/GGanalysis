@@ -4,6 +4,8 @@ import math
 from scipy.signal import convolve
 from collections import OrderedDict
 
+# TODO 考虑增加使用FFT+特征函数处理的 BernoulliLayer 的函数实现版本
+
 def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
     '''
     计算线性递增模型的保底参数

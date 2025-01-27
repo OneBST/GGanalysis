@@ -76,6 +76,7 @@ def calc_stationary_distribution(M):
     ans = np.linalg.solve(C, X)
     return ans
 
+# TODO 这里不需要这么复杂，X连抽后剩余垫抽的分布是和一直单抽直到平稳后一样的
 def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
     '''
     计算连抽情况下获得多个道具的概率
