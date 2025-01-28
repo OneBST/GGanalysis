@@ -76,130 +76,13 @@ def calc_stationary_distribution(M):
     ans = np.linalg.solve(C, X)
     return ans
 
-# TODO 这里不需要这么复杂，X连抽后剩余垫抽的分布是和一直单抽直到平稳后一样的
-def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
-    '''
-    计算连抽情况下获得多个道具的概率
-    仅仅适用于保底抽卡模型
-    
-    采用三阶段计算，主要是因为直接计算数值收敛性不好，此方法兼顾速度和准确
-    先得出一直连抽后的保底情况平稳分布，再在平稳分布的基础上计算连抽时首个道具的分布位置
-    最后根据第一个分布位置，使用组合数算出概率
-    '''
-    # 计算抽 k 抽都没有道具的概率
-    P_m = np.zeros(once_pull_times+1, dtype=float)
-    P_m[0] = 1
-    for i in range(1, once_pull_times+1):
-        if i < len(pity_p):
-            P_m[i] = P_m[i-1] * (1-pity_p[i])
-        else:
-            P_m[i] = 0
-
-    def build_n_time_matrix(pity_p, item_model, once_pull_times):
-        '''
-        构建连抽后保底情况的平稳分布
-
-        TODO: 此为旧的功能更少的函数，验证 ``build_n_time_matrix_complete`` 后应移除
-        '''
-        M = np.zeros((len(pity_p)-1, len(pity_p)-1), dtype=np.double)
-        base_p = pity_p[1]
-        for i in range(len(pity_p)-1):
-            # 枚举垫抽数量
-            # 获得抽到第一个物品的分布
-            dist = item_model(1, item_pity=i).dist[:once_pull_times+1]
-            dist = pad_zero(dist, once_pull_times+1)
-            # 假设概率提升段大于每次连抽次数，这个情况下只需要考虑基础概率
-            for j in range(1, once_pull_times+1):
-                # 枚举在第 j 抽抽到第一个道具的情况
-                p_j = dist[j]
-                # 此后都没有抽到的情况，设置转移概率
-                M[once_pull_times-j][i] += p_j * (1-base_p) ** (once_pull_times-j)
-                for k in range(j+1, once_pull_times+1):
-                    # 枚举最后一抽在第k抽处的情况
-                    M[once_pull_times-k][i] += p_j * base_p * (1-base_p) ** (once_pull_times-k) 
-            # 处理没有抽到的情况
-            if once_pull_times+i < len(pity_p)-1:
-                M[once_pull_times+i][i] = 1 - sum(dist)
-        print(M)
-        print(M.sum(axis=0))
-        return M
-
-    def build_n_time_matrix_complete(pity_p, item_model, once_pull_times):
-        '''
-        考虑概率提升段小于每次连抽次数的情况
-        构建连抽后保底情况的平稳分布
-
-        TODO 验证这个函数的正确性
-        TODO 考虑保底位置也小于连抽次数的情况，检查这种情况下的正确性
-        '''
-
-        # 解决保底位置小于连抽次数的情况
-        matrix_size = max(len(pity_p)-1, once_pull_times)
-
-        M = np.zeros((matrix_size, matrix_size), dtype=np.double)
-        base_p = pity_p[1]
-        for i in range(len(pity_p)-1):
-            # 枚举垫抽数量
-            # 获得抽到 1-once_pull_times 个物品的分布
-            dists = item_model(once_pull_times, item_pity=i, multi_dist=True)
-            for j in range(len(dists)):
-                dists[j] = pad_zero(dists[j].dist[:once_pull_times+1], once_pull_times+1)
-            for j in range(1, once_pull_times+1):
-                # 枚举抽到 j 个道具的情况
-                for k in range(j, once_pull_times+1):
-                    # 枚举在第 k 抽抽到第 j 个道具且之后不再抽到的情况
-                    p_k = dists[j][k] * P_m[once_pull_times-k]
-                    M[once_pull_times-k][i] += p_k
-            # 处理没有抽到的情况
-            if once_pull_times+i < len(pity_p)-1:
-                M[once_pull_times+i][i] = 1 - sum(dists[1])
-        return M
-    
-    item_model = PityModel(pity_p)
-
-    # 计算连抽后剩余保底
-    if is_complete:
-        M = build_n_time_matrix_complete(pity_p, item_model, once_pull_times)
-    else:
-        M = build_n_time_matrix(pity_p, item_model, once_pull_times)
-    stationary_left = calc_stationary_distribution(M)
-    
-    '''
-    #（这部分只适合考虑概率提升段大于每次连抽次数的情况）
-    # 计算平稳情况下第一个道具位置的分布
-    first_item_p = np.zeros(once_pull_times+1, dtype=np.double)
-    for i in range(len(pity_p)-1):
-        dist = pad_zero(item_model(1, item_pity=i).dist[:once_pull_times+1], once_pull_times+1)
-        first_item_p += stationary_left[i] * dist
-    
-    # 计算连抽出多个道具的概率
-    ans = np.zeros(once_pull_times+1, dtype=np.double)
-    for i in range(1, once_pull_times+1):
-        # 枚举每次连抽获得多少个道具
-        for j in range(1, once_pull_times+2-i):
-            # 枚举第一个道具位置
-            ans[i] += first_item_p[j] * comb(once_pull_times-j, i-1) * pity_p[1] ** (i-1) * (1-pity_p[1]) ** (once_pull_times-j-i+1)
-    '''
-    # 使用广义方法计算连抽得多个道具概率
-    ans = np.zeros(once_pull_times+1, dtype=np.double)
-    # 枚举出多少个道具
-    for i in range(1, once_pull_times+1):
-        # 枚举之前垫了多少抽
-        for j in range(len(pity_p)-1):
-            dist = item_model(i, item_pity=j)
-            for k in range(1, len(dist.dist[:once_pull_times+1])):
-                ans[i] += stationary_left[j] * dist.dist[k] * P_m[once_pull_times-k]
-    ans[0] = 1 - sum(ans[1:])
-    return ans
-
-
 class PriorityPitySystem(object):
     """
     不同道具按照优先级排序的保底系统
     若道具为固定概率p，则传入列表填为 [0, p]
     """
     def __init__(self, item_p_list: list, extra_state = 1, remove_pity = False) -> None:
-        # TODO extra_state 设置为0会产生问题，需要纠正
+        # TODO extra_state 设置为0会产生问题，需要纠正 （但现在看好像没问题来着）
         self.item_p_list = item_p_list  # 保底参数列表 按高优先级到低优先级排序
         self.item_types = len(item_p_list)  # 一共有多少种道具
         self.remove_pity = remove_pity
@@ -316,3 +199,35 @@ class PriorityPitySystem(object):
             next_pos = min(self.pity_state_list[type], current_state[type]+1)
             ans[next_pos] += self.stationary_distribution[i] * transfer_p
         return ans/sum(ans)
+    
+def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
+    '''
+    计算连抽情况下获得多个道具的概率
+    仅仅适用于保底抽卡模型
+    
+    采用两阶段计算，先得出一直连抽后的剩余保底情况平稳分布，再在平稳分布的基础上通过枚举可能情况算出概率
+    '''
+    # 计算抽 k 抽都没有道具的概率
+    P_m = np.zeros(once_pull_times+1, dtype=float)
+    P_m[0] = 1
+    for i in range(1, once_pull_times+1):
+        if i < len(pity_p):
+            P_m[i] = P_m[i-1] * (1-pity_p[i])
+        else:
+            P_m[i] = 0
+    # 设置道具获取模型
+    item_model = PityModel(pity_p)
+    # 计算连抽后剩余保底
+    item_left_model = PriorityPitySystem([pity_p], extra_state=0)
+    stationary_left = item_left_model.stationary_distribution
+    # 使用广义方法计算连抽得多个道具概率
+    ans = np.zeros(once_pull_times+1, dtype=np.double)
+    # 枚举出多少个道具
+    for i in range(1, once_pull_times+1):
+        # 枚举之前垫了多少抽
+        for j in range(len(pity_p)-1):
+            dist = item_model(i, item_pity=j)
+            for k in range(1, len(dist.dist[:once_pull_times+1])):
+                ans[i] += stationary_left[j] * dist.dist[k] * P_m[once_pull_times-k]
+    ans[0] = 1 - sum(ans[1:])
+    return ans
