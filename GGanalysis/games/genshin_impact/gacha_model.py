@@ -19,6 +19,7 @@ __all__ = [
     'PITY_4STAR',
     'PITY_W5STAR',
     'PITY_W4STAR',
+
     'common_5star',
     'common_4star',
     'up_5star_character',
@@ -30,11 +31,15 @@ __all__ = [
     'up_5star_ep_weapon',
     'up_4star_weapon',
     'up_4star_specific_weapon',
+    
     'classic_stander_5star_character_in_up',
     'classic_stander_5star_weapon_in_up',
     'classic_up_5star_character',
     'classic_up_5star_ep_weapon',
     'classic_up_5star_specific_weapon',
+
+    'ClassicGenshinCommon5starInUPpoolModel',
+    'CapturingRadianceModel',
 ]
 
 # 原神普通5星保底概率表
@@ -99,8 +104,8 @@ class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
         return parameter_list
 
 class ClassicGenshinCommon5starInUPpoolLayer(GachaLayer):
-    # 原神常驻歪UP层 修改自 PityLayer
-    def __init__(self, up_rate=0.55, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
+    # 原神UP池获得特定常驻角色DP 修改自 PityLayer 适用于捕获明光机制出现前
+    def __init__(self, up_rate=0.5, stander_item=8, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.up_rate = up_rate
         self.stander_item = stander_item
@@ -171,7 +176,8 @@ class ClassicGenshinCommon5starInUPpoolLayer(GachaLayer):
         return output_dist
 
 class ClassicGenshinCommon5starInUPpoolModel(CommonGachaModel):
-    def __init__(self, up_rate=0.55, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
+    # 原神UP池获得特定常驻角色模型 适用于捕获明光机制出现前
+    def __init__(self, up_rate=0.5, stander_item=8, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.layers.append(PityLayer(PITY_5STAR))
         self.layers.append(ClassicGenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, need_type, max_dist_len))
