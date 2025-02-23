@@ -19,6 +19,8 @@ __all__ = [
     'PITY_4STAR',
     'PITY_W5STAR',
     'PITY_W4STAR',
+    'CR_P',
+
     'common_5star',
     'common_4star',
     'up_5star_character',
@@ -30,11 +32,15 @@ __all__ = [
     'up_5star_ep_weapon',
     'up_4star_weapon',
     'up_4star_specific_weapon',
+    
     'classic_stander_5star_character_in_up',
     'classic_stander_5star_weapon_in_up',
     'classic_up_5star_character',
     'classic_up_5star_ep_weapon',
     'classic_up_5star_specific_weapon',
+
+    'ClassicGenshinCommon5starInUPpoolModel',
+    'CapturingRadianceModel',
 ]
 
 # 原神普通5星保底概率表
@@ -57,6 +63,8 @@ PITY_W4STAR = np.zeros(10)
 PITY_W4STAR[1:8] = 0.06
 PITY_W4STAR[8] = 0.06 + 0.6
 PITY_W4STAR[9] = 1
+# 捕获明光计数器模型触发概率，此处定义为触发明光概率P，非等效UP概率。等效UP概率为 P+(1-P)/2=0.5+P/2
+CR_P = [0, 0, 0, 1]
 
 # 5.0前命定值为2的定轨获取特定UP5星武器
 class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
@@ -99,8 +107,8 @@ class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
         return parameter_list
 
 class ClassicGenshinCommon5starInUPpoolLayer(GachaLayer):
-    # 原神常驻歪UP层 修改自 PityLayer
-    def __init__(self, up_rate=0.55, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
+    # 原神UP池获得特定常驻角色DP 修改自 PityLayer 适用于捕获明光机制出现前
+    def __init__(self, up_rate=0.5, stander_item=8, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.up_rate = up_rate
         self.stander_item = stander_item
@@ -171,7 +179,8 @@ class ClassicGenshinCommon5starInUPpoolLayer(GachaLayer):
         return output_dist
 
 class ClassicGenshinCommon5starInUPpoolModel(CommonGachaModel):
-    def __init__(self, up_rate=0.55, stander_item=7, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
+    # 原神UP池获得特定常驻角色模型 适用于捕获明光机制出现前
+    def __init__(self, up_rate=0.5, stander_item=8, dp_lenth=500, need_type=1, max_dist_len=1e5) -> None:
         super().__init__()
         self.layers.append(PityLayer(PITY_5STAR))
         self.layers.append(ClassicGenshinCommon5starInUPpoolLayer(up_rate, stander_item, dp_lenth, need_type, max_dist_len))
@@ -185,25 +194,26 @@ class ClassicGenshinCommon5starInUPpoolModel(CommonGachaModel):
         parameter_list = [l1_param, l2_param]
         return parameter_list
     
-def capturing_radiance_dp(item_num=1, up_pity=0, cr_count=1):
+def capturing_radiance_dp(item_num=1, up_pity=0, cr_count=1, cr_p=CR_P):
     # 估计值，是上限，有的情况不会到达
     max_5star = (item_num // 3 * 5) + item_num % 3 * 2 + int(cr_count==0)
     # (获取了n个五星时恰好获得了，第m个UP五星，此时的计数器值)
     M = np.zeros((max_5star+1, item_num+1, 4), dtype=float)
-    # 初始值
+    # 初始值 分别为当前已经使用了多少个五星，当前获得UP五星数量，当前计数器值
     M[up_pity,up_pity,cr_count] = 1
     for i in range(1, max_5star+1):
         for j in range(1, item_num+1):
-            # 本次大保底获得道具
+            # 本次通过大保底获得道具
             if i >= 2:
                 for k in range(1,4):
-                    M[i,j,k] += M[i-2,j-1,k-1] * 0.5
+                    M[i,j,k] += M[i-2,j-1,k-1] * (0.5 - cr_p[k-1]/2)
             # 本次小保底获得道具
             for k in range(0,2):
-                M[i,j,k] += M[i-1,j-1,k+1] * 0.5
-            M[i,j,0] += M[i-1,j-1,0] * 0.5
-            # 本次计数器为3时捕获明光获得道具
-            M[i,j,1] += M[i-1,j-1,3]
+                M[i,j,k] += M[i-1,j-1,k+1] * (0.5 - cr_p[k+1]/2)
+            M[i,j,0] += M[i-1,j-1,0] * (0.5 - cr_p[0]/2)
+            # 本次触发捕获明光获得道具，默认回到计数器为1状态
+            for k in range(0,4):
+                M[i,j,1] += M[i-1,j-1,k] * cr_p[k]
     # 返回消耗五星分布
     return np.trim_zeros(np.sum(M[:, item_num, :], axis=1), 'b')
 
@@ -212,10 +222,11 @@ class CapturingRadianceModel(GachaModel):
     针对原神5.0后加入的「捕获明光」机制的计数器模型
     模型不完全完善，解析见 https://www.bilibili.com/video/BV13XBiYZErT/
     '''
-    def __init__(self, pity5_p=PITY_5STAR) -> None:
+    def __init__(self, pity5_p=PITY_5STAR, cr_p=CR_P) -> None:
         self.common_5star = PityModel(pity5_p)
+        self.cr_p = cr_p
     def _get_cr_5star_dist(self, item_num, up_pity=0, cr_counter=0):
-        return FiniteDist(capturing_radiance_dp(item_num, up_pity, cr_counter))
+        return FiniteDist(capturing_radiance_dp(item_num, up_pity, cr_counter, self.cr_p))
     def _get_dist(self, item_num, item_pity, up_pity, cr_counter):
         # 计算抽五星所需的抽数分布
         f_dist = self.common_5star(1)
