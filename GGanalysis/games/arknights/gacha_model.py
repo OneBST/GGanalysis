@@ -19,6 +19,7 @@ __all__ = [
     'single_up_6star',
     'dual_up_specific_6star_old',
     'dual_up_specific_6star',
+    'new_first_dual_up_specific_6star',
     'limited_up_6star',
     'common_5star',
     'single_up_specific_5star',
@@ -224,6 +225,11 @@ dual_up_specific_6star_old = PityBernoulliModel(PITY_6STAR, 1 / 4)
 # 据统计 https://www.bilibili.com/video/BV1ib411f7YF/ 此卡池保底实际上从 202/402 等位置开始触发，因此此处 ``type_pull_shift`` 填写为 1
 dual_up_specific_6star = AKHardPityModel(dual_up_specific_6star_old(1), p2dist(PITY_6STAR), type_pity_gap=200,
                                          item_types=2, up_rate=0.5, type_pull_shift=1)
+# 据官方公示，部分新双UP卡池加入选调机制，https://www.bilibili.com/opus/1039209344221052937 此卡池保底实际上从 151/301 等位置开始触发，因此此处 ``type_pull_shift`` 填写为 0
+# 以下模型只适合计算获得第一个的情况
+new_first_dual_up_specific_6star = AKHardPityModel(dual_up_specific_6star_old(1), p2dist(PITY_6STAR), type_pity_gap=150,
+                                         item_types=2, up_rate=0.5, type_pull_shift=0)
+
 # 获取限定UP6星中的限定6星
 limited_up_6star = PityBernoulliModel(PITY_6STAR, 0.35)
 # 同时获取限定池中两个UP6星（没有考虑井，不适用于有定向选调的卡池）
