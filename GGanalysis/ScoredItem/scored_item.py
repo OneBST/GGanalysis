@@ -93,8 +93,8 @@ class ScoredItem():
         return ScoredItem(FiniteDist(score_dist), sub_stats_exp, stats_score=self.stats_score)
     
     def __add__(self, other: 'ScoredItem') -> 'ScoredItem':
-        '''数量合并两个物品'''
-        # 判断 stats_score 是否一致
+        '''数量合并两个物品，除了副词条贡献期望占比其他属性均线性相加'''
+        # 判断 stats_score 是否一致，评分标准必须一致
         if self.stats_score != other.stats_score:
             raise ValueError("stats_score must be the same!")
         key_set = set(self.sub_stats_exp.keys())
@@ -116,7 +116,7 @@ class ScoredItem():
     def __mul__(self, other: Union['ScoredItem', float, int]) -> 'ScoredItem':
         '''对两个物品进行卷积合并，或单纯数乘'''
         if isinstance(other, ScoredItem):
-            # 判断 stats_score 是否一致
+            # 判断 stats_score 是否一致，评分标准必须一致
             if self.stats_score != other.stats_score:
                 raise ValueError("stats_score must be the same!")
             # 两者都是词条型道具的情况下，进行卷积合并

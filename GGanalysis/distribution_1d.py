@@ -114,6 +114,14 @@ def pad_zero(dist:np.ndarray, target_len):
         return dist
     return np.pad(dist, (0, target_len-len(dist)), 'constant', constant_values=0)
 
+def prob_a_greater_than_b(a: Union['FiniteDist', np.ndarray], b: Union['FiniteDist', np.ndarray]) -> float:
+    '''计算分布采样时a>b的概率'''
+    max_len = max(len(a), len(b))
+    b = pad_zero(b[:], max_len)
+    a = pad_zero(a[:], max_len)
+    prob = np.sum(a[1:] * np.cumsum(b)[:-1])
+    return prob
+
 def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos):
     '''
     切除分布并重新进行概率归一化，默认切除头部
