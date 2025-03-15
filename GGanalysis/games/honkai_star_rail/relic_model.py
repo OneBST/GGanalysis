@@ -1,12 +1,13 @@
 from copy import deepcopy
 from functools import lru_cache
-from itertools import permutations
 from typing import Callable
 
 import numpy as np
 import math
+import itertools
 
 from GGanalysis.games.honkai_star_rail.relic_data import *
+from GGanalysis.ScoredItem.genshin_like_scored_item import *
 from GGanalysis.ScoredItem.scored_item import ScoredItem, ScoredItemSet
 
 """
@@ -29,20 +30,24 @@ __all__ = [
 ]
 
 # 副词条档位
-MINOR_RANKS = [8, 9, 10]
+SUB_STATS_RANKS = [8, 9, 10]
 # 权重倍数乘数，必须为整数，越大计算越慢精度越高
 RANK_MULTI = 1
 # 全局遗器副词条权重
 STATS_WEIGHTS = {}
 
+get_init_state = create_get_init_state(STATS_WEIGHTS, SUB_STATS_RANKS, RANK_MULTI)
+get_state_level_up = create_get_state_level_up(STATS_WEIGHTS, SUB_STATS_RANKS, RANK_MULTI)
 
 def set_using_weight(new_weight: dict):
     """更换采用权重时要刷新缓存，注意得分权重必须小于等于1"""
     global STATS_WEIGHTS
+    global get_init_state
+    global get_state_level_up
     STATS_WEIGHTS = new_weight
     # print('Refresh weight cache!')
-    get_init_state.cache_clear()
-    get_state_level_up.cache_clear()
+    get_init_state = create_get_init_state(STATS_WEIGHTS, SUB_STATS_RANKS, RANK_MULTI)
+    get_state_level_up = create_get_state_level_up(STATS_WEIGHTS, SUB_STATS_RANKS, RANK_MULTI)
 
 def dict_weight_sum(weights: dict):
     """获得字典中所有值的和"""
@@ -52,7 +57,7 @@ def get_combinations_p(stats_p: dict, select_num=4):
     """计算获得拥有4个副词条的五星遗器不同副词条组合的概率"""
     ans = {}
     weight_all = dict_weight_sum(stats_p)
-    for perm in permutations(list(stats_p.keys()), select_num):
+    for perm in itertools.permutations(list(stats_p.keys()), select_num):
         # 枚举并计算该排列的出现概率
         p, s = 1, weight_all
         for m in perm:
@@ -66,100 +71,8 @@ def get_combinations_p(stats_p: dict, select_num=4):
             ans[perm_key] = p
     return ans
 
-@lru_cache(maxsize=65536)
-def get_init_state(stat_comb, default_weight=0, init_score=0) -> ScoredItem:
-    """获得拥有4个副词条的五星遗器初始得分分布，及得分下每个副词条的条件期望"""
-    score_dist = np.zeros(40 * RANK_MULTI + math.ceil(init_score * RANK_MULTI) + 1)
-    sub_stat_exp = {}
-    for m in stat_comb:
-        sub_stat_exp[m] = np.zeros(40 * RANK_MULTI + math.ceil(init_score * RANK_MULTI) + 1)
-    # 枚举4个词条的初始数值，共3^4=81种
-    for i in range(8, 11):
-        s1 = STATS_WEIGHTS.get(stat_comb[0], default_weight) * i * RANK_MULTI
-        for j in range(8, 11):
-            s2 = s1 + STATS_WEIGHTS.get(stat_comb[1], default_weight) * j * RANK_MULTI
-            for k in range(8, 11):
-                s3 = (
-                    s2
-                    + STATS_WEIGHTS.get(stat_comb[2], default_weight) * k * RANK_MULTI
-                )
-                for l in range(8, 11):
-                    # s4 为枚举情况的得分
-                    s4 = (
-                        s3
-                        + STATS_WEIGHTS.get(stat_comb[3], default_weight)
-                        * l
-                        * RANK_MULTI
-                        + init_score * RANK_MULTI
-                    )
-                    # 采用比例分配
-                    L = int(s4)
-                    R = L + 1
-                    w_L = R - s4
-                    w_R = s4 - L
-                    R = min(R, 40 * RANK_MULTI)
-                    # 记录数据
-                    score_dist[L] += w_L
-                    sub_stat_exp[stat_comb[0]][L] += i * w_L
-                    sub_stat_exp[stat_comb[1]][L] += j * w_L
-                    sub_stat_exp[stat_comb[2]][L] += k * w_L
-                    sub_stat_exp[stat_comb[3]][L] += l * w_L
-                    score_dist[R] += w_R
-                    sub_stat_exp[stat_comb[0]][R] += i * w_R
-                    sub_stat_exp[stat_comb[1]][R] += j * w_R
-                    sub_stat_exp[stat_comb[2]][R] += k * w_R
-                    sub_stat_exp[stat_comb[3]][R] += l * w_R
-    # 对于81种情况进行归一化 并移除末尾的0，节省一点后续计算
-    for m in stat_comb:
-        sub_stat_exp[m] = np.divide(
-            sub_stat_exp[m],
-            score_dist,
-            out=np.zeros_like(sub_stat_exp[m]),
-            where=score_dist != 0,
-        )
-        sub_stat_exp[m] = np.trim_zeros(sub_stat_exp[m], "b")
-    score_dist /= 81
-    score_dist = np.trim_zeros(score_dist, "b")
-    return ScoredItem(score_dist, sub_stat_exp)
-
-@lru_cache(maxsize=65536)
-def get_state_level_up(stat_comb, default_weight=0) -> ScoredItem:
-    """这个函数计算4词条下升1级的分数分布及每个每个分数下副词条的期望"""
-    score_dist = np.zeros(10 * RANK_MULTI + 1)
-    sub_stat_exp = {}
-    for m in stat_comb:
-        sub_stat_exp[m] = np.zeros(10 * RANK_MULTI + 1)
-    # 枚举升级词条及词条数，一次强化情况共4*3=12种
-    for stat in stat_comb:
-        for j in range(8, 11):
-            score = STATS_WEIGHTS.get(stat, default_weight) * j * RANK_MULTI
-            # 采用比例分配
-            L = int(score)
-            R = L + 1
-            w_L = R - score
-            w_R = score - L
-            R = min(R, 10 * RANK_MULTI)
-            # 记录数据
-            score_dist[L] += w_L
-            sub_stat_exp[stat][L] += j * w_L
-            score_dist[R] += w_R
-            sub_stat_exp[stat][R] += j * w_R
-    # 对于12种情况进行归一化 并移除末尾的0，节省一点后续计算
-    for m in stat_comb:
-        sub_stat_exp[m] = np.divide(
-            sub_stat_exp[m],
-            score_dist,
-            out=np.zeros_like(sub_stat_exp[m]),
-            where=score_dist != 0,
-        )
-        sub_stat_exp[m] = np.trim_zeros(sub_stat_exp[m], "b")
-    score_dist /= 12
-    score_dist = np.trim_zeros(score_dist, "b")
-    return ScoredItem(score_dist, sub_stat_exp)
-
 class StarRailRelic(ScoredItem):
     """崩铁遗器类"""
-
     def __init__(
         self,
         type: str = "hands",  # 道具类型
