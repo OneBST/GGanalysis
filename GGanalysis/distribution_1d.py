@@ -2,6 +2,7 @@ from typing import Union
 import numpy as np
 import math
 from scipy.signal import convolve
+from scipy.stats import norm
 from collections import OrderedDict
 
 # TODO 考虑增加使用FFT+特征函数处理的 BernoulliLayer 的函数实现版本
@@ -149,6 +150,55 @@ def calc_item_num_dist(dist_list: list['FiniteDist'], pull):
     ans[0:-1] -= ans[1:].copy()
     return FiniteDist(ans)
 
+def independent_item_num_dist(f_dist: 'FiniteDist', pull: int, c_dist: 'FiniteDist'=None, multi_dist=False):
+    '''
+    **获得道具数量快速计算**
+
+    输入抽取道具所需抽数分布，返回当投入 pull 抽时获得道具数量的分布
+    注意，本函数要求输入道具满足每次获取时消耗抽数独立同分布，同时每抽最多获得一个道具
+
+    - ``f_dist`` : 获取道具所需抽数的完整分布
+    - ``pull`` : 投入抽数
+    - ``c_dist`` : 获取第一个道具所需抽数的条件分布（可选）
+    - ``multi_dist`` : 是否以列表形式返回从投入0抽到pull抽的所有分布
+    '''
+    if c_dist is None:
+        c_dist = f_dist
+    conv_dist = FiniteDist(f_dist[:pull+1])
+    check_dist = FiniteDist(c_dist[:pull+1])
+    if multi_dist:
+        ans = np.zeros((pull+1, pull+1))  # [获得道具数量, 投入抽数]
+        ans[0, :] = 1
+        if pull >= 1:
+            ans[1, :len(check_dist)] = check_dist.cdf[:]
+            ans[1, len(check_dist):] = 1
+        for item_num in range(2, pull+1):
+            # 每做一次卷积后都要把长度限制在需求长度内以加速计算
+            check_dist = FiniteDist((check_dist * conv_dist)[:pull+1])
+            if len(check_dist) == 1 and check_dist[0] == 0:  # 由于精度限制，计算几乎截止
+                ans[item_num:, :] = 0
+                break
+            else:
+                ans[item_num, :len(check_dist)] = check_dist.cdf[:]
+                ans[item_num, len(check_dist):] = 1
+        ans[:-1, :] -= ans[1:, :].copy()
+        return [FiniteDist(ans[:i+1, i], trim_tail_zeros=False) for i in range(pull+1)]
+    else:
+        ans = np.zeros(pull+1)
+        ans[0] = 1
+        if pull >= 1:
+            ans[1] = 1 if len(c_dist) <= pull else check_dist.cdf[pull]
+        for item_num in range(2, pull+1):
+            # 每做一次卷积后都要把长度限制在需求长度内以加速计算
+            check_dist = FiniteDist((check_dist * conv_dist)[:pull+1], trim_tail_zeros=False)
+            if len(check_dist) == 1 and check_dist[0] == 0:  # 由于精度限制，计算几乎截止
+                ans[item_num:] = 0
+                break
+            else:
+                ans[item_num] = 1 if len(check_dist) <= pull else check_dist.cdf[pull]
+        ans[:-1] -= ans[1:].copy()
+        return FiniteDist(ans, trim_tail_zeros=False)
+
 class FiniteDist(object):  # 随机事件为有限个数的分布
     '''
     **有限长一维分布**
@@ -159,6 +209,11 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     - *** 运算** 定义 ``FiniteDist`` 类型和数值之间的 ``*`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果；定义两个 ``FiniteDist`` 类型之间的 ``*`` 运算为卷积，即计算两个随机变量相加的分布。
     - **/ 运算** 定义 ``FiniteDist`` 类型和数值之间的 ``/`` 运算为数值乘，将返回 ``FiniteDist.dist`` 和数值进行数乘后的结果； 定义两个 ``FiniteDist`` 类型之间的 ``+`` 运算为分布叠加，将返回将两个 ``FiniteDist.dist`` 加和后的结果。
     - **\*\* 运算** 定义 ``FiniteDist`` 类型与整数的 ``**`` 运算为自卷积，将返回卷积自身数值次后的结果；``FiniteDist`` 变量A与另一个 ``FiniteDist`` 变量B的 ``**`` 运算为 :math:`\sum_{i=0}^{len(B)}{A^B[i]}`。
+
+    **类初始化**
+
+    - ``dist`` : 采用列表、numpy数组或者FiniteDist记录的分布信息进行初始化
+    - ``trim_tail_zeros`` : 是否去除分布末尾的0，默认清除。（当尾概率很低又想靠分布长度来体现最极端情况位置时，可以设置为不清除）
 
     **类属性**
 
@@ -188,10 +243,10 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         dist_b ** 10
     '''
     _cache_size: int = 128  # 默认缓存临时分布数量上限
-    def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1]) -> None:
-        self._set_dist(dist)
+    def __init__(self, dist: Union[list, np.ndarray, 'FiniteDist'] = [1], trim_tail_zeros: bool=True) -> None:
+        self._set_dist(dist, trim_tail_zeros)
 
-    def _set_dist(self, dist: Union[list, np.ndarray, 'FiniteDist']):
+    def _set_dist(self, dist: Union[list, np.ndarray, 'FiniteDist'], trim_tail_zeros:bool):
         '''
         用于设置有限长一维分布的值，不推荐使用（类型默认为不可变，修改dist可能会引发问题）
         '''
@@ -203,7 +258,10 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         else:
             if len(np.shape(dist)) > 1:
                 raise Exception('Not 1D distribution.')
-            self.__dist = np.trim_zeros(np.array(dist, dtype=float), 'b')  # 转化为numpy.ndarray类型并移除分布末尾的0
+            if trim_tail_zeros:
+                self.__dist = np.trim_zeros(np.array(dist, dtype=float), 'b')  # 转化为numpy.ndarray类型并移除分布末尾的0
+            else:
+                self.__dist = np.array(dist, dtype=float)
             if len(self.__dist) == 0:
                 self.__dist = np.zeros(1, dtype=float)
         # TODO 仅仅考虑了单线程，没有加入线程锁防止缓存被不同步修改。不过没关系，现在不会用到多线程。
@@ -249,6 +307,10 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
     def __getitem__(self, sliced):
         '''将numpy切片的方法应用于 ``dist`` 直接取得numpy数组切片'''
         return self.__dist[sliced].copy()
+
+    def trim_tail_zeros(self):
+        '''去除分布末尾的0'''
+        return FiniteDist(self.dist)
 
     def calc_cdf(self):
         '''将自身分布转为cdf返回'''
