@@ -2,6 +2,7 @@ from typing import Union
 import numpy as np
 import math
 from scipy.signal import convolve
+from scipy.fftpack import fft,ifft
 from scipy.stats import norm
 from collections import OrderedDict
 
@@ -198,6 +199,42 @@ def independent_item_num_dist(f_dist: 'FiniteDist', pull: int, c_dist: 'FiniteDi
                 ans[item_num] = 1 if len(check_dist) <= pull else check_dist.cdf[pull]
         ans[:-1] -= ans[1:].copy()
         return FiniteDist(ans, trim_tail_zeros=False)
+
+def calc_bernoulli_obtain(dist: 'FiniteDist', p: float, e_error = 1e-8, max_dist_len=1e5):
+    '''
+    输入基本道具所需抽数分布，计算在每次获得基本道具时以固定概率p成功获得另一种道具的情况下，获得另一种道具所需抽数的概率分布
+    和 gacha_layers 中定义的 BernoulliLayer 功能类似
+
+    - ``dist`` : 输入道具分布
+    - ``p`` : 获取另一种道具概率
+    - ``e_error`` : 容许期望误差比例
+    - ``max_dist_len`` : 最长不警告序列长度
+    '''
+    # 概率为 1 等价于什么也没干
+    if p == 1:
+        return dist
+    exp = 1/p
+    def calc_2nd_moment(E, D):
+        return (p * D + (2 - p) * E ** 2)/(p ** 2)
+    ans_E = dist.exp * exp  # 叠加后的期望
+    ans_D = calc_2nd_moment(dist.exp, dist.var) - ans_E ** 2  # 叠加后的方差
+    test_len = int(ans_E + 10 * ans_D ** 0.5)
+    while True:
+        # 通过频域关系进行计算
+        F_dist = fft(pad_zero(dist.dist, test_len))
+        output_dist = (p * F_dist) / (1 - (1 - p) * F_dist)
+        output_dist = FiniteDist(abs(ifft(output_dist)))
+        # 解决输出位置0处不是0的问题
+        output_dist[0] = 0
+        # 误差限足够小则停止
+        calc_error = abs(calc_expectation(output_dist)-ans_E)/ans_E
+        if calc_error < e_error or test_len > max_dist_len:
+            if test_len > max_dist_len:
+                print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+            output_dist.exp = ans_E
+            output_dist.var = ans_D
+            return output_dist
+        test_len *= 2
 
 class FiniteDist(object):  # 随机事件为有限个数的分布
     '''
