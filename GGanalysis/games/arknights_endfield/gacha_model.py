@@ -13,8 +13,11 @@ __all__ = [
     'PITY_W6STAR',
     'PITY_W5STAR',
     'common_6star',
-    'weapon_6star',
     'up_6star_character',
+    'up_6star_character_after_first',
+    'weapon_6star',
+    'up_6star_weapon',
+    'up_weapon_6star_after_first',
     'common_5star',
     'weapon_5star',
 ]
@@ -81,17 +84,16 @@ PITY_W5STAR[10] = 1
 
 # ★★★★★★
 common_6star = PityModel(PITY_6STAR)
-up_6star_character_after_first = PityBernoulliModel(PITY_6STAR, 0.5)  # 不考虑第一个
 up_6star_character = AKESinglePityModel(PITY_6STAR, 0.5, 120)
+up_6star_character_after_first = PityBernoulliModel(PITY_6STAR, 0.5)  # 不考虑第一个
 weapon_6star = PityModel(PITY_W6STAR)
-up_weapon_6star_first = DualPityModel(PITY_W6STAR, [0, 0.25, 1])  # 每卡池的首个UP武器
-up_weapon_6star_after_first = PityBernoulliModel(PITY_W6STAR, 0.25)  # 每卡池的首个UP武器
 up_6star_weapon = AKESinglePityModel(PITY_W6STAR, 0.25, 80)
+up_weapon_6star_after_first = PityBernoulliModel(PITY_W6STAR, 0.25)  # 不考虑第一个
 # ★★★★★
 # 五星公示基础概率为8%，更多信息还有待发掘，目前看来获取6星会重置5星保底
 common_5star = PityModel(PITY_5STAR)  # 不考虑被6星重置的简单模型
 weapon_5star = PityModel(PITY_W5STAR)  # 不考虑被6星重置的简单模型
 up_5star_character = PityBernoulliModel(PITY_5STAR, 0.5)  # 不考虑被6星重置的简单模型
-    
+
 if __name__ == '__main__':
     pass
