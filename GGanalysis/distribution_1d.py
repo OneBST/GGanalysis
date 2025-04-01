@@ -6,8 +6,6 @@ from scipy.fftpack import fft,ifft
 from scipy.stats import norm
 from collections import OrderedDict
 
-# TODO 考虑增加使用FFT+特征函数处理的 BernoulliLayer 的函数实现版本
-
 def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
     '''
     计算线性递增模型的保底参数
@@ -96,19 +94,19 @@ def dist2p(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
     left_p = np.cumsum(dist[::-1])[::-1]
     return np.divide(dist, left_p, where=left_p!=0, out=np.zeros_like(dist))
 
-def p2exp(pity_p: Union[list, np.ndarray]):
+def p2exp(pity_p: Union[list, np.ndarray]) -> float:
     '''
     对于列表，认为是概率提升表，返回对应分布期望
     '''
     return calc_expectation(p2dist(pity_p))
 
-def p2var(pity_p: Union[list, np.ndarray]):
+def p2var(pity_p: Union[list, np.ndarray]) -> float:
     '''
     对于列表，认为是概率提升表，返回对应分布方差
     '''
     return calc_variance(p2dist(pity_p))
 
-def pad_zero(dist:np.ndarray, target_len):
+def pad_zero(dist:np.ndarray, target_len) -> np.ndarray:
     '''
     给 numpy 数组末尾补零至指定长度
     '''
@@ -124,7 +122,7 @@ def prob_a_greater_than_b(a: Union['FiniteDist', np.ndarray], b: Union['FiniteDi
     prob = np.sum(a[1:] * np.cumsum(b)[:-1])
     return prob
 
-def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos):
+def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos) -> np.ndarray:
     '''
     切除分布并重新进行概率归一化，默认切除头部
     '''
@@ -136,7 +134,7 @@ def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos):
     ans[0] = 0
     return ans/sum(ans)
 
-def calc_item_num_dist(dist_list: list['FiniteDist'], pull):
+def calc_item_num_dist(dist_list: list['FiniteDist'], pull) -> 'FiniteDist':
     '''
     根据的获得 0-k 个道具所需抽数分布列表计算使用 pull 抽时获得道具数量分布（第k个位置表达的是≥k的概率）
     此方法会忽略概率太低的长尾部分，并将其概率累加到 k 个道具位置
@@ -151,7 +149,7 @@ def calc_item_num_dist(dist_list: list['FiniteDist'], pull):
     ans[0:-1] -= ans[1:].copy()
     return FiniteDist(ans)
 
-def independent_item_num_dist(f_dist: 'FiniteDist', pull: int, c_dist: 'FiniteDist'=None, multi_dist=False):
+def independent_item_num_dist(f_dist: 'FiniteDist', pull: int, c_dist: 'FiniteDist'=None, multi_dist=False) -> Union[list, 'FiniteDist']:
     '''
     **获得道具数量快速计算**
 
@@ -200,7 +198,7 @@ def independent_item_num_dist(f_dist: 'FiniteDist', pull: int, c_dist: 'FiniteDi
         ans[:-1] -= ans[1:].copy()
         return FiniteDist(ans, trim_tail_zeros=False)
 
-def calc_bernoulli_obtain(dist: 'FiniteDist', p: float, e_error = 1e-8, max_dist_len=1e5):
+def calc_bernoulli_obtain(dist: 'FiniteDist', p: float, e_error = 1e-8, max_dist_len=1e5) -> 'FiniteDist':
     '''
     输入基本道具所需抽数分布，计算在每次获得基本道具时以固定概率p成功获得另一种道具的情况下，获得另一种道具所需抽数的概率分布
     和 gacha_layers 中定义的 BernoulliLayer 功能类似
@@ -236,8 +234,15 @@ def calc_bernoulli_obtain(dist: 'FiniteDist', p: float, e_error = 1e-8, max_dist
             return output_dist
         test_len *= 2
 
+def accurate_conv(dist_a: 'FiniteDist', dist_b: 'FiniteDist') -> 'FiniteDist':
+    '''有更高数值精确性的卷积，适用于计算分布概率低于1e-18的情况'''
+    ans = FiniteDist(convolve(dist_a.dist, dist_b.dist, method='direct'))
+    ans.exp = dist_a.exp + dist_b.exp
+    ans.var = dist_a.var + dist_b.var
+    return ans
+
 class FiniteDist(object):  # 随机事件为有限个数的分布
-    '''
+    r'''
     **有限长一维分布**
 
     用于快速进行有限长一维离散分布的相关计算，创建时通过传入分布数组进行初始化，可以代表一个随机变量。
@@ -391,6 +396,16 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         '''返回分布进行归一化后的结果'''
         return FiniteDist(self.__dist/sum(self.__dist))
 
+    def accurate_pow(self, n):
+        '''有更高数值精确性的自卷积n-1次，适用于计算分布概率低于1e-18的情况'''
+        ans = self.dist
+        for i in range(n-1):
+            ans = convolve(ans, self.dist, method='direct')
+        ans = FiniteDist(ans)
+        ans.exp = self.exp * n
+        ans.var = self.var * n
+        return ans
+
     def __add__(self, other: 'FiniteDist') -> 'FiniteDist':
         '''定义的 + 运算符
 
@@ -465,8 +480,8 @@ class FiniteDist(object):  # 随机事件为有限个数的分布
         return ans
 
     def __pow__(self, pow_times: Union['FiniteDist', int]) -> 'FiniteDist':
-        '''定义的 ** 运算符
-        
+        r'''定义的 ** 运算符
+
         返回分布为 pow_times 个自身分布相卷积的 FiniteDist 对象
         广义乘方扩展到两个 FiniteDist AB的运算，将返回 \sum{A**B[i]} 的值
         '''
