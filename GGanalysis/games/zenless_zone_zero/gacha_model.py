@@ -15,12 +15,61 @@ __all__ = [
     'common_5star_weapon',
     'common_4star_weapon',
     'up_5star_character',
+    'pick_up_5star_character',
     'up_4star_character',
     'up_4star_specific_character',
     'up_5star_weapon',
+    'pick_up_5star_weapon',
     'up_4star_weapon',
     'up_4star_specific_weapon',
+
+    'ExclusiveRescreeningModel',
 ]
+
+class ExclusiveRescreeningModel(GachaModel):
+    '''
+    2.5版本上线的打折复刻调频「独家重映」
+    首次获取的S级代理人必为定向代理人
+    首次10连八折
+    暂且认为大保底会继承到下个卡池
+    '''
+    def __init__(self, first_model, afterwards_model):
+        super().__init__()
+        self.first_model = first_model
+        self.afterwards_model = afterwards_model
+
+    def __call__(self, item_num: int=1, multi_dist: bool=False, item_pity=0, up_pity=0) -> Union[FiniteDist, list]:
+        '''
+        抽取个数 是否要返回多个分布列 道具保底进度 单次赠送保底进度
+        '''
+        if item_num == 0:
+            return FiniteDist([1])
+        # 如果 multi_dist 参数为真，返回抽取 [1, 抽取个数] 个道具的分布列表
+        if multi_dist:
+            return self._get_multi_dist(item_num, item_pity, up_pity)
+        # 其他情况正常返回
+        return self._get_dist(item_num, item_pity, up_pity)
+    
+    # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
+    def _get_multi_dist(self, item_num: int, item_pity, up_pity):
+        # 仿造 CommonGachaModel 里的实现
+        first_dist = self.first_model(1, item_pity=item_pity)
+        ans_list = [FiniteDist([1]), first_dist]
+        if item_num > 1:
+            second_dist = self.afterwards_model(1, up_pity)
+            ans_list.append(second_dist)
+        elif item_num > 2:
+            stander_dist = self.afterwards_model(1)
+            for i in range(2, item_num):
+                ans_list.append(ans_list[i] * stander_dist)
+        return ans_list
+    
+    # 返回单个分布
+    def _get_dist(self, item_num: int, item_pity, up_pity):
+        first_dist = self.first_model(1, item_pity=item_pity)
+        if item_num == 1:
+            return first_dist
+        return first_dist * self.afterwards_model(item_num-1, up_pity)
 
 # 绝区零普通5星保底概率表
 PITY_5STAR = np.zeros(91)
@@ -51,12 +100,14 @@ common_5star = PityModel(PITY_5STAR)
 common_4star = PityModel(PITY_4STAR)
 # 定义绝区零角色池模型
 up_5star_character = DualPityModel(PITY_5STAR, [0, 0.5, 1])
+pick_up_5star_character = ExclusiveRescreeningModel(common_5star, up_5star_character)
 up_4star_character = DualPityModel(PITY_4STAR, [0, 0.5, 1])
 up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/2)
 # 定义绝区零武器池模型
 common_5star_weapon = PityModel(PITY_W5STAR)
 common_4star_weapon = PityModel(PITY_W4STAR)
 up_5star_weapon = DualPityModel(PITY_W5STAR, [0, 0.75, 1])
+pick_up_5star_weapon = ExclusiveRescreeningModel(common_5star_weapon, up_5star_weapon)
 up_4star_weapon = DualPityModel(PITY_W4STAR, [0, 0.75, 1])
 up_4star_specific_weapon = DualPityBernoulliModel(PITY_W4STAR, [0, 0.75, 1], 1/2)
 # 定义绝区零邦布池模型
@@ -68,7 +119,9 @@ if __name__ == '__main__':
     print(common_5star_weapon(1).exp)
     print(common_4star(1).exp)
     print(common_4star_weapon(1).exp)
+    print(up_5star_character(1).exp)
     print(up_5star_weapon(1).exp)
+    print(f"一直单抽获得第一个自选UP的消耗为{pick_up_5star_character(2).exp}")
     '''
     close_dis = 1
     pity_begin = 0

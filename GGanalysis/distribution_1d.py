@@ -3,7 +3,6 @@ import numpy as np
 import math
 from scipy.signal import convolve
 from scipy.fftpack import fft,ifft
-from scipy.stats import norm
 from collections import OrderedDict
 
 def linear_p_increase(base_p=0.01, pity_begin=100, step=1, hard_pity=100):
