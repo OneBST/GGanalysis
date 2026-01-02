@@ -38,7 +38,18 @@ class ExclusiveRescreeningModel(GachaModel):
         self.first_model = first_model
         self.afterwards_model = afterwards_model
 
-    def __call__(self, item_num: int=1, multi_dist: bool=False, item_pity=0, up_pity=0) -> Union[FiniteDist, list]:
+    def _calc_first_ten_discount(self, dist: FiniteDist, discount=2):
+        # 处理首次十连八折
+        cdf = dist.cdf
+        if len(cdf) < 10:
+            # 处理长度小于10的部分
+            cdf = np.zeros(11, dtype=float)
+            cdf[10] = 1
+        cdf[:10] = 0  # 一开始十连抽，1-9不可能出
+        cdf = cdf[discount:]  # 折扣部分
+        return cdf2dist(cdf)
+
+    def __call__(self, item_num: int=1, multi_dist: bool=False, item_pity=0, up_pity=0, first_ten_discount=False) -> Union[FiniteDist, list]:
         '''
         抽取个数 是否要返回多个分布列 道具保底进度 单次赠送保底进度
         '''
@@ -46,29 +57,40 @@ class ExclusiveRescreeningModel(GachaModel):
             return FiniteDist([1])
         # 如果 multi_dist 参数为真，返回抽取 [1, 抽取个数] 个道具的分布列表
         if multi_dist:
-            return self._get_multi_dist(item_num, item_pity, up_pity)
+            return self._get_multi_dist(item_num, item_pity, up_pity, first_ten_discount)
         # 其他情况正常返回
-        return self._get_dist(item_num, item_pity, up_pity)
+        return self._get_dist(item_num, item_pity, up_pity, first_ten_discount)
     
     # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
-    def _get_multi_dist(self, item_num: int, item_pity, up_pity):
+    def _get_multi_dist(self, item_num: int, item_pity, up_pity, first_ten_discount):
         # 仿造 CommonGachaModel 里的实现
         first_dist = self.first_model(1, item_pity=item_pity)
         ans_list = [FiniteDist([1]), first_dist]
         if item_num > 1:
-            second_dist = self.afterwards_model(1, up_pity)
+            # 处理第二个
+            second_dist = self.afterwards_model(1, up_pity) * first_dist
             ans_list.append(second_dist)
-        elif item_num > 2:
+        if item_num > 2:
+            # 处理第三及更多个
             stander_dist = self.afterwards_model(1)
             for i in range(2, item_num):
                 ans_list.append(ans_list[i] * stander_dist)
+        if first_ten_discount:
+            discount_list = [FiniteDist([1])]
+            for i in range(1, item_num+1):
+                discount_list.append(self._calc_first_ten_discount(ans_list[i]))
+            return discount_list
         return ans_list
     
     # 返回单个分布
-    def _get_dist(self, item_num: int, item_pity, up_pity):
+    def _get_dist(self, item_num: int, item_pity, up_pity, first_ten_discount):
         first_dist = self.first_model(1, item_pity=item_pity)
         if item_num == 1:
+            if first_ten_discount:
+                first_dist = self._calc_first_ten_discount(first_dist)
             return first_dist
+        if first_ten_discount:
+            return self._calc_first_ten_discount(first_dist * self.afterwards_model(item_num-1, up_pity))
         return first_dist * self.afterwards_model(item_num-1, up_pity)
 
 # 绝区零普通5星保底概率表
@@ -121,6 +143,11 @@ if __name__ == '__main__':
     print(common_4star_weapon(1).exp)
     print(up_5star_character(1).exp)
     print(up_5star_weapon(1).exp)
+    ans = pick_up_5star_character(3, first_ten_discount=False, multi_dist=True)
+    for dist in ans:
+        print(dist.exp)
+    # print()  # .quantile_point([0.1, 0.25, 0.5, 0.75, 0.99]))
+    # print(pick_up_5star_character(1, first_ten_discount=True).quantile_point([0.1, 0.25, 0.5, 0.75, 0.99]))
     print(f"一直单抽获得第一个自选UP的消耗为{pick_up_5star_character(2).exp}")
     '''
     close_dis = 1

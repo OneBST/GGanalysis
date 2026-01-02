@@ -238,6 +238,8 @@ class CapturingRadianceModel(GachaModel):
 
     def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity=0, up_pity=0, cr_counter=1) -> Union[
         FiniteDist, list]:
+        if item_num == 0:
+            return FiniteDist([1])
         if up_pity and cr_counter==0:
             raise ValueError("up_pity 数值与 cr_counter 数值矛盾")
         if not multi_dist:
@@ -247,6 +249,50 @@ class CapturingRadianceModel(GachaModel):
             for i in range(1, item_num + 1):
                 ans_list.append(self._get_dist(i, item_pity, up_pity, cr_counter))
             return ans_list
+
+class EpitomizedPathModel(GachaModel):
+    '''
+    针对原神5.0后武器池命定值从2变为1的改变
+    设置了关于UP大小保底的选项
+    '''
+    def __init__(self, pity_p1, pity_p2, pity_p3):
+        super().__init__()
+        self.base_model = DualPityModel(pity_p1, pity_p2)
+        self.up_pity_model = DualPityModel(pity_p1, pity_p3)
+
+    def __call__(self, item_num: int=1, multi_dist: bool=False, item_pity=0, ep_pity=0, up_pity=0) -> Union[FiniteDist, list]:
+        '''
+        抽取个数 是否要返回多个分布列 道具保底进度 单次赠送保底进度
+        '''
+        # 处理没有武器大保底的情况
+        if (not up_pity) or (ep_pity == 1):
+            return self.base_model(item_num, multi_dist, item_pity, up_pity)
+        if item_num == 0:
+            return FiniteDist([1])
+        # 如果 multi_dist 参数为真，返回抽取 [1, 抽取个数] 个道具的分布列表
+        if multi_dist:
+            return self._get_multi_dist(item_num, item_pity)
+        # 其他情况正常返回
+        return self._get_dist(item_num, item_pity)
+    
+    # 输入 [完整分布, 条件分布] 指定抽取个数，返回抽取 [1, 抽取个数] 个道具的分布列表
+    def _get_multi_dist(self, item_num: int, item_pity):
+        # 仿造 CommonGachaModel 里的实现
+        first_dist = self.up_pity_model(1, False, item_pity, 0)
+        ans_list = [FiniteDist([1]), first_dist]
+        if item_num > 1:
+            # 处理剩余
+            stander_dist = self.base_model(1)
+            for i in range(1, item_num+1):
+                ans_list.append(ans_list[i] * stander_dist)
+        return ans_list
+    
+    # 返回单个分布
+    def _get_dist(self, item_num: int, item_pity):
+        first_dist = self.up_pity_model(1, False, item_pity, 0)
+        if item_num == 1:
+            return first_dist
+        return first_dist * self.base_model(item_num-1)
 
 # 定义获取星级物品的模型
 common_5star = PityModel(PITY_5STAR)
@@ -260,7 +306,9 @@ up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/
 common_5star_weapon = PityModel(PITY_W5STAR)
 common_4star_weapon = PityModel(PITY_W4STAR)
 up_5star_weapon = DualPityModel(PITY_W5STAR, [0, 0.75, 1])
-up_5star_ep_weapon = DualPityModel(PITY_W5STAR, [0, 0.375, 1])  # 5.0后命定值为1的有定轨武器池
+up_5star_ep_weapon_old = DualPityModel(PITY_W5STAR, [0, 0.375, 1])  # 5.0后命定值为1的有定轨武器池
+up_5star_ep_weapon = EpitomizedPathModel(PITY_W5STAR, [0, 0.375, 1], [0, 0.5, 1])
+
 classic_up_5star_ep_weapon = ClassicGenshin5starEPWeaponModel()  # 2.0后至5.0前命定值为2的有定轨武器池
 classic_up_5star_specific_weapon = DualPityBernoulliModel(PITY_W5STAR, [0, 0.75, 1], 1/2)  # 2.0前无定轨的武器池
 up_4star_weapon = DualPityModel(PITY_W4STAR, [0, 0.75, 1])
@@ -270,8 +318,16 @@ classic_stander_5star_character_in_up = ClassicGenshinCommon5starInUPpoolModel(u
 classic_stander_5star_weapon_in_up = ClassicGenshinCommon5starInUPpoolModel(up_rate=0.75, stander_item=10, dp_lenth=800, need_type=1)
 
 if __name__ == '__main__':
-    print(up_5star_character(1, cr_counter=3).exp)
-    print(classic_up_5star_specific_weapon(1).exp)
-    print(common_5star(1).exp)
+    # print(up_5star_character(1, cr_counter=3).exp)
+    # print(classic_up_5star_specific_weapon(1).exp)
+    # print(common_5star(1).exp)
     print(common_5star_weapon(1).exp)
-    pass
+    
+    item_num = 1
+    item_pity = 50
+    ep_pity = 0
+
+    print(up_5star_ep_weapon(item_num, item_pity=item_pity).exp)
+    print(up_5star_ep_weapon(item_num, item_pity=item_pity, ep_pity=ep_pity, up_pity=0).exp)
+    print(up_5star_ep_weapon(item_num, item_pity=item_pity, ep_pity=ep_pity, up_pity=1).exp)
+    print(up_5star_ep_weapon_old(item_num, item_pity=item_pity, up_pity=ep_pity).exp)
