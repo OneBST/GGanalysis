@@ -200,7 +200,7 @@ class PriorityPitySystem(object):
             ans[next_pos] += self.stationary_distribution[i] * transfer_p
         return ans/sum(ans)
     
-def multi_item_rarity(pity_p: list, once_pull_times: int, is_complete=True):
+def multi_item_rarity(pity_p: list, once_pull_times: int):
     '''
     计算连抽情况下获得多个道具的概率
     仅仅适用于保底抽卡模型
