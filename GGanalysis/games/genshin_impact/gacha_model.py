@@ -266,7 +266,7 @@ class EpitomizedPathModel(GachaModel):
         '''
         # 处理没有武器大保底的情况
         if (not up_pity) or (ep_pity == 1):
-            return self.base_model(item_num, multi_dist, item_pity, up_pity)
+            return self.base_model(item_num, multi_dist, item_pity, ep_pity)
         if item_num == 0:
             return FiniteDist([1])
         # 如果 multi_dist 参数为真，返回抽取 [1, 抽取个数] 个道具的分布列表
@@ -306,7 +306,7 @@ up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/
 common_5star_weapon = PityModel(PITY_W5STAR)
 common_4star_weapon = PityModel(PITY_W4STAR)
 up_5star_weapon = DualPityModel(PITY_W5STAR, [0, 0.75, 1])
-up_5star_ep_weapon_old = DualPityModel(PITY_W5STAR, [0, 0.375, 1])  # 5.0后命定值为1的有定轨武器池
+up_5star_ep_weapon_old = DualPityModel(PITY_W5STAR, [0, 0.375, 1])
 up_5star_ep_weapon = EpitomizedPathModel(PITY_W5STAR, [0, 0.375, 1], [0, 0.5, 1])
 
 classic_up_5star_ep_weapon = ClassicGenshin5starEPWeaponModel()  # 2.0后至5.0前命定值为2的有定轨武器池
@@ -321,13 +321,13 @@ if __name__ == '__main__':
     # print(up_5star_character(1, cr_counter=3).exp)
     # print(classic_up_5star_specific_weapon(1).exp)
     # print(common_5star(1).exp)
-    print(common_5star_weapon(1).exp)
+    # print(common_5star_weapon(1).exp*(2-0.375))
     
-    item_num = 1
-    item_pity = 50
-    ep_pity = 0
+    item_num = 2
+    item_pity = 0
+    ep_pity = 1
 
     print(up_5star_ep_weapon(item_num, item_pity=item_pity).exp)
     print(up_5star_ep_weapon(item_num, item_pity=item_pity, ep_pity=ep_pity, up_pity=0).exp)
-    print(up_5star_ep_weapon(item_num, item_pity=item_pity, ep_pity=ep_pity, up_pity=1).exp)
     print(up_5star_ep_weapon_old(item_num, item_pity=item_pity, up_pity=ep_pity).exp)
+    print(up_5star_ep_weapon(item_num, item_pity=item_pity, ep_pity=ep_pity, up_pity=1).exp)
