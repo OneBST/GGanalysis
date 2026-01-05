@@ -357,7 +357,6 @@ class DrawDistribution(object):
             # 分布较长
             plot_pmf(ax, dist[:self.max_pull], main_color, self.is_finite, is_step=False, fill_alpha=fill_alpha)
         # 标记期望值与方差
-        exp_y = (int(dist.exp)+1-dist.exp) * dist.dist[int(dist.exp)] + (dist.exp-int(dist.exp)) * dist.dist[int(dist.exp+1)]
         # ax.axvline(x=dist.exp, c="lightgray", ls="--", lw=2, zorder=5, 
         #             path_effects=[pe.withStroke(linewidth=3, foreground="white")])
         
@@ -367,6 +366,7 @@ class DrawDistribution(object):
 
         if self.show_exp:
             # 绘制期望
+            exp_y = (int(dist.exp)+1-dist.exp) * dist.dist[int(dist.exp)] + (dist.exp-int(dist.exp)) * dist.dist[int(dist.exp+1)]
             ax.text(
                 dist.exp+len(dist)/200, exp_y+self.max_mass*0.01, '期望'+str(round(dist.exp, 1))+self.cost_name,
                 color='gray',

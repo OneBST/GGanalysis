@@ -18,12 +18,12 @@ __all__ = [
     'HardGuarantee_UPW6star',
     'IntervalAutoReward_UPW6star',
     'common_6star',
-    'up_6star_character',
+    'up_6star_first_character',
     'up_6star_character_after_first',
     'up_6star_character_reward',
     'weapon_6star',
-    'up_6star_weapon',
-    'up_weapon_6star_after_first',
+    'up_6star_first_weapon',
+    'up_6star_weapon_after_first',
     'up_6star_weapon_reward',
     'common_5star',
     'weapon_5star',
@@ -131,14 +131,14 @@ PITY_W5STAR[10] = 1
 
 # 6★
 common_6star = PityModel(PITY_6STAR)
-up_6star_character = AKESinglePityModel(PITY_6STAR, 0.5, HardGuarantee_UP6star)  # single_up_pity 填写-1表示已经没有第一个UP6星的120保底
+up_6star_first_character = AKESinglePityModel(PITY_6STAR, 0.5, HardGuarantee_UP6star)  # single_up_pity 填写-1表示已经没有第一个UP6星的120保底
 up_6star_character_after_first = PityBernoulliModel(PITY_6STAR, 0.5)  # 不考虑第一个
-up_6star_character_reward = AKERewardModel(up_6star_character, IntervalAutoReward_UP6star)
+up_6star_character_reward = AKERewardModel(up_6star_first_character, IntervalAutoReward_UP6star)
 
 weapon_6star = PityModel(PITY_W6STAR)
-up_6star_weapon = AKESinglePityModel(PITY_W6STAR, 0.25, HardGuarantee_UPW6star)
-up_weapon_6star_after_first = PityBernoulliModel(PITY_W6STAR, 0.25)  # 不考虑第一个
-up_6star_weapon_reward = AKERewardModel(up_6star_weapon, IntervalAutoReward_UPW6star)
+up_6star_first_weapon = AKESinglePityModel(PITY_W6STAR, 0.25, HardGuarantee_UPW6star)
+up_6star_weapon_after_first = PityBernoulliModel(PITY_W6STAR, 0.25)  # 不考虑第一个
+up_6star_weapon_reward = AKERewardModel(up_6star_first_weapon, IntervalAutoReward_UPW6star)
 
 # 5★
 # 5星公示基础概率为8%，更多信息还有待发掘，目前看来获取6星会重置5星保底

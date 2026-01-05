@@ -4,9 +4,9 @@ from matplotlib import pyplot as plt
 
 # 计算在垫了i抽情况下，轮换到下个卡池清除120保底时获取下一个UP6星的条件期望
 condition_exp = np.zeros(80)
-raw_exp = AKE.up_6star_character(1).exp
+raw_exp = AKE.up_6star_first_character(1).exp
 for i in range(80):
-    dist = AKE.up_6star_character(1, item_pity=i, single_up_pity=0)
+    dist = AKE.up_6star_first_character(1, item_pity=i, single_up_pity=0)
     condition_exp[i] = dist.exp
 
 # 从无保底开始抽n抽的情况下，当前垫了几抽分布的递推，由于没有到概率提升段，所以很简单
