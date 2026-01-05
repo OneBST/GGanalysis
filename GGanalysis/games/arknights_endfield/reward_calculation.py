@@ -58,7 +58,7 @@ def apply_interval_reward(
 
 if __name__ == '__main__':
     # 处理UP卡池满240额外赠送，先得到没有满赠的模型
-    dist_list = AKE.up_6star_character(6, multi_dist=True)
+    dist_list = AKE.up_6star_first_character(6, multi_dist=True)
     raw_cdf_list = []
     for dist in dist_list:  # 从抽1个开始遍历
         raw_cdf_list.append(dist.cdf)
@@ -77,7 +77,7 @@ if __name__ == '__main__':
         exp_ans = 0
         for pull_num in range(1, target_num+1):  # 实际抽取个数
             reward_num = target_num - pull_num + 1
-            reward_pos = reward_num * interval
+            reward_pos = interval(reward_num)
             if reward_pos < len(dist_list[pull_num]):
                 exp_ans += dist_list[pull_num][reward_pos]
         return exp_ans
