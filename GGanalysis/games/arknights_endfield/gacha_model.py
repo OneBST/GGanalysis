@@ -1,11 +1,10 @@
 from GGanalysis.distribution_1d import *
 from GGanalysis.gacha_layers import *
 from GGanalysis.basic_models import *
-from GGanalysis.games.arknights_endfield.reward_calculation import RewardRule, reward_positions, apply_interval_reward
+from GGanalysis.games.arknights_endfield.reward_calculation import RewardRule, reward_positions, apply_interval_reward, apply_item_reward_with_distribution
 
 '''
-    注意，本模块按明日方舟：终末地三测公示进行简单建模，非公测版本
-    武器池由于描述不够清晰，采用猜测机制
+    注意，本模块按明日方舟：终末地公示机制进行简单建模，非统计版本
 '''
 
 __all__ = [
@@ -28,8 +27,9 @@ __all__ = [
     'common_5star',
     'weapon_5star',
 ]
+
 class AKESinglePityModel(GachaModel):
-    '''终末地三测硬保底模型'''
+    '''终末地硬保底模型'''
     def __init__(self, pity_p, up_p, up_pity_pull):
         super().__init__()
         self.pity_p = pity_p
@@ -103,6 +103,40 @@ class AKERewardModel(GachaModel):
         # 其他情况正常返回
         return reward_dist_list[item_num]
 
+class AKECharacterRewardModel(GachaModel):
+    def __init__(self, base_model, reward_rule, get_extra_pull_pos=30, get_extra_pull=10, base_p=0.004):
+        super().__init__()
+        self.base_model = base_model
+        self.reward_rule = reward_rule
+        self.get_extra_pull_pos = get_extra_pull_pos
+        self.get_extra_pull = get_extra_pull
+        self.num_p = binom.pmf(np.arange(0, get_extra_pull+1), get_extra_pull, base_p)
+
+    def __call__(self, item_num: int=1, multi_dist: bool=False, item_pity=0, single_up_pity=0, reward_counter=0, pull_reward_counter=0) -> Union[FiniteDist, list]:
+        if item_num == 0:
+            return FiniteDist([1])
+        # 计算抽到要求个数所需的cdf
+        dist_list = self.base_model(item_num, multi_dist=True, item_pity=item_pity, single_up_pity=single_up_pity)
+        raw_cdf_list = [dist.cdf for dist in dist_list]
+        # 获得应用了固定抽数额外返还的cdf
+        local_reward_rule = lambda x: self.reward_rule(x) - reward_counter  # 考虑垫了reward个数后的情况
+        reward_cdf_list = apply_interval_reward(raw_cdf_list, reward_rule=local_reward_rule)
+        # 获得应用了固定位置返还抽数的cdf
+        if pull_reward_counter != -1:
+            pull_cdf_list = apply_item_reward_with_distribution(reward_cdf_list, self.num_p, self.get_extra_pull_pos-pull_reward_counter)
+        else:
+            pull_cdf_list = reward_cdf_list
+        # 处理为分布列
+        final_dist_list = [cdf2dist(cdf) for cdf in pull_cdf_list]
+        for dist, cdf in zip(final_dist_list, pull_cdf_list):
+            dist.cdf = cdf
+        # 如果 multi_dist 参数为真，返回抽取 [1, 抽取个数] 个道具的分布列表
+        if multi_dist:
+            return final_dist_list
+        # 其他情况正常返回
+        return final_dist_list[item_num]
+
+
 # 设置6星概率递增表
 PITY_6STAR = np.zeros(81)
 PITY_6STAR[1:65+1] = 0.008
@@ -133,7 +167,8 @@ PITY_W5STAR[10] = 1
 common_6star = PityModel(PITY_6STAR)
 up_6star_first_character = AKESinglePityModel(PITY_6STAR, 0.5, HardGuarantee_UP6star)  # single_up_pity 填写-1表示已经没有第一个UP6星的120保底
 up_6star_character_after_first = PityBernoulliModel(PITY_6STAR, 0.5)  # 不考虑第一个
-up_6star_character_reward = AKERewardModel(up_6star_first_character, IntervalAutoReward_UP6star)
+up_6star_character_reward_old = AKERewardModel(up_6star_first_character, IntervalAutoReward_UP6star)
+up_6star_character_reward = AKECharacterRewardModel(up_6star_first_character, IntervalAutoReward_UP6star, 30, 10, 0.004)
 
 weapon_6star = PityModel(PITY_W6STAR)
 up_6star_first_weapon = AKESinglePityModel(PITY_W6STAR, 0.25, HardGuarantee_UPW6star)
@@ -147,6 +182,26 @@ weapon_5star = PityModel(PITY_W5STAR)  # 不考虑被6星重置的简单模型
 up_5star_character = PityBernoulliModel(PITY_5STAR, 0.5)  # 不考虑被6星重置的简单模型
 
 if __name__ == '__main__':
+    # a = AKECharacterRewardModel(1, 1)
+    # print(up_6star_character_reward_old(2).cdf[30:41])
+    # exit()
+    # p_0 = (1-0.004) ** 10
+    # p_1 = 1 - (1-0.004) ** 1ss0
+    # p_1 = 10 * 0.004 * (1-0.004)**9
+    # p_2 = 1 - p_0 - p_1
+    # print(up_6star_character_reward.num_p)
+    # print(np.cumsum(up_6star_character_reward.num_p))
+    # print(p_0, p_1, p_2)
+    # temp_cdf = up_6star_character_reward_old(1).cdf
+    # temp_cdf = temp_cdf * (1-p_1) + p_1
+    # temp_cdf = up_6star_character_reward_old(1).cdf * p_1 + up_6star_character_reward_old(2).cdf[:121] * p_0 + p_2
+    # print(up_6star_character_reward_old(1).cdf[29:41])
+    # print(temp_cdf[30:41])
+    # print(sum(up_6star_character_reward_old(1)[30:41]))
+    # print(up_6star_character_reward(2).cdf[30:41])
+    # print(up_6star_character_reward(2).exp)
+    # exit()
+
     print('常驻池6星期望为', common_6star(1).exp)
     character_dists = up_6star_character_reward(6, True)
     for i, dist in zip(range(1, len(character_dists)), character_dists[1:]):

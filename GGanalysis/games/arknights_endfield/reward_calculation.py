@@ -2,6 +2,7 @@ import GGanalysis.games.arknights_endfield as AKE
 from GGanalysis import FiniteDist, cdf2dist
 from typing import Callable, Sequence, Union
 from copy import deepcopy
+import numpy as np
 
 RewardRule = Union[
     Callable[[int], int],   # f(j) -> 第 j 次满赠的抽数
@@ -56,7 +57,48 @@ def apply_interval_reward(
         reward_cdf_list.append(temp_cdf)
     return reward_cdf_list
 
+def add_with_last_value_padding(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """
+    将两个1D numpy数组相加。
+    若长度不同，则用较短数组的最后一个值补长至相同长度。
+    """
+    if a.ndim != 1 or b.ndim != 1:
+        raise ValueError("输入必须是1D numpy数组")
+    len_a, len_b = len(a), len(b)
+    max_len = max(len_a, len_b)
+    if len_a < max_len:
+        a = np.pad(a, (0, max_len - len_a), mode='constant', constant_values=a[-1])
+    if len_b < max_len:
+        b = np.pad(b, (0, max_len - len_b), mode='constant', constant_values=b[-1])
+    return a + b
+
+def apply_item_reward_with_distribution(
+        raw_cdf_list: list[list[float]],
+        reward_dist: np.ndarray,
+        reward_pos: int,
+    ) -> list[list[float]]:
+    n = len(raw_cdf_list) - 1
+    reward_cdf_list = [raw_cdf_list[0][:]]  # 0 个道具占位
+    for i in range(1, n + 1):
+        temp_cdf = np.zeros(1, dtype=float)
+        for get_item in range(0, i):
+            source_cdf = raw_cdf_list[i-get_item]
+            temp_cdf = add_with_last_value_padding(reward_dist[get_item]*source_cdf, temp_cdf)
+        temp_cdf = add_with_last_value_padding(np.ones(len(temp_cdf))*sum(reward_dist[i:]), temp_cdf)
+        temp_cdf[:reward_pos] = raw_cdf_list[i][:reward_pos]
+        reward_cdf_list.append(temp_cdf)
+    return reward_cdf_list
+
 if __name__ == '__main__':
+    temp = np.zeros(1)
+    print(temp[-1])
+
+
+    test_cdf_list = [np.array([1]), np.array([0, 0, 0.1, 0.2, 0.5, 1]), np.array([0, 0, 0, 0, 0, 0, 1])]
+    test_reward_dist = [0.5, 0.25, 0.25]
+    ans = apply_item_reward_with_distribution(test_cdf_list, test_reward_dist, 1)
+    print(ans)
+    exit()
     # 处理UP卡池满240额外赠送，先得到没有满赠的模型
     dist_list = AKE.up_6star_first_character(6, multi_dist=True)
     raw_cdf_list = []
