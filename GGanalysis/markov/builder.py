@@ -4,7 +4,6 @@ import numpy as np
 import scipy.sparse as sp
 from typing import Any, List, Sequence, Optional, Tuple, Literal, Callable, Iterable, Optional
 
-
 class TransitionBuilder():
     '''
     转移矩阵构建器（Builder）。

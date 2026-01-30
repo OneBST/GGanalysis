@@ -10,3 +10,4 @@ from GGanalysis.markov.markov_method_old import *
 from GGanalysis.markov.state_space import StateSpace
 from GGanalysis.markov.transition import MarkovTransition
 from GGanalysis.markov.builder import TransitionBuilder
+from GGanalysis.markov.analysis import *
