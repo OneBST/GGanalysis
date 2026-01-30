@@ -6,13 +6,13 @@ from typing import Any, List, Sequence, Optional, Tuple, Literal, Callable, Iter
 
 class TransitionBuilder():
     '''
-    转移矩阵构建器（Builder）。
+    转移矩阵构建器
     作用：
     - 收集转移概率（三元组）
     - 支持稀疏 / 稠密两种后端
     - 最终生成一个 Transition 对象
 
-    约定使用“列随机矩阵”（column-stochastic）
+    约定使用列随机矩阵（column-stochastic）
     - add(from_id, to_id, p) 的含义是：
         P[to_id, from_id] += p
       即：从 from_id 状态转移到 to_id 的概率为 p
@@ -46,7 +46,7 @@ class TransitionBuilder():
 
     def add(self, from_id: int, to_id: int, p: float) -> None:
         '''
-        添加一条转移 from_id --(p)--> to_id
+        添加一条转移 from_id --p-> to_id
         注意：内部矩阵存储的是 P[to_id, from_id] 对应列向量
         '''
         # 输入检查
