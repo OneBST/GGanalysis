@@ -87,7 +87,7 @@ def stationary_power(
         raise ValueError("lazy must be in (0,1)")
 
     for _ in range(max_iter):
-        p_next = tm.step(p)
+        p_next = tm._step(p)
         if lazy:
             p_next = (1.0 - lazy) * p_next + lazy * p
         s = p_next.sum()

@@ -49,7 +49,7 @@ class MarkovTransition():
 
     def __call__(self, p: np.ndarray) -> np.ndarray:
         '''Sugar for one-step propagation: tm(p) == tm.step(p).'''
-        return self.step(p)
+        return self._step(p)
 
     def __matmul__(self, other: Any) -> Any:
         '''支持使用 `tm @ p` 表示一步状态传播 p_next = P @ p
@@ -59,7 +59,7 @@ class MarkovTransition():
         '''
         arr = np.asarray(other)
         if arr.ndim == 1 and arr.size == self.N:
-            return self.step(arr)
+            return self._step(arr)
         raise TypeError("TransitionMatrix @ only supports vector multiplication.")
     
     def copy(self) -> "MarkovTransition":
@@ -71,51 +71,12 @@ class MarkovTransition():
         return MarkovTransition(self.space, P=P2, backend=self.backend)
 
     # 完成矩阵转移
-    def step(self, p: np.ndarray) -> np.ndarray:
+    def _step(self, p: np.ndarray) -> np.ndarray:
         # 单步转移 p_next = P @ p
         p = np.asarray(p).reshape(-1)
         if p.size != self.N:
             raise ValueError(f"p must have length {self.N}.")
         return self.P @ p
-
-    def propagate(
-        self,
-        p0: np.ndarray,
-        steps: int,
-        record: bool = False,
-    ) -> Union[np.ndarray, List[np.ndarray]]:
-        '''
-        多步递推
-        参数：
-        - p0     : 初始分布
-        - steps  : 递推步数
-        - record : 是否记录整个轨迹
-        返回：
-        - record=False ：返回 p_T
-        - record=True  ：返回 [p0, p1, ..., p_T]
-        '''
-        p = np.asarray(p0, dtype=np.float64).reshape(-1)
-        if p.size != self.N:
-            raise ValueError(f"p0 must have length {self.N}.")
-        if steps < 0:
-            raise ValueError("steps must be >= 0.")
-        if not record:
-            for _ in range(steps):  # 稀疏矩阵这样比矩阵自乘更快
-                p = self.step(p)
-            return p
-        traj = [p.copy()]
-        for _ in range(steps):
-            p = self.step(p)
-            traj.append(p.copy())
-        return traj
-
-    def column_sums(self) -> np.ndarray:
-        # 返回每一列的概率和（长度 N 的一维数组）。
-        if self.backend == "dense":
-            return self.P.sum(axis=0, dtype=np.float64)
-        else:
-            # 稀疏矩阵 sum(axis=0) 返回 1xN 矩阵，这里拉平
-            return np.asarray(self.P.sum(axis=0)).ravel()
 
     def check_and_fix(
         self,
@@ -148,7 +109,7 @@ class MarkovTransition():
             raise ValueError("on_overflow must be error|renorm")
         if fill_unreachable not in ("self_loop", "error"):
             raise ValueError("fill_unreachable must be self_loop|error")
-        col_sum = self.column_sums()
+        col_sum = self._column_sums()
         # 记录需要补到对角线（自环）的概率
         diag_add = np.zeros(self.N, dtype=np.float64)
 
@@ -187,10 +148,18 @@ class MarkovTransition():
         if np.any(diag_add != 0):
             self._add_to_diagonal(diag_add)
         # 最终一致性检查
-        col_sum2 = self.column_sums()
+        col_sum2 = self._column_sums()
         if np.max(np.abs(col_sum2 - 1.0)) > 1e-8 and warn:
             warnings.warn(f"After check_and_fix, max|col_sum-1|={np.max(np.abs(col_sum2-1.0))}.", RuntimeWarning)
 
+    def _column_sums(self) -> np.ndarray:
+        # 返回每一列的概率和（长度 N 的一维数组）。
+        if self.backend == "dense":
+            return self.P.sum(axis=0, dtype=np.float64)
+        else:
+            # 稀疏矩阵 sum(axis=0) 返回 1xN 矩阵，这里拉平
+            return np.asarray(self.P.sum(axis=0)).ravel()
+        
     def _add_to_diagonal(self, diag_add: np.ndarray) -> None:
         # 用来补到自环的函数
         if self.backend == "dense":
