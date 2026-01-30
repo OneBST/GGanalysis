@@ -26,8 +26,9 @@ def calc_expectation(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     if isinstance(dist, FiniteDist):
         dist = dist.dist
     else:
-        dist = np.array(dist)
-    return sum(np.arange(len(dist)) * dist)
+        dist = np.asarray(dist)
+    x = np.arange(len(dist))
+    return float(np.dot(x, dist))
 
 def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     '''
@@ -36,21 +37,44 @@ def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     if isinstance(dist, FiniteDist):
         dist = dist.dist
     else:
-        dist = np.array(dist)
-    use_pulls = np.arange(len(dist))
-    exp = sum(use_pulls * dist)
-    return sum((use_pulls - exp) ** 2 * dist)
+        dist = np.asarray(dist)
+    x = np.arange(dist.size, dtype=np.float64)
+    ex = float(np.dot(x, dist))
+    ex2 = float(np.dot(x * x, dist))
+    var = ex2 - ex * ex
+    # 数值误差下可能出现 -1e-16 这种，钳到 0
+    return float(var) if var > 0.0 else 0.0
 
-def dist_squeeze(dist: Union['FiniteDist', list, np.ndarray], squeeze_factor) -> 'FiniteDist':
+def dist_squeeze(dist: Union['FiniteDist', np.ndarray], squeeze_factor) -> 'FiniteDist':
     '''
     按照 squeeze_factor 对分布进行倍数压缩，将压缩部分和存在一起
     '''
-    n = math.ceil((len(dist)-1)/squeeze_factor)+1
-    new_arr = np.zeros(n, dtype=float)
-    new_arr[0] = dist[0]
-    for i in range(1, n):
-        new_arr[i] = np.sum(dist[(i-1)*squeeze_factor+1:i*squeeze_factor+1])
-    return FiniteDist(new_arr)
+    if squeeze_factor <= 0:
+        raise ValueError("k must be >= 1")
+
+    # 取底层 1D 数组视图（不修改它）
+    arr = dist.dist if isinstance(dist, FiniteDist) else np.asarray(dist)
+    arr = np.asarray(arr, dtype=np.float64).ravel()  # 可能拷贝，但不会改原对象
+
+    if arr.size == 0:
+        return FiniteDist([1.0])  # 或者按你的语义返回 FiniteDist([0])，看你项目约定
+
+    tail = arr[1:]
+    n = tail.size
+    m_full = n // squeeze_factor
+    rem = n - m_full * squeeze_factor
+
+    out_len = 1 + m_full + (1 if rem else 0)
+    out = np.empty(out_len, dtype=np.float64)
+    out[0] = float(arr[0])
+
+    # 完整块部分 reshape + sum
+    if m_full:
+        out[1:1 + m_full] = tail[:m_full * squeeze_factor].reshape(m_full, squeeze_factor).sum(axis=1)
+    # 不足块部分单独求和
+    if rem:
+        out[-1] = float(tail[m_full * squeeze_factor:].sum())
+    return FiniteDist(out)
 
 def dist2cdf(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
     '''

@@ -1,5 +1,5 @@
 from GGanalysis.games.zenless_zone_zero.gacha_model import *
-from GGanalysis.markov_method import calc_stationary_distribution
+from GGanalysis.markov.markov_method_old import calc_stationary_distribution
 from GGanalysis import calc_expectation
 import numpy as np
 
