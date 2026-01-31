@@ -45,6 +45,9 @@ up_4star_specific_weapon = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/3)
 
 if __name__ == '__main__':
     print(1.5*common_5star(1).exp)
+    print(5*up_5star_character(1).exp)
+    print(5*up_5star_weapon(1).exp)
+    print(7*up_5star_character(1).exp+5*up_5star_weapon(1).exp)
     print(PITY_5STAR[70])
     print(PITY_5STAR[75])
     '''
