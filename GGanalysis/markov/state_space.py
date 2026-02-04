@@ -140,6 +140,10 @@ class StateSpace():
         p[self.state_to_id(state)] = 1.0
         return p
 
+    def zeros(self, dtype=np.float64) -> np.ndarray:
+        p = np.zeros(self.N, dtype=dtype)
+        return p
+
     def _atom_to_indexer(self, atom: SelectorAtom, dim: int) -> Union[int, slice, np.ndarray]:
         '''
         把某一维的 selector 片段(atom)转成 numpy 可以用的索引器：
