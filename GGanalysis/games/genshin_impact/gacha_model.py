@@ -136,7 +136,6 @@ class ClassicGenshinCommon5starInUPpoolLayer(GachaLayer):
     def __str__(self) -> str:
         return f"GenshinCommon5starInUPpoolLayer UP rate={round(self.up_rate, 2)} Stander Item={self.stander_item} DP Lenth={self.dp_lenth}"
     
-    @lru_cache
     def _forward(self, input, full_mode, is_last_UP=False) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -172,10 +171,24 @@ class ClassicGenshinCommon5starInUPpoolLayer(GachaLayer):
             output_E += c_i * (c_dist.exp + (i-1) * f_dist.exp)  # 期望累加
             output_D += c_i * (c_dist.var + (i-1) * f_dist.var + (c_dist.exp + (i-1) * f_dist.exp) ** 2)  # 期望平方累加
         output_D -= output_E ** 2  # 计算得到方差
-        output_dist.exp = output_E
-        output_dist.var = output_D
         if len(output_dist) > self.max_dist_len:
-            output_dist.__dist = output_dist.__dist[:int(self.max_dist_len)]
+            max_length = int(self.max_dist_len)
+            truncated = output_dist.dist[:max_length]
+            output_dist.set_dist(
+                truncated,
+                trim_tail_zeros=False,
+                exp=output_E,
+                var=output_D,
+                tail_mass=max(0.0, 1.0 - float(np.sum(truncated))),
+                metadata={
+                    'method': 'truncated',
+                    'truncation_length': max_length,
+                    'moment_source': 'theoretical',
+                },
+            )
+        else:
+            output_dist.exp = output_E
+            output_dist.var = output_D
         return output_dist
 
 class ClassicGenshinCommon5starInUPpoolModel(CommonGachaModel):

@@ -2,7 +2,7 @@ from GGanalysis.markov.state_space import *
 import numpy as np
 import scipy.sparse as sp
 import warnings
-from typing import Any, List, Union, Literal
+from typing import Any, Union, Literal, Optional
 
 class MarkovTransition():
     '''
@@ -14,7 +14,7 @@ class MarkovTransition():
 
     支持两种后端：
     - dense : numpy.ndarray (N, N)
-    - sparse: scipy.sparse 矩阵 (推荐使用 CSR 便于列操作和 SpMV)
+    - sparse: scipy.sparse 矩阵（内部统一为 CSR，以便高效执行 P @ p）
 
     TODO 考虑实用性后决定是否加入 自动从普通转移矩阵生成吸收链的功能：给定原始转移矩阵 P 和一组吸收态，自动构造一个新矩阵。也可以据此构造一个计算吸收概率和吸收时间期望的函数。
     '''
@@ -22,8 +22,10 @@ class MarkovTransition():
         self,
         space: StateSpace,
         P: Union[np.ndarray, sp.spmatrix],  # np.ndarray 或 scipy.sparse 矩阵
-        backend: Literal["sparse", "dense"] = "sparse",  # "sparse" 或 "dense"
+        backend: Optional[Literal["sparse", "dense"]] = None,
     ) -> None:
+        if backend is None:
+            backend = "sparse" if sp.issparse(P) else "dense"
         # 参数合法性检查
         if backend not in ("sparse", "dense"):
             raise ValueError("backend must be 'sparse' or 'dense'.")
@@ -49,7 +51,7 @@ class MarkovTransition():
 
     def __call__(self, p: np.ndarray) -> np.ndarray:
         '''Sugar for one-step propagation: tm(p) == tm.step(p).'''
-        return self._step(p)
+        return self.step(p)
 
     def __matmul__(self, other: Any) -> Any:
         '''支持使用 `tm @ p` 表示一步状态传播 p_next = P @ p
@@ -59,7 +61,7 @@ class MarkovTransition():
         '''
         arr = np.asarray(other)
         if arr.ndim == 1 and arr.size == self.N:
-            return self._step(arr)
+            return self.step(arr)
         raise TypeError("TransitionMatrix @ only supports vector multiplication.")
     
     def copy(self) -> "MarkovTransition":
@@ -70,12 +72,16 @@ class MarkovTransition():
             P2 = self.P.copy()
         return MarkovTransition(self.space, P=P2, backend=self.backend)
 
-    # 完成矩阵转移
+    def step(self, p: np.ndarray) -> np.ndarray:
+        '''执行一次状态传播 ``p_next = P @ p``。'''
+        return self._step(p)
+
+    # 完成矩阵转移（保留内部入口以兼容现有分析代码）
     def _step(self, p: np.ndarray) -> np.ndarray:
         # 单步转移 p_next = P @ p
-        p = np.asarray(p).reshape(-1)
-        if p.size != self.N:
-            raise ValueError(f"p must have length {self.N}.")
+        p = np.asarray(p)
+        if p.ndim != 1 or p.size != self.N:
+            raise ValueError(f"p must be a one-dimensional vector of length {self.N}.")
         return self.P @ p
 
     def check_and_fix(
@@ -109,9 +115,16 @@ class MarkovTransition():
             raise ValueError("on_overflow must be error|renorm")
         if fill_unreachable not in ("self_loop", "error"):
             raise ValueError("fill_unreachable must be self_loop|error")
+        data = self.P.ravel() if self.backend == "dense" else self.P.data
+        if not np.all(np.isfinite(data)):
+            raise ValueError("Transition matrix contains non-finite probabilities.")
+        if data.size and np.min(data) < -tol:
+            raise ValueError("Transition matrix contains negative probabilities.")
         col_sum = self._column_sums()
         # 记录需要补到对角线（自环）的概率
         diag_add = np.zeros(self.N, dtype=np.float64)
+        # 一次性记录所有列缩放因子，避免把 CSR 的行指针误当成列指针。
+        scale_factors = np.ones(self.N, dtype=np.float64)
 
         for j, s in enumerate(col_sum):
             if abs(s - 1.0) <= tol:
@@ -129,7 +142,7 @@ class MarkovTransition():
                 if on_underflow == "error":
                     raise ValueError(f"Column {j} state {self.space.id_to_state(j)} sums to {s} < 1 (missing probability).")
                 if on_underflow == "renorm":
-                    self._scale_column(j, 1.0 / s)
+                    scale_factors[j] = 1.0 / s
                     if warn:
                         warnings.warn(f"Column {j} state {self.space.id_to_state(j)} renormalized by factor {1.0/s}", RuntimeWarning)
                 else:
@@ -141,10 +154,12 @@ class MarkovTransition():
                 if on_overflow == "error":
                     raise ValueError(f"Column {j} state {self.space.id_to_state(j)} sums to {s} > 1 (probability overflow).")
                 else:
-                    self._scale_column(j, 1.0 / s)
+                    scale_factors[j] = 1.0 / s
                     if warn:
                         warnings.warn(f"Column {j} state {self.space.id_to_state(j)} overflow {s}; renormalized", RuntimeWarning)
-        # 统一补加自环
+        # 统一缩放列并补加自环
+        if np.any(scale_factors != 1.0):
+            self._scale_columns(scale_factors)
         if np.any(diag_add != 0):
             self._add_to_diagonal(diag_add)
         # 最终一致性检查
@@ -168,11 +183,9 @@ class MarkovTransition():
             D = sp.diags(diag_add, offsets=0, shape=(self.N, self.N), format="csr")
             self.P = (self.P + D).tocsr()
 
-    def _scale_column(self, col: int, factor: float) -> None:
-        # 将某一列整体按 factor 缩放
+    def _scale_columns(self, factors: np.ndarray) -> None:
+        '''按给定因子一次性缩放各列。'''
         if self.backend == "dense":
-            self.P[:, col] *= factor
+            self.P *= factors[None, :]
         else:
-            start, end = self.P.indptr[col], self.P.indptr[col + 1]
-            if start != end:
-                self.P.data[start:end] *= factor
+            self.P = (self.P @ sp.diags(factors, format="csr")).tocsr()

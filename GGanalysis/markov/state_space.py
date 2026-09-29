@@ -1,4 +1,5 @@
 from typing import Any, List, Sequence, Tuple, Union, Literal
+from numbers import Integral
 import numpy as np
 import scipy.sparse as sp
 
@@ -19,11 +20,10 @@ Selector = Union[Sequence[SelectorAtom], Tuple[SelectorAtom, ...]]
 
 
 def _as_1d_int_array(x: Union[Sequence[int], np.ndarray]) -> np.ndarray:
-    arr = np.asarray(x, dtype=np.int64).ravel()
-    if arr.size == 0:
-        return arr
-    if np.any(arr < 0):
-        raise ValueError("Index values must be non-negative.")
+    raw = np.asarray(x)
+    arr = raw.astype(np.int64, copy=False).ravel()
+    if not np.all(raw.ravel() == arr):
+        raise ValueError("Index values must be integers.")
     return arr
 
 class StateSpace():
@@ -46,9 +46,9 @@ class StateSpace():
     def __init__(
         self,
         maxes: Sequence[int],
-        oob: Literal["clip", "wrap", "error"] = "clip",
+        oob: Literal["clip", "wrap", "error"] = "error",
     ) -> None:
-        if not all(isinstance(m, int) and m >= 0 for m in maxes):
+        if not all(isinstance(m, Integral) and m >= 0 for m in maxes):
             raise ValueError("All elements in maxes must be non-negative integers.")
         if oob not in ("clip", "wrap", "error"):
             raise ValueError("oob must be one of {'clip', 'wrap', 'error'}.")
@@ -69,6 +69,17 @@ class StateSpace():
         # 总状态数 N
         self.N: int = int(np.prod(self.shape, dtype=np.int64))
 
+    @classmethod
+    def from_shape(
+        cls,
+        shape: Sequence[int],
+        oob: Literal["clip", "wrap", "error"] = "error",
+    ) -> "StateSpace":
+        '''根据每一维的长度构造状态空间，比包含上界的 ``maxes`` 更直观。'''
+        if not all(isinstance(size, Integral) and size > 0 for size in shape):
+            raise ValueError("All elements in shape must be positive integers.")
+        return cls([int(size) - 1 for size in shape], oob=oob)
+
     def max_state(self) -> np.ndarray:
         '''返回最大状态向量 [max_0, ..., max_{d-1}]（便于外部查看/计算）。'''
         return np.asarray(self.maxes, dtype=np.int64)
@@ -82,7 +93,10 @@ class StateSpace():
         '''
         if len(state) != self.dims:
             raise ValueError(f"State must have length {self.dims}. Got {len(state)}.")
-        s = np.asarray(state, dtype=np.int64).copy()  # 复制一份避免改动调用者传入的数据
+        raw = np.asarray(state)
+        s = raw.astype(np.int64, copy=True)
+        if not np.all(raw == s):
+            raise ValueError("All state values must be integers.")
         if self.oob == "clip":
             # 裁剪到合法范围
             for k, m in enumerate(self.maxes):
@@ -114,6 +128,23 @@ class StateSpace():
             idx += int(v) * int(stride)
         return int(idx)
 
+    def states_to_ids(self, states: Union[Sequence[Sequence[int]], np.ndarray]) -> np.ndarray:
+        '''批量把形状为 ``(数量, 维度数)`` 的状态数组编码为一维编号。'''
+        raw = np.asarray(states)
+        if raw.ndim != 2 or raw.shape[1] != self.dims:
+            raise ValueError(f"states must have shape (n, {self.dims}).")
+        values = raw.astype(np.int64, copy=True)
+        if not np.all(raw == values):
+            raise ValueError("All state values must be integers.")
+        maximum = np.asarray(self.maxes, dtype=np.int64)
+        if self.oob == "clip":
+            np.clip(values, 0, maximum, out=values)
+        elif self.oob == "wrap":
+            values %= maximum + 1
+        elif np.any((values < 0) | (values > maximum)):
+            raise ValueError("states contain out-of-bounds values.")
+        return values @ np.asarray(self.strides, dtype=np.int64)
+
     def id_to_state(self, idx: int) -> np.ndarray:
         '''
         把一维 id 解码回多维 state（与 state_to_id 互逆）。
@@ -131,6 +162,15 @@ class StateSpace():
 
         return out
 
+    def ids_to_states(self, ids: Union[Sequence[int], np.ndarray]) -> np.ndarray:
+        '''批量把一维编号解码为形状为 ``(数量, 维度数)`` 的状态数组。'''
+        ids = np.asarray(ids, dtype=np.int64).reshape(-1)
+        if np.any((ids < 0) | (ids >= self.N)):
+            raise ValueError(f"ids must be in [0, {self.N - 1}].")
+        if ids.size == 0:
+            return np.empty((0, self.dims), dtype=np.int64)
+        return np.column_stack(np.unravel_index(ids, self.shape, order="C"))
+
     def delta(self, state: Sequence[int], dtype=np.float64) -> np.ndarray:
         '''
         在指定状态上的 delta 分布（概率向量）：
@@ -146,40 +186,41 @@ class StateSpace():
 
     def _atom_to_indexer(self, atom: SelectorAtom, dim: int) -> Union[int, slice, np.ndarray]:
         '''
-        把某一维的 selector 片段(atom)转成 numpy 可以用的索引器：
+        把某一维的 selector 片段(atom)转成 numpy 可以用的索引器。
+
+        selector 始终采用 Python/NumPy 索引语义，不受状态坐标 ``oob`` 设置影响：
         - None -> slice(None)  (全选)
-        - int  -> 固定某个值(并按 oob 处理)
-        - slice -> 范围选择(保留 slice 语义)
-        - list/ndarray -> 显式值集合(会按 oob clip/wrap/error)
+        - int  -> 固定某个值，允许 -1、-2 等合法负索引
+        - slice -> 原样保留，由 numpy 解释端点、负数和步长
+        - list/ndarray -> 显式值集合，允许合法负索引，并采用集合语义去重
+
+        状态坐标仍由 ``normalize_state`` 按 ``oob`` 处理；selector 与状态坐标是
+        两套有意区分的语义。
         '''
-        maxv = self.maxes[dim]
+        size = self.shape[dim]
         if atom is None:
             return slice(None)
-        # 维度选择为单个 int：等价“固定这个维度取值”
-        if isinstance(atom, int):
-            if self.oob == "clip":
-                atom = max(0, min(int(atom), int(maxv)))
-            elif self.oob == "wrap":
-                atom = int(atom) % (int(maxv) + 1)
-            else:
-                if atom < 0 or atom > maxv:
-                    raise ValueError(f"Selector int out of bounds at dim {dim}: {atom}.")
-            return int(atom)
-        # slice：范围选择（这里不强行 clip；numpy 切片 stop 超界也不会报错）
+        # Python 整数索引：[-size, size-1] 合法，负数从末尾计数。
+        if isinstance(atom, Integral):
+            index = int(atom)
+            if index < -size or index >= size:
+                raise IndexError(
+                    f"Selector index {index} is out of bounds for axis {dim} with size {size}."
+                )
+            return index + size if index < 0 else index
+        # slice 始终遵循原生 numpy 切片语义，不应用 clip/wrap/error。
         if isinstance(atom, slice):
             return atom
-        # 其它情况：认为是“离散集合”（如 list/set/ndarray）
-        arr = _as_1d_int_array(atom)  # 转成 int64 1D 数组，并检查非负
+        # 离散集合逐项使用 Python 整数索引规则；selector 表示区域，因此去除重复值。
+        arr = _as_1d_int_array(atom)
         if arr.size == 0:
             return arr
-        if self.oob == "clip":
-            arr = np.clip(arr, 0, int(maxv))
-        elif self.oob == "wrap":
-            arr = arr % (int(maxv) + 1)
-        else:
-            if np.any(arr > maxv):
-                raise ValueError(f"Selector contains out of bounds value(s) at dim {dim}.")
-        return arr
+        if np.any((arr < -size) | (arr >= size)):
+            raise IndexError(
+                f"Selector contains out-of-bounds values for axis {dim} with size {size}."
+            )
+        arr = np.where(arr < 0, arr + size, arr)
+        return np.unique(arr)
 
     def _view(self, dist: np.ndarray) -> np.ndarray:
         dist = np.asarray(dist)
@@ -191,7 +232,7 @@ class StateSpace():
         if not isinstance(selector, (list, tuple)) or len(selector) != self.dims:
             return False
         for a in selector:
-            if a is None or isinstance(a, (slice, int)):
+            if a is None or isinstance(a, (slice, Integral)):
                 continue
             return False
         return True
@@ -338,9 +379,14 @@ class StateSpace():
                 f"Use sparse=True or select_ids()."
             )
 
-        grid = np.zeros(self.shape, dtype=dtype)
-        grid[idx] = 1
-        return grid.ravel(order="C")
+        mask = np.zeros(self.N, dtype=dtype)
+        if self._is_block_selector(selector):
+            # int/slice/None 不触发多个数组的配对高级索引，保留零额外 ID 数组的快路径。
+            mask.reshape(self.shape)[idx] = 1
+        else:
+            # 离散集合需要笛卡尔积语义；select_ids 已统一实现该语义。
+            mask[self.select_ids(selector)] = 1
+        return mask
 
     def select_ids(self, selector: Selector) -> np.ndarray:
         '''
@@ -361,21 +407,8 @@ class StateSpace():
                 v = np.array([ix], dtype=np.int64)
 
             elif isinstance(ix, slice):
-                # slice -> 变成显式 arange
-                start = 0 if ix.start is None else int(ix.start)
-                stop = self.shape[d] if ix.stop is None else int(ix.stop)
-                step = 1 if ix.step is None else int(ix.step)
-                v = np.arange(start, stop, step, dtype=np.int64)
-
-                # 根据 oob 策略对范围做处理
-                if self.oob == "clip":
-                    v = v[(v >= 0) & (v <= self.maxes[d])]
-                elif self.oob == "wrap":
-                    v = v % (self.maxes[d] + 1)
-                    v = np.unique(v)
-                else:
-                    if np.any(v < 0) or np.any(v > self.maxes[d]):
-                        raise ValueError(f"Slice out of bounds at dim {d}.")
+                # 直接让 numpy 解释负数、越界端点和负步长，确保所有 selector API 一致。
+                v = np.arange(self.shape[d], dtype=np.int64)[ix]
             else:
                 # ndarray 索引器：已经是显式集合
                 v = np.asarray(ix, dtype=np.int64).ravel()  # 转换类型并展平为1维
@@ -391,3 +424,96 @@ class StateSpace():
         multi = tuple(g.reshape(-1) for g in grids)  # 展平成一维坐标列表
         ids = np.ravel_multi_index(multi, dims=self.shape, mode="raise", order="C")
         return ids.astype(np.int64, copy=False)
+
+    def select_slice(self, selector: Selector) -> slice:
+        '''
+        若 selector 对应的状态在 1D 编码中为连续块，返回 ``slice(start, stop)``。
+        不满足连续性条件时抛出 ValueError。
+
+        与 ``select_ids()`` 不同，本方法不分配状态数组，时间复杂度 O(dims)，
+        返回的 slice 可直接用于 numpy 数组的快速切片索引。
+
+        连续性条件（C-order 混合进制编码下的充要条件）：
+        从第一个取值数量 > 1 的维度开始，之后的所有维度必须是该维度的全选
+        （即 ``:`` 或等效的 ``slice(None)``）。在此之前，每个维度只能是单值
+        或连续 range(step=1)。
+
+        Examples
+        --------
+        >>> ss = StateSpace([89, 72])
+        >>> ss.select_slice([5, None])        # pity=5 的所有位置
+        slice(365, 438, None)
+        >>> ss.select_slice([3, slice(10, 20)])  # pity=3, pos 10..19
+        slice(229, 239, None)
+        >>> ss.select_slice([slice(3, 6), None])  # pity=3..5 的所有位置
+        slice(219, 438, None)
+        >>> ss.select_slice([None, 5])         # 不连续，抛出 ValueError
+        '''
+        idx = self.parse_selector(selector)
+        values: List[np.ndarray] = []
+        sizes: List[int] = []
+
+        for d, ix in enumerate(idx):
+            if isinstance(ix, int):
+                v = np.array([ix], dtype=np.int64)
+
+            elif isinstance(ix, slice):
+                step = 1 if ix.step is None else int(ix.step)
+                if step != 1:
+                    raise ValueError(
+                        f"select_slice requires step=1, got step={step} at dim {d}."
+                    )
+                v = np.arange(self.shape[d], dtype=np.int64)[ix]
+            else:
+                # ndarray 索引器
+                v = np.asarray(ix, dtype=np.int64).ravel()
+
+            # 检查取值是否连续（step=1）
+            if len(v) > 1:
+                if not np.all(np.diff(v) == 1):
+                    raise ValueError(
+                        f"Values at dim {d} are not contiguous (step must be 1)."
+                    )
+
+            values.append(v)
+            sizes.append(int(v.size))
+
+        # 空结果
+        if any(s == 0 for s in sizes):
+            return slice(0, 0)
+
+        # 检查连续性条件：首个非单例维度之后，所有维度必须是全选
+        found_first_var = False
+        for d in range(self.dims):
+            if sizes[d] > 1:
+                if found_first_var:
+                    # 之后出现的多值维度必须是该维度的全选
+                    if sizes[d] != self.shape[d] or int(values[d][0]) != 0:
+                        raise ValueError(
+                            f"Selector is not a contiguous 1D block: "
+                            f"dim {d} has {sizes[d]} values but the full "
+                            f"dimension size is {self.shape[d]}. "
+                            f"After the first varying dimension, all subsequent "
+                            f"dimensions must be full-range (:)."
+                        )
+                else:
+                    found_first_var = True
+            elif found_first_var:
+                # 首个变化维度之后，单例维度必须实际为全选（即 shape[d] == 1）
+                if self.shape[d] != 1:
+                    raise ValueError(
+                        f"Selector is not a contiguous 1D block: "
+                        f"dim {d} has only 1 value, but its full size is "
+                        f"{self.shape[d]}. After the first varying dimension, "
+                        f"all subsequent dimensions must be full-range (:)."
+                        f"\nTip: use [{', '.join(':' if j==d else '...' for j in range(self.dims))}] "
+                        f"instead of a fixed index here."
+                    )
+
+        # 计算起止位置
+        # start = sum(values[d][0] * strides[d])
+        start = sum(int(v[0]) * s for v, s in zip(values, self.strides))
+        total = 1
+        for sz in sizes:
+            total *= sz
+        return slice(start, start + total)

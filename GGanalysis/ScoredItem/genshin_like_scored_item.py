@@ -4,18 +4,23 @@ import itertools
 import numpy as np
 from typing import Callable
 
-def create_get_init_state(stats_weights=None, sub_stats_ranks=[7,8,9,10], rank_multi=1) -> Callable[[list[str], float], ScoredItem]:
+def create_get_init_state(stats_weights=None, sub_stats_ranks=[7,8,9,10], rank_multi=1) -> Callable[[list[str], float, float], ScoredItem]:
     """返回计算 获得拥有指定初始副词条的道具初始得分分布，及该得分下每个副词条的期望占比 的函数"""
     @lru_cache(maxsize=65536)
-    def get_init_state(stat_comb, default_weight=0):
-        score_dist = np.zeros(40 * rank_multi + 1)
+    def get_init_state(stat_comb, default_weight=0, init_score=0):
+        init_score = float(init_score)
+        if not np.isfinite(init_score) or init_score < 0:
+            raise ValueError("init_score must be a finite non-negative number.")
+        scaled_init_score = init_score * rank_multi
+        max_score = 40 * rank_multi + int(np.ceil(scaled_init_score))
+        score_dist = np.zeros(max_score + 1)
         sub_stat_exp = {}
         for sub_stat in stat_comb:
-            sub_stat_exp[sub_stat] = np.zeros(40 * rank_multi + 1)
+            sub_stat_exp[sub_stat] = np.zeros(max_score + 1)
         # 生成所有可能的初始副词条组合
         stat_score_combinations = itertools.product(sub_stats_ranks, repeat=len(stat_comb))
         for stat_score in stat_score_combinations:
-            total_score = 0
+            total_score = scaled_init_score
             for score, stat in zip(stat_score, stat_comb):
                 total_score += score * stats_weights.get(stat, default_weight) * rank_multi
             # 采用比例分配
@@ -23,7 +28,7 @@ def create_get_init_state(stats_weights=None, sub_stats_ranks=[7,8,9,10], rank_m
             R = L + 1
             w_L = R - total_score
             w_R = total_score - L
-            R = min(R, 40 * rank_multi)
+            R = min(R, max_score)
             score_dist[L] += w_L
             score_dist[R] += w_R
             for score, stat in zip(stat_score, stat_comb):

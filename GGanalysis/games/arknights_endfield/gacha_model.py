@@ -20,6 +20,7 @@ __all__ = [
     # 'up_6star_first_character',
     # 'up_6star_character_after_first',
     'up_6star_character_reward',
+    'up_6star_character_reward_rerun',
     'weapon_6star',
     # 'up_6star_first_weapon',
     # 'up_6star_weapon_after_first',
@@ -104,11 +105,14 @@ class AKERewardModel(GachaModel):
         return reward_dist_list[item_num]
 
 class AKECharacterRewardModel(GachaModel):
-    def __init__(self, base_model, reward_rule, get_extra_pull_pos=30, get_extra_pull=10, base_p=0.004):
+    def __init__(self, base_model, reward_rule, get_extra_pull_pos=(30,), get_extra_pull=10, base_p=0.004):
         super().__init__()
         self.base_model = base_model
         self.reward_rule = reward_rule
-        self.get_extra_pull_pos = get_extra_pull_pos
+        # 支持单个 int 或多个位置的序列，统一转为升序列表
+        if isinstance(get_extra_pull_pos, (int, np.integer)):
+            get_extra_pull_pos = (get_extra_pull_pos,)
+        self.get_extra_pull_pos = sorted(get_extra_pull_pos)
         self.get_extra_pull = get_extra_pull
         self.num_p = binom.pmf(np.arange(0, get_extra_pull+1), get_extra_pull, base_p)
 
@@ -121,9 +125,15 @@ class AKECharacterRewardModel(GachaModel):
         # 获得应用了固定抽数额外返还的cdf
         local_reward_rule = lambda x: self.reward_rule(x) - reward_counter  # 考虑垫了reward个数后的情况
         reward_cdf_list = apply_interval_reward(raw_cdf_list, reward_rule=local_reward_rule)
-        # 获得应用了固定位置返还抽数的cdf
+        # 获得应用了固定位置返还抽数的cdf（支持多个赠送位置）
         if pull_reward_counter != -1:
-            pull_cdf_list = apply_item_reward_with_distribution(reward_cdf_list, self.num_p, self.get_extra_pull_pos-pull_reward_counter)
+            pull_cdf_list = reward_cdf_list
+            for reward_pos in self.get_extra_pull_pos:
+                # 距该奖励还差的抽数；已经触发的奖励直接跳过
+                remaining = reward_pos - pull_reward_counter
+                if remaining <= 0:
+                    continue
+                pull_cdf_list = apply_item_reward_with_distribution(pull_cdf_list, self.num_p, remaining)
         else:
             pull_cdf_list = reward_cdf_list
         # 处理为分布列
@@ -167,8 +177,10 @@ PITY_W5STAR[10] = 1
 common_6star = PityModel(PITY_6STAR)
 up_6star_first_character = AKESinglePityModel(PITY_6STAR, 0.5, HardGuarantee_UP6star)  # single_up_pity 填写-1表示已经没有第一个UP6星的120保底
 up_6star_character_after_first = PityBernoulliModel(PITY_6STAR, 0.5)  # 不考虑第一个
-# up_6star_character_reward_old = AKERewardModel(up_6star_first_character, IntervalAutoReward_UP6star)
-up_6star_character_reward = AKECharacterRewardModel(up_6star_first_character, IntervalAutoReward_UP6star, 30, 10, 0.004)
+# 定义的UP6★模型
+up_6star_character_reward = AKECharacterRewardModel(up_6star_first_character, IntervalAutoReward_UP6star, [30], 10, 0.004)
+# 复刻卡池UP6★模型
+up_6star_character_reward_rerun = AKECharacterRewardModel(up_6star_first_character, IntervalAutoReward_UP6star, [30, 60, 90], 10, 0.004)
 
 weapon_6star = PityModel(PITY_W6STAR)
 up_6star_first_weapon = AKESinglePityModel(PITY_W6STAR, 0.25, HardGuarantee_UPW6star)
@@ -205,9 +217,13 @@ if __name__ == '__main__':
     print('常驻池6星期望为', common_6star(1).exp)
     character_dists = up_6star_character_reward(6, True)
     for i, dist in zip(range(1, len(character_dists)), character_dists[1:]):
-        print(f'从零开始恰好获取到{i}个UP6星角色的期望为{dist.exp}抽（含满赠）平均每个{dist.exp/i}抽')
+        print(f'从零开始恰好获取到{i}个UP6星角色的期望为{dist.exp:.2f}抽（含满赠）平均每个{dist.exp/i:.2f}抽')
     print("-"*95)
     weapon_dists = up_6star_weapon_reward(6, True)
     for i, dist in zip(range(1, len(weapon_dists)), weapon_dists[1:]):
-        print(f'从零开始恰好获取到{i}个UP6星武器的期望为{dist.exp}抽（含满赠）平均每个{dist.exp/i}抽')
-    pass
+        print(f'从零开始恰好获取到{i}个UP6星武器的期望为{dist.exp:.2f}抽（含满赠）平均每个{dist.exp/i:.2f}抽')
+    print("-"*95)
+    rerun_dists = up_6star_character_reward_rerun(6, True)
+    for i, dist in zip(range(1, len(character_dists)), rerun_dists[1:]):
+        print(f'从零开始恰好获取到{i}个复刻UP6星角色的期望为{dist.exp:.2f}抽（含满赠）平均每个{dist.exp/i:.2f}抽')
+    

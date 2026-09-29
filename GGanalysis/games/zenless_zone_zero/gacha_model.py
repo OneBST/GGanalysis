@@ -68,7 +68,7 @@ class ExclusiveRescreeningModel(GachaModel):
         ans_list = [FiniteDist([1]), first_dist]
         if item_num > 1:
             # 处理第二个
-            second_dist = self.afterwards_model(1, up_pity) * first_dist
+            second_dist = self.afterwards_model(1, up_pity=up_pity) * first_dist
             ans_list.append(second_dist)
         if item_num > 2:
             # 处理第三及更多个
@@ -90,8 +90,10 @@ class ExclusiveRescreeningModel(GachaModel):
                 first_dist = self._calc_first_ten_discount(first_dist)
             return first_dist
         if first_ten_discount:
-            return self._calc_first_ten_discount(first_dist * self.afterwards_model(item_num-1, up_pity))
-        return first_dist * self.afterwards_model(item_num-1, up_pity)
+            return self._calc_first_ten_discount(
+                first_dist * self.afterwards_model(item_num - 1, up_pity=up_pity)
+            )
+        return first_dist * self.afterwards_model(item_num - 1, up_pity=up_pity)
 
 # 绝区零普通5星保底概率表
 PITY_5STAR = np.zeros(91)
@@ -172,4 +174,3 @@ if __name__ == '__main__':
                     p_raise = p_step
                     print(p, i, p_step, PITY_5STAR[70:81])
     '''
-    

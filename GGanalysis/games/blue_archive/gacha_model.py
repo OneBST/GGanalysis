@@ -68,10 +68,11 @@ def pull_exchange_dp_1(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, e
     import numpy as np
     # A为默认先抽角色 B默认为后抽角色
     # 设置状态有三：两者都集齐了的状态11，获得了A的状态01，获得了B的状态10，两者都没有的00
-    M = np.zeros((exchange_pos+1, 4), dtype=float)
+    max_pull = exchange_pos * 2
+    M = np.zeros((max_pull+1, 4), dtype=float)
     M[0, 0] = 1
     # 根据状态转移进行DP
-    for pull in range(1, exchange_pos+1):
+    for pull in range(1, max_pull+1):
         M[pull, 0] += M[pull-1, 0] * (1-up_p-(base_p-up_p)/other_charactors)
 
         M[pull, 1] += M[pull-1, 0] * up_p
@@ -97,7 +98,13 @@ def pull_exchange_dp_1(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, e
         # M[pull, 3] += M[pull-1, 1] * (base_p-up_p)/other_charactors
         # M[pull, 3] += M[pull-1, 3]
 
-    return M[:, 3]
+    cdf = M[:, 3].copy()
+    # 第一井后，已经抽到任一目标时可兑换另一个目标。
+    cdf[exchange_pos:] += M[exchange_pos:, 1]
+    cdf[exchange_pos:] += M[exchange_pos:, 2]
+    # 第二井保证可以用两次兑换集齐两个目标。
+    cdf[max_pull] = 1
+    return cdf
 
 def pull_exchange_dp_10(base_p=P_3, up_p=P_3UP, other_charactors=STANDER_3STAR, exchange_pos=EXCHANGE_PULL):
     '''在重复角色获得神名文字无价值情情况下用最低抽数集齐的策略，即会切换卡池抽，每次十连抽'''
@@ -175,6 +182,7 @@ def get_common_refund(rc3=0.5, rc2=1, rc1=1,has_up=False):
 
 if __name__ == '__main__':
     import copy
+    import matplotlib.pyplot as plt
     from GGanalysis.distribution_1d import *
     
     # 平稳时来自保底的比例
@@ -186,31 +194,35 @@ if __name__ == '__main__':
     # 计算单抽仅获取UP抽数期望（拥有即算，在200抽抽到时虽然可以多井一个但也算保证获取一个UP
     model = SimpleDualCollection(other_charactors=STANDER_3STAR)
     both_ratio, a_ratio, b_ratio, none_ratio = model.get_dist(calc_pull=EXCHANGE_PULL*2)
-    temp_dist = both_ratio+a_ratio
-    temp_dist = temp_dist[:201]
-    temp_dist[200] = 1
-    temp_dist = cdf2dist(temp_dist)
-    print("含井单抽仅获取UP角色的抽数期望", temp_dist.exp)
+    temp_dist_1 = both_ratio+a_ratio
+    temp_dist_1 = temp_dist_1[:201]
+    temp_dist_1[200] = 1
+    temp_dist_1 = cdf2dist(temp_dist_1)
+    print("含井单抽仅获取UP角色的抽数期望", temp_dist_1.exp)
     # 含井单抽仅获取UP角色的抽数期望 107.80200663752993
 
     # 计算十连抽仅获取UP抽数期望（拥有即算，在200抽抽到时虽然可以多井一个但也算保证获取一个UP
-    temp_dist = both_ratio+a_ratio
-    temp_dist = temp_dist[:201]
-    temp_dist[200] = 1
-    temp_dist = cdf2dist(temp_dist)
-    temp_dist = dist_squeeze(temp_dist, 10)
-    print("含井十连仅获取UP角色的抽数期望", temp_dist.exp*10)
+    temp_dist_1_tenpull = both_ratio+a_ratio
+    temp_dist_1_tenpull = temp_dist_1_tenpull[:201]
+    temp_dist_1_tenpull[200] = 1
+    temp_dist_1_tenpull = cdf2dist(temp_dist_1_tenpull)
+    temp_dist_1_tenpull = dist_squeeze(temp_dist_1_tenpull, 10)
+    print("含井十连仅获取UP角色的抽数期望", temp_dist_1_tenpull.exp*10)
     # 含井十连仅获取UP角色的抽数期望 111.24149841754267
 
+    # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，出了对应学生就换池的方法进行)
+    temp_dist_dual_1 = cdf2dist(pull_exchange_dp_1())
+    print("一直单抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望", temp_dist_dual_1.exp)
+    # 一直单抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望 181.71405074051484
 
     # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，出了对应学生就换池的方法进行)
-    temp_dist = cdf2dist(pull_exchange_dp_10())
-    print("一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望", temp_dist.exp*10)
+    temp_dist_dual_10 = cdf2dist(pull_exchange_dp_10())
+    print("一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望", temp_dist_dual_10.exp*10)
     # 一直十连抽，抽1井1获得角色即换池策略下获得同时UP的两类角色的抽数期望 185.85079879472937
 
     # 计算获取同期两个UP，采用抽1井1方法的期望（按照每次十连，但是不换池的方法)
-    temp_dist = cdf2dist(no_exchange_dp_10())
-    print("不换池情况的期望", temp_dist.exp*10)
+    temp_dist_dual = cdf2dist(no_exchange_dp_10())
+    print("不换池情况的期望", temp_dist_1.exp*10)
 
     # 计算含/不含井的神名文字返还
 
@@ -222,3 +234,86 @@ if __name__ == '__main__':
     print("抽满一个角色的估计抽数是:", 107.80200663752993 + left / E_up_pull)
     # 抽满一个角色的估计抽数是: 291.13533997086324
 
+    # 新卡池逻辑
+    ans = np.zeros(201)
+    left = 1
+    for i in range(1, 100):
+        ans[i] = left * P_3UP
+        left *= 1 - P_3UP
+    ans[100] = 0.5 * left
+    left *= 0.5
+    for i in range(101, 200):
+        ans[i] = left * P_3UP
+        left *= 1 - P_3UP
+    ans[200] = left
+
+    # 抽1个
+    new_1_up3 = FiniteDist(ans)
+    # 抽2个
+    new_2_up3 = new_1_up3 ** 2
+
+    # 对比新旧卡池获取1个、2个UP角色的累计分布
+    old_1_up3 = temp_dist_1
+    old_2_up3 = cdf2dist(pull_exchange_dp_1())
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), dpi=120)
+    comparison_data = (
+        (axes[0], old_1_up3, new_1_up3, 'Obtain 1 UP'),
+        (axes[1], old_2_up3, new_2_up3, 'Obtain 2 UPs'),
+    )
+    for ax, old_dist, new_dist, title in comparison_data:
+        ax.plot(
+            np.arange(len(old_dist)),
+            old_dist.cdf,
+            label=f'Old (E={old_dist.exp:.2f})',
+            drawstyle='steps-post',
+            linewidth=2,
+        )
+        ax.plot(
+            np.arange(len(new_dist)),
+            new_dist.cdf,
+            label=f'New (E={new_dist.exp:.2f})',
+            drawstyle='steps-post',
+            linewidth=2,
+        )
+        ax.set_title(title)
+        ax.set_xlabel('Pulls')
+        ax.set_ylabel('CDF')
+        ax.set_ylim(0, 1.02)
+        ax.grid(alpha=0.3)
+        ax.legend()
+
+    fig.suptitle('Blue Archive: Old vs New Banner')
+    fig.tight_layout()
+
+    # 对比新旧卡池获取1个、2个UP角色的概率质量分布
+    fig_dist, axes_dist = plt.subplots(1, 2, figsize=(14, 5), dpi=120)
+    distribution_data = (
+        (axes_dist[0], old_1_up3, new_1_up3, 'Obtain 1 UP'),
+        (axes_dist[1], old_2_up3, new_2_up3, 'Obtain 2 UPs'),
+    )
+    for ax, old_dist, new_dist, title in distribution_data:
+        ax.plot(
+            np.arange(len(old_dist)),
+            old_dist.dist,
+            label='Old',
+            drawstyle='steps-mid',
+            linewidth=1.5,
+        )
+        ax.plot(
+            np.arange(len(new_dist)),
+            new_dist.dist,
+            label='New',
+            drawstyle='steps-mid',
+            linewidth=1.5,
+        )
+        ax.set_title(title)
+        ax.set_xlabel('Pulls')
+        ax.set_ylabel('Probability')
+        ax.set_ylim(bottom=0)
+        ax.grid(alpha=0.3)
+        ax.legend()
+
+    fig_dist.suptitle('Blue Archive: Old vs New Banner Distribution')
+    fig_dist.tight_layout()
+    plt.show()

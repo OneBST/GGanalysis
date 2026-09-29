@@ -120,7 +120,10 @@ class StarRailRelic(ScoredItem):
             if sub_stats_filter is not None:
                 if sub_stats_filter(stat_comb) is False:
                     continue
-            temp_base = get_init_state(stat_comb, init_score=self.main_stat_score[self.main_stat])
+            temp_base = get_init_state(
+                stat_comb,
+                init_score=self.main_stat_score[self.main_stat],
+            )
             temp_level_up = get_state_level_up(stat_comb)
             # 初始3词条和初始四词条的情况
             temp_3 = (

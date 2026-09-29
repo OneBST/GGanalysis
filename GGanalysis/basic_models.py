@@ -95,6 +95,7 @@ class BernoulliGachaModel(GachaModel):
                 if calc_error < self.e_error or test_len > self.max_dist_len:
                     if test_len > self.max_dist_len:
                         print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+                    output_dist.tail_mass = max(0.0, 1.0 - float(np.sum(output_dist.dist)))
                     output_dist.exp = output_E
                     output_dist.var = output_D
                     return output_dist
