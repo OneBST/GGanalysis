@@ -1,6 +1,10 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../GGanalysis'))
+import ast
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT))
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -13,7 +17,14 @@ sys.path.insert(0, os.path.abspath('../../GGanalysis'))
 project = 'GGanalysis'
 copyright = '2023, OneBST'
 author = 'OneBST'
-release = '0.3.0'
+# 从源码打包配置读取版本，不执行 setup.py，也不依赖已安装包版本。
+setup_tree = ast.parse((REPO_ROOT / "setup.py").read_text(encoding="utf-8"))
+release = next(
+    ast.literal_eval(node.value)
+    for node in setup_tree.body
+    if isinstance(node, ast.Assign)
+    and any(isinstance(target, ast.Name) and target.id == "VERSION" for target in node.targets)
+)
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

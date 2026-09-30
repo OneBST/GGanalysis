@@ -8,7 +8,11 @@ class GachaModel(object):
     pass
 
 class CommonGachaModel(GachaModel):
-    '''基本抽卡类 对每次获取道具是独立事件的抽象'''
+    '''组合首次条件分布与后续 IID 周期的抽卡模型。
+
+    正目标数 n 的分布为 ``c * f ** (n - 1)``，其中 c 为首次条件分布，
+    f 为完整重置后的分布。首次花费须与后续周期独立，后续周期须 IID。
+    '''
     def __init__(self) -> None:
         super().__init__()
         # 初始化抽卡层
@@ -16,7 +20,11 @@ class CommonGachaModel(GachaModel):
         # 在本层中定义抽卡层
     
     def __call__(self, item_num: int=1, multi_dist: bool=False, *args: any, **kwds: any) -> Union[FiniteDist, list]:
-        '''调用本类时返回分布'''
+        '''返回指定目标数量的花费分布。
+
+        ``item_num > 0`` 且 ``multi_dist=True`` 时返回含零目标项的列表。
+        ``item_num=0`` 时无论 multi_dist 如何均返回零花费 FiniteDist。
+        '''
         parameter_list = self._build_parameter_list(*args, **kwds)
         # 如果没有对 _build_parameter_list 进行定义就输入参数，报错
         if args != () and kwds != {} and parameter_list is None:
@@ -79,8 +87,8 @@ class BernoulliGachaModel(GachaModel):
 
     def __call__(self, item_num: int, calc_pull: int=None) -> FiniteDist:
         '''
-            返回抽物品个数的分布
-            这里 calc_pull 表示了计算的最高抽数，高于此不计算，若不指定则返回自动长度
+            返回获得 item_num 个目标所需抽数的分布。
+            calc_pull 表示计算的最高抽数，高于此不计算；不指定则自动选择长度。
         '''
         output_E = item_num / self.p
         output_D = item_num * (1 - self.p) / self.p ** 2
@@ -186,13 +194,25 @@ class GeneralCouponCollectorModel(GachaModel):
         else:
             target_state = self.model.encode_state_number(target_item)
         output_E = self.model.get_expectation(init_state, target_state)
+        if output_E == 0:
+            return FiniteDist([1], exp=0, tail_mass=0)
+        cdf_iterator = self.model.iter_collection_p(init_state, target_state)
+        cdf = [next(cdf_iterator)]
+        partial_E = 0.0
         test_len = max(int(output_E), 2)
+        pull = 0
         while True:
-            output_dist = cdf2dist(self.model.get_collection_p(test_len, init_state, target_state))
-            calc_error = abs(calc_expectation(output_dist)-output_E)/output_E
-            if calc_error < self.e_error or test_len > self.max_dist_len:
-                if test_len > self.max_dist_len:
-                    print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+            pull += 1
+            current_cdf = next(cdf_iterator)
+            partial_E += pull * (current_cdf - cdf[-1])
+            cdf.append(current_cdf)
+            if pull < test_len:
+                continue
+            calc_error = abs(partial_E-output_E)/output_E
+            if calc_error < self.e_error or pull > self.max_dist_len:
+                if pull > self.max_dist_len:
+                    print('Warning: distribution is too long! len:', pull, 'Error:', calc_error)
+                output_dist = cdf2dist(np.asarray(cdf))
                 output_dist.exp = output_E
                 return output_dist
             test_len *= 2

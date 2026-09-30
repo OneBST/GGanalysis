@@ -1,7 +1,6 @@
-from GGanalysis.markov.state_space import *
+from GGanalysis.markov.state_space import StateSpace
 import numpy as np
 import scipy.sparse as sp
-import warnings
 from typing import Any, Union, Literal, Optional
 
 class MarkovTransition():
@@ -48,6 +47,7 @@ class MarkovTransition():
             # 统一转换为 CSR 格式
             if not isinstance(self.P, sp.csr_matrix):
                 self.P = self.P.tocsr()
+        validate_matrix(self.P, (self.N, self.N), "P")
 
     def __call__(self, p: np.ndarray) -> np.ndarray:
         '''Sugar for one-step propagation: tm(p) == tm.step(p).'''
@@ -84,108 +84,30 @@ class MarkovTransition():
             raise ValueError(f"p must be a one-dimensional vector of length {self.N}.")
         return self.P @ p
 
-    def check_and_fix(
-        self,
-        tol: float = 1e-12,  # 容忍误差限
-        on_underflow: Literal["self_loop", "renorm", "error"] = "self_loop",
-        on_overflow: Literal["error", "renorm"] = "error",
-        fill_unreachable: Literal["error", "self_loop"] = "self_loop",
-        warn: bool = True,
-    ) -> None:
-        '''
-        概率校验和修复 要求每一列概率和应为1
+    def validate(self, atol: float = 1e-12) -> None:
+        """检查形状、有限非负系数与列和为 1，不修改矩阵。
 
-        - 列和 == 0
-            视为该状态无转移定义（不可达/未定义）
-            默认在对角线上补一个自环概率 1
-        - 列和 < 1 - tol
-            概率缺失
-            - self_loop 把缺失概率补到自环
-            - renorm    整列按比例放大
-            - error     直接报错
-        - 列和 > 1 + tol
-            概率溢出
-            - error   直接报错
-            - renorm  整列按比例缩放
-        '''
-        # 输入检查
-        if on_underflow not in ("self_loop", "renorm", "error"):
-            raise ValueError("on_underflow must be self_loop|renorm|error")
-        if on_overflow not in ("error", "renorm"):
-            raise ValueError("on_overflow must be error|renorm")
-        if fill_unreachable not in ("self_loop", "error"):
-            raise ValueError("fill_unreachable must be self_loop|error")
-        data = self.P.ravel() if self.backend == "dense" else self.P.data
-        if not np.all(np.isfinite(data)):
-            raise ValueError("Transition matrix contains non-finite probabilities.")
-        if data.size and np.min(data) < -tol:
-            raise ValueError("Transition matrix contains negative probabilities.")
-        col_sum = self._column_sums()
-        # 记录需要补到对角线（自环）的概率
-        diag_add = np.zeros(self.N, dtype=np.float64)
-        # 一次性记录所有列缩放因子，避免把 CSR 的行指针误当成列指针。
-        scale_factors = np.ones(self.N, dtype=np.float64)
+        ``atol`` 为列和的绝对误差容限，不用于修复概率缺失。
+        """
+        validate_matrix(self.P, (self.N, self.N), "P")
+        validate_mass(np.asarray(self.P.sum(axis=0)).ravel(), 1.0, atol)
 
-        for j, s in enumerate(col_sum):
-            if abs(s - 1.0) <= tol:
-                continue
-            # 列和为 0：完全没有定义转移
-            if s == 0.0:
-                if fill_unreachable == "error":
-                    raise ValueError(f"Column {j} has no outgoing probability (sum=0).")
-                diag_add[j] += 1.0
-                if warn:
-                    warnings.warn(f"Column {j} state {self.space.id_to_state(j)} sum=0; filled self-loop with 1.0", RuntimeWarning)
-                continue
-            # 列和小于 1：概率缺失
-            if s < 1.0 - tol:
-                if on_underflow == "error":
-                    raise ValueError(f"Column {j} state {self.space.id_to_state(j)} sums to {s} < 1 (missing probability).")
-                if on_underflow == "renorm":
-                    scale_factors[j] = 1.0 / s
-                    if warn:
-                        warnings.warn(f"Column {j} state {self.space.id_to_state(j)} renormalized by factor {1.0/s}", RuntimeWarning)
-                else:
-                    diag_add[j] += (1.0 - s)  # 默认：把缺失概率补到自环
-                    if warn:
-                        warnings.warn(f"Column {j} state {self.space.id_to_state(j)} sums to {s}; added {1.0-s} to self-loop", RuntimeWarning)
-            # 列和大于 1：概率溢出
-            elif s > 1.0 + tol:
-                if on_overflow == "error":
-                    raise ValueError(f"Column {j} state {self.space.id_to_state(j)} sums to {s} > 1 (probability overflow).")
-                else:
-                    scale_factors[j] = 1.0 / s
-                    if warn:
-                        warnings.warn(f"Column {j} state {self.space.id_to_state(j)} overflow {s}; renormalized", RuntimeWarning)
-        # 统一缩放列并补加自环
-        if np.any(scale_factors != 1.0):
-            self._scale_columns(scale_factors)
-        if np.any(diag_add != 0):
-            self._add_to_diagonal(diag_add)
-        # 最终一致性检查
-        col_sum2 = self._column_sums()
-        if np.max(np.abs(col_sum2 - 1.0)) > 1e-8 and warn:
-            warnings.warn(f"After check_and_fix, max|col_sum-1|={np.max(np.abs(col_sum2-1.0))}.", RuntimeWarning)
 
-    def _column_sums(self) -> np.ndarray:
-        # 返回每一列的概率和（长度 N 的一维数组）。
-        if self.backend == "dense":
-            return self.P.sum(axis=0, dtype=np.float64)
-        else:
-            # 稀疏矩阵 sum(axis=0) 返回 1xN 矩阵，这里拉平
-            return np.asarray(self.P.sum(axis=0)).ravel()
-        
-    def _add_to_diagonal(self, diag_add: np.ndarray) -> None:
-        # 用来补到自环的函数
-        if self.backend == "dense":
-            self.P[np.arange(self.N), np.arange(self.N)] += diag_add.astype(self.P.dtype, copy=False)
-        else:
-            D = sp.diags(diag_add, offsets=0, shape=(self.N, self.N), format="csr")
-            self.P = (self.P + D).tocsr()
+def validate_matrix(matrix, shape: tuple[int, int], name: str) -> None:
+    if matrix.shape != shape:
+        raise ValueError(f"{name} must have shape {shape}.")
+    data = matrix.data if sp.issparse(matrix) else np.asarray(matrix)
+    if not np.all(np.isfinite(data)) or np.any(data < 0):
+        raise ValueError(f"{name} must contain finite nonnegative probabilities.")
 
-    def _scale_columns(self, factors: np.ndarray) -> None:
-        '''按给定因子一次性缩放各列。'''
-        if self.backend == "dense":
-            self.P *= factors[None, :]
-        else:
-            self.P = (self.P @ sp.diags(factors, format="csr")).tocsr()
+
+def validate_mass(actual, expected, atol: float = 1e-12) -> None:
+    if not np.isfinite(atol) or atol < 0:
+        raise ValueError("atol must be finite and nonnegative.")
+    if not np.allclose(actual, expected, rtol=0, atol=atol):
+        raise ValueError("Probability mass is not conserved.")
+
+
+def validate_steps(value: int) -> None:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value < 0:
+        raise ValueError("max_steps must be a nonnegative integer.")

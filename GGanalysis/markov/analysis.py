@@ -1,11 +1,12 @@
 import numpy as np
 import warnings
 from dataclasses import dataclass
-from typing import Tuple, Optional, Literal
+from copy import deepcopy
+from typing import Tuple, Optional, Literal, Mapping, Sequence, Hashable
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 from GGanalysis.markov.transition import MarkovTransition
-from GGanalysis.markov.state_space import Selector
+from GGanalysis.markov.state_space import Selector, StateSpace
 
 __all__ = [
     'first_hitting_time',
@@ -13,7 +14,81 @@ __all__ = [
     'stationary_eigs',
     'stationary_solve',
     'StationaryInfo',
+    'StateRewards',
+    'group_mass',
 ]
+
+
+def group_mass(mass: np.ndarray | Sequence[float],
+               labels: np.ndarray | Sequence[Hashable]) -> dict[Hashable, float]:
+    """按同形状标签汇总有限非负质量，保留标签首次出现顺序。
+
+    不要求总质量为 1，不归一化。每个位置只能有一个可哈希标签；重叠事件
+    应分别使用掩码或 ``StateRewards`` 的不同奖励行表示。
+    """
+    values = np.asarray(mass, dtype=float)
+    keys = np.asarray(labels, dtype=object)
+    if values.shape != keys.shape:
+        raise ValueError("mass and labels must have the same shape.")
+    if not np.all(np.isfinite(values)) or np.any(values < 0):
+        raise ValueError("mass must be finite and nonnegative.")
+    result = {}
+    for key, value in zip(keys.flat, values.flat):
+        result[key] = result.get(key, 0.0) + float(value)
+    return result
+
+
+class StateRewards:
+    """状态条件下的一步事件次数或奖励数量的期望。
+
+    ``space`` 定义起点编号；``weights`` 将奖励名称映射到长度为 ``space.N``
+    的有限非负向量。向量元素表示从该状态出发执行一步的期望奖励。
+    事件可以重叠、奖励可以超过 1，因此不要求各奖励之和为 1。
+    输入被复制；公开空间及权重返回副本，构造后无需维护失效缓存。
+    """
+
+    def __init__(self, space: StateSpace,
+                 weights: Mapping[str, Sequence[float] | np.ndarray]) -> None:
+        self._space = deepcopy(space)
+        self._names = tuple(weights)
+        if any(not isinstance(name, str) for name in self._names):
+            raise TypeError("reward names must be strings.")
+        rows = []
+        for name in self._names:
+            row = np.array(weights[name], dtype=float, copy=True)
+            if row.shape != (space.N,) or not np.all(np.isfinite(row)) or np.any(row < 0):
+                raise ValueError(f"reward {name!r} must have {space.N} finite nonnegative weights.")
+            rows.append(row)
+        self._weights = np.stack(rows) if rows else np.empty((0, space.N))
+
+    @property
+    def space(self) -> StateSpace:
+        """奖励起点空间的副本。"""
+        return deepcopy(self._space)
+
+    @property
+    def weights(self) -> dict[str, np.ndarray]:
+        """各奖励权重的独立副本。"""
+        return {name: row.copy() for name, row in zip(self._names, self._weights)}
+
+    def expectation(self, distribution: Sequence[float] | np.ndarray,
+                    *, atol: float = 1e-12) -> dict[str, float]:
+        """给定归一化起点分布，返回各项一步期望，不修改或归一化输入。
+
+        传入逐抽稳态分布时结果为长期每抽奖励率；事件指示量的结果为事件率。
+        ``atol`` 是总概率为 1 的绝对检查容差。条件概率需另以相应事件率为分母，
+        本方法不自动推断事件包含关系。
+        """
+        vector = np.asarray(distribution, dtype=float)
+        if vector.shape != (self._space.N,):
+            raise ValueError("distribution must be a vector on the reward state space.")
+        if not np.all(np.isfinite(vector)) or np.any(vector < 0):
+            raise ValueError("distribution must be finite and nonnegative.")
+        if not np.isfinite(atol) or atol < 0:
+            raise ValueError("atol must be finite and nonnegative.")
+        if not np.isclose(vector.sum(), 1, rtol=0, atol=atol):
+            raise ValueError("distribution must sum to 1.")
+        return dict(zip(self._names, map(float, self._weights @ vector)))
 
 
 @dataclass(frozen=True)
@@ -158,6 +233,7 @@ def stationary_power(
     return_info: bool = False,
 ) -> np.ndarray | Tuple[np.ndarray, StationaryInfo]:
     # 幂迭代法计算平稳分布
+    tm.validate()
     if tol <= 0 or max_iter <= 0:
         raise ValueError("tol and max_iter must be positive.")
     if x0 is None:
@@ -200,6 +276,7 @@ def stationary_eigs(
     return_info: bool = False,
 ) -> np.ndarray | Tuple[np.ndarray, StationaryInfo]:
     # 使用特征值分解求平稳分布
+    tm.validate()
     if tol <= 0:
         raise ValueError("tol must be positive.")
     if tm.backend == "dense" or tm.N <= 2:
@@ -224,6 +301,7 @@ def stationary_solve(
     return_info: bool = False,
 ) -> np.ndarray | Tuple[np.ndarray, StationaryInfo]:
     # 解线性方程 (I - P)pi = 0 求解平稳分布，并加约束 sum(pi)=1
+    tm.validate()
     if method not in ("auto", "direct", "iterative"):
         raise ValueError("method must be auto, direct or iterative.")
     if tol <= 0 or direct_size_limit <= 0:

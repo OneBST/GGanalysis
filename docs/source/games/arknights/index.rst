@@ -8,13 +8,13 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 此外，还针对性编写了如下模板模型：
 
     适用于计算 `定向选调 <https://www.bilibili.com/read/cv22596510>`_ 时获得特定UP六星干员的模型
-    :class:`~GGanalysis.games.arknights.AKDirectionalModel`
+    :class:`~GGanalysis.games.arknights.gacha_model.AKDirectionalModel`
 
     适用于计算通过 `统计数据 <https://www.bilibili.com/video/BV1ib411f7YF/>`_ 发现的类型硬保底的模型
-    :class:`~GGanalysis.games.arknights.AKHardPityModel`
+    :class:`~GGanalysis.games.arknights.gacha_model.AKHardPityModel`
 
     适用于计算集齐多种六星的模型（不考虑300井、定向选调及类型硬保底机制）
-    :class:`~GGanalysis.games.arknights.AK_Limit_Model`
+    :class:`~GGanalysis.games.arknights.gacha_model.AK_Limit_Model`
 
 .. 本节部分内容自一个资深的烧饼编写文档修改而来，MilkWind 增写内容
 
@@ -23,7 +23,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 
     - ``item_num`` 需求道具个数，由于 sphinx autodoc 的 `bug <https://github.com/sphinx-doc/sphinx/issues/9342>`_ 在下面没有显示
 
-    - ``multi_dist`` 是否以列表返回获取 1-item_num 个道具的所有分布列，默认为False
+    - ``multi_dist`` 是否以列表返回获取 0-item_num 个道具的所有分布列，默认为False
 
     - ``item_pity`` 道具保底状态，通俗的叫法为水位、垫抽，默认为0
 
@@ -41,6 +41,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 .. code:: python
 
     import GGanalysis.games.arknights as AK
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
     dist = AK.common_6star(item_num=1)
     print('抽到六星的期望抽数为：{}'.format(dist.exp))  # 34.59455493520977
 
@@ -55,6 +56,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 .. code:: python
 
     import GGanalysis.games.arknights as AK
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
     dist = AK.single_up_6star(item_num=1, item_pity=0, type_pity=0)
     print('4.6寻访机制更新后，无水位时抽到单up六星的期望抽数为：{}'.format(dist.exp))
     
@@ -75,6 +77,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 .. code:: python
 
     import GGanalysis.games.arknights as AK
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
     dist = AK.dual_up_specific_6star(item_num=1)
     print('准备100抽，从轮换池捞出玛恩纳的概率只有：{}%'.format(sum(dist[:100+1]) * 100))
 
@@ -95,8 +98,9 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 .. code:: python
 
     import GGanalysis.games.arknights as AK
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
     dist = AK.limited_up_6star(item_num=5)
-    print('一井满潜限定的概率：{}%'.format(sum(dist_4[:300+1]) * 100))
+    print('一井满潜限定的概率：{}%'.format(sum(dist[:300+1]) * 100))
 
 .. container:: output stream stdout
 
@@ -111,6 +115,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 .. code:: python
 
     import GGanalysis.games.arknights as AK
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
     dist = AK.limited_both_up_6star()
     print('全六党吃井概率：{}%'.format((1-sum(dist[:300+1])) * 100))
 
@@ -155,14 +160,15 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 
     ``AKHardPityModel`` 可以为某个 ``FiniteDist`` 类型的，无保底类型的分布载入类型硬保底机制。
 
-    ``AK_Limit_Model`` 未加入新增的定向选调机制，其使用的 `CouponCollectorLayer` 不考虑集齐多套的需求。这个模型接下来可能重写，如果想要在其他地方引用的话可以先临时复制代码出来本地使用，或是将 `AK_Limit_Model` 加入__all__公开列表进行调用。
+    ``AK_Limit_Model`` 未加入新增的定向选调机制，其使用的 `CouponCollectorLayer` 不考虑集齐多套的需求。该类未通过游戏包公开导出；以下扩展示例显式从 ``gacha_model`` 导入，不需要复制实现或修改 ``__all__``。
 
 **联合行动池集齐三种UP六星干员**
 
 .. code:: python
 
     import GGanalysis.games.arknights as AK
-    triple_up_specific_6star = AK.AK_Limit_Model(AK.PITY_6STAR, 1, total_item_types=3, collect_item=3)
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
+    triple_up_specific_6star = AK_Limit_Model(AK.PITY_6STAR, 1, total_item_types=3, collect_item=3)
     dist = triple_up_specific_6star(item_pity=5) # （默认）期望集齐一轮，此前垫了5抽
     print('期望抽数为：{}'.format(dist.exp)) # 期望抽数为：188.63258247595024
     print('方差为：{}'.format(dist.var)) # 方差为：10416.175324956945
@@ -174,6 +180,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 
     import GGanalysis as gg
     import GGanalysis.games.arknights as AK
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
     # 六星100%概率，UP三个，故抽到目标UP六星的概率为1/3
     triple_up_specific_6star = gg.PityBernoulliModel(AK.PITY_6STAR, 1 / 3) # 尚未证实定向寻访是否存在类型硬保底机制，仅使用保底伯努利模型
     dist = triple_up_specific_6star(2) # 在定向寻访池期望抽到目标六星干员两次，此前没有垫抽
@@ -190,6 +197,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 .. code:: python
 
     import GGanalysis as gg
+    import GGanalysis.games.arknights as AK
     others = 71 # 假设除了主要UP干员和权值提升的非UP六星干员外，其他准许获取的六星干员的数量为71
     triple_second_up_specific_6star = gg.PityBernoulliModel(AK.PITY_6STAR, 0.3 / (5 * 3 + others) * 5) # 在当前卡池内，权值提升的非UP六星干员数量一般为3
     success_count = 3 # 期望抽到某个权值提升的非UP六星干员三次
@@ -208,7 +216,8 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
 .. code:: python
 
     import GGanalysis.games.arknights as AK
-    both_up_5star = AK.AK_Limit_Model(AK.PITY_5STAR, 0.5, total_item_types=2, collect_item=2)
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
+    both_up_5star = AK_Limit_Model(AK.PITY_5STAR, 0.5, total_item_types=2, collect_item=2)
     dist = both_up_5star()  # 期望在轮换单UP池中抽到两个UP的五星干员，此前没有垫抽
     print('期望抽数为：{}'.format(dist.exp))  # 期望抽数为：63.03402819816313
 
@@ -219,10 +228,11 @@ GGanalysis 使用基本的抽卡模板模型结合 `明日方舟抽卡系统参�
     # 添加定向选调前已知存在类型硬保底的卡池为标准寻访中的单UP和双UP池，其它卡池暂无证据表明存在此机制，此处仅为演示如何定义此类模型，不能当做机制参考
     import GGanalysis as gg
     import GGanalysis.games.arknights as AK
+    from GGanalysis.games.arknights.gacha_model import AK_Limit_Model, AKHardPityModel
     # 假设定向寻访池存在类型硬保底机制
 
     # 六星100%概率，UP三个，故抽到目标UP六星的概率为1/3
     triple_up_specific_6star_without_hard_pity = gg.PityBernoulliModel(AK.PITY_6STAR, 1 / 3) # 没有硬保底
-    triple_up_specific_6star_has_hard_pity = AK.AKHardPityModel(triple_up_specific_6star_without_hard_pity(1), AK.p2dist(AK.PITY_6STAR), type_pity_gap=200, item_types=3, up_rate=1, type_pull_shift=1) # 载入硬保底
+    triple_up_specific_6star_has_hard_pity = AKHardPityModel(triple_up_specific_6star_without_hard_pity(1), gg.p2dist(AK.PITY_6STAR), type_pity_gap=200, item_types=3, up_rate=1, type_pull_shift=1) # 载入硬保底
     dist = triple_up_specific_6star_has_hard_pity(2) # 在定向寻访池期望抽到目标六星干员两次，此前没有垫抽
     print('期望抽数为：{}'.format(dist.exp)) # 期望抽数为：207.0218117279958

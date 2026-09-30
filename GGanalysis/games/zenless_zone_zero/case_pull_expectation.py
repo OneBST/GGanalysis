@@ -1,5 +1,5 @@
 from GGanalysis.games.zenless_zone_zero.gacha_model import *
-from GGanalysis.markov.markov_method_old import calc_stationary_distribution
+from GGanalysis.markov import MarkovTransition, StateSpace, stationary_solve
 from GGanalysis import calc_expectation
 import numpy as np
 
@@ -88,7 +88,7 @@ def calc_pickup_pool_cycle_exp(gacha_model: ExclusiveRescreeningModel, base_p=0.
     init_state = np.zeros(242, dtype=float)
     init_state[get_number(0, 0, 0)] = 1
     # 获得平稳后的每轮卡池开始时保底状态，截断超低概率部分
-    pity_dist = calc_stationary_distribution(M_POOL)
+    pity_dist = stationary_solve(MarkovTransition(StateSpace.from_shape([M_POOL.shape[0]]), M_POOL))
     pity_dist[pity_dist < eps] = 0.0
     # 获得平稳后抽10抽的分布，用于提取当前状态下获得N个道具的概率
     dist_10 = M_10 @ pity_dist

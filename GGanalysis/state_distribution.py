@@ -105,9 +105,12 @@ class StateDist:
         """有限状态数量。"""
         return self._coeff.shape[1]
 
-    def marginal_cost(self) -> FiniteDist:
-        """对状态求和，返回只记录花费的 :class:`FiniteDist`。"""
-        return FiniteDist(self._coeff.sum(axis=1))
+    def marginal_cost(self, *, tail_mass: float | None = None) -> FiniteDist:
+        """对状态求和，可用 ``tail_mass`` 显式传入已知未存储质量。
+
+        不从系数推断尾质量，也不据此补全期望或方差。
+        """
+        return FiniteDist(self._coeff.sum(axis=1), tail_mass=tail_mass)
 
     def marginal_state(self) -> FiniteDist:
         """对所有花费求和，将状态编号视为非负整数并返回 ``FiniteDist``。"""

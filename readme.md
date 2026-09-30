@@ -8,7 +8,7 @@
 
 ## 安装方法
 
-本工具包的依赖库很简单，只需要在 `Python>=3.9` 环境中安装`numpy`和`scipy`即可。如果需要使用工具包提供的画图代码，还需安装 `matplotlib`。如果你不需要使用最新版，还可以直接从[PyPI](https://pypi.org/project/GGanalysis/)安装。
+本工具包的依赖库很简单，需要 `Python>=3.10`，安装依赖为 `numpy`、`scipy` 和 `matplotlib`（与 `setup.py` 一致）。如果你不需要使用最新版，还可以直接从[PyPI](https://pypi.org/project/GGanalysis/)安装。
 
 ``` shell
 pip install GGanalysis
@@ -68,7 +68,7 @@ fig.draw_two_graph()
 
 目前工具包支持的抽卡层仅适用于满足马尔科夫性质的抽卡模型，即给定现在状态及过去所有状态的情况下，未来抽卡的结果仅仅依赖于当前状态，与过去的状态是独立的。不过好消息是，游戏的抽卡系统基本都满足这样的性质。
 
-当前工具包能实现的抽卡模型是有限的，仅能实现能被给出的四种抽卡层组合出来的模型。对于类似“300井”等，在一定抽数后直接为玩家提供道具的模型，在本工具包框架下仅需简单修改即可。而对于类似不放回抽样的奖品堆模式、集齐碎片兑换模式等，还待之后继续扩展功能。
+优先使用 `basic_models.py` 的现成模型或组合 `gacha_layers.py` 中的抽卡层。普通卷积要求各阶段花费独立；获得目标后仍保留状态的机制，可使用 `StateDist`、`StateKernel` 和 `markov` 工具。选型与接入约定见 [开发指南](docs/source/development.rst)，核心 API 见 [参考手册](docs/source/reference_manual/index.rst)。兑换、返还等机制仍需按具体规则定义，不能统一按分布截断处理。
 
 同时迭代方法计算n连抽获得k个道具概率尚未经过严格数学证明，使用时需要注意。
 

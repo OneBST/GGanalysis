@@ -36,6 +36,23 @@ class GeneralCouponCollection():
         self.item_types = len(p_list)
         self.default_init_state = 0  # 默认起始状态为所有种类都没有
         self.default_target_state = 2 ** self.item_types - 1  # 默认目标状态为集齐状态
+        self._state_pairs = self._make_state_pairs(self.item_types)
+
+    @staticmethod
+    def _make_state_pairs(item_types):
+        states = np.arange(1 << item_types)
+        return tuple((states[(states & (1 << i)) == 0],
+                      states[(states & (1 << i)) != 0])
+                     for i in range(item_types))
+
+    @staticmethod
+    def _step(probabilities, coupon_p, pairs):
+        next_probabilities = probabilities * (1 - sum(coupon_p))
+        for p, (without, with_coupon) in zip(coupon_p, pairs):
+            next_probabilities[with_coupon] += p * (
+                probabilities[without] + probabilities[with_coupon]
+            )
+        return next_probabilities
     
     def set_default_init_state(self, init_state):
         # 设置默认起始状态
@@ -68,41 +85,52 @@ class GeneralCouponCollection():
         ans = (ans & target_state) == target_state
         return ans.astype(int)
 
-    @lru_cache(maxsize=int(65536))
     def get_expectation(self, state=None, target_state=None):
         '''带缓存递归计算抽取奖券到目标态时抽取数量期望'''
         if state is None:
             state = self.default_init_state
         if target_state is None:
             target_state = self.default_target_state
-        if (state & target_state) == target_state:
-            # 状态覆盖了目标状态
+        return self._get_expectation(state & target_state, target_state)
+
+    @lru_cache(maxsize=65536)
+    def _get_expectation(self, state, target_state):
+        missing = target_state & ~state
+        if missing == 0:
             return 0
-        stay_p = self.fail_p
-        temp = 0
-        for i, p in enumerate(self.p_list):
-            # 枚举本次抽到的奖券
-            next_state = state | (1 << i)
-            if next_state == state:
-                # 这里必须是 += 抽到多个情况都可能保持在原地
-                stay_p += p
-                continue
-            temp += p * self.get_expectation(next_state, target_state)
-        return (1+temp) / (1-stay_p)
+        missing_ids = [i for i in range(self.item_types) if missing & (1 << i)]
+        total_p = sum(self.p_list[i] for i in missing_ids)
+        continuation = sum(
+            self.p_list[i] * self._get_expectation(state | (1 << i), target_state)
+            for i in missing_ids
+        )
+        return (1 + continuation) / total_p
 
     def collection_dp(self, n, init_state=None):
         '''通过DP计算抽n次后的状态分布，返回DP数组'''
         if init_state is None:
             init_state = self.default_init_state
-        M = np.zeros((self.default_target_state+1, n+1))
+        M = np.zeros((1 << self.item_types, n+1))
         M[init_state, 0] = 1
         for t in range(n):
-            for current_state in range(self.default_target_state+1):
-                M[current_state, t+1] += M[current_state, t] * self.fail_p
-                for i, p in enumerate(self.p_list):
-                    next_state = current_state | (1 << i)
-                    M[next_state, t+1] += M[current_state, t] * p
+            M[:, t+1] = self._step(M[:, t], self.p_list, self._state_pairs)
         return M
+
+    def iter_collection_p(self, init_state=None, target_state=None):
+        """逐抽生成集齐目标的累计概率，不保存此前各抽的状态分布。"""
+        if init_state is None:
+            init_state = self.default_init_state
+        if target_state is None:
+            target_state = self.default_target_state
+        missing_ids = [i for i in range(self.item_types)
+                       if (target_state & (1 << i)) and not (init_state & (1 << i))]
+        coupon_p = self.p_list[missing_ids]
+        probabilities = np.zeros(1 << len(missing_ids))
+        probabilities[0] = 1
+        pairs = self._make_state_pairs(len(missing_ids))
+        while True:
+            yield float(probabilities[-1])
+            probabilities = self._step(probabilities, coupon_p, pairs)
 
     def get_collection_p(self, n, init_state=None, target_state=None, DP_array=None):
         '''返回抽n抽后达到目标状态的概率数组'''
@@ -110,10 +138,12 @@ class GeneralCouponCollection():
             init_state = self.default_init_state
         if target_state is None:
             target_state = self.default_target_state
-        satisfying_states = self.get_satisfying_state(target_state)
         if DP_array is not None:
+            satisfying_states = self.get_satisfying_state(target_state)
             return satisfying_states.dot(DP_array)
-        return satisfying_states.dot(self.collection_dp(n, init_state))
+        iterator = self.iter_collection_p(init_state, target_state)
+        return np.fromiter((next(iterator) for _ in range(n+1)), dtype=float,
+                           count=n+1)
 
     def sim_collection(self, state=None):
         '''蒙特卡洛模拟抽取次数，用于验证'''

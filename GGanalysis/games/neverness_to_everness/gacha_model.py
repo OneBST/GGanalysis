@@ -1,6 +1,5 @@
 """异环 Neverness to Everness 测试服棋盘抽卡模型。"""
 
-from functools import cached_property
 from typing import Sequence, Union
 
 import numpy as np
@@ -22,7 +21,7 @@ from GGanalysis.games.neverness_to_everness.gacha_data import (
 )
 from GGanalysis.games.neverness_to_everness.gacha_kernel import (
     ProbabilityMap,
-    _get_pity_layer_matrices,
+    build_nte_analysis,
     build_cycle_kernel,
     build_nte_transition,
 )
@@ -33,6 +32,7 @@ from GGanalysis.games.neverness_to_everness.stationary_statistic import (
 
 
 __all__ = [
+    "build_nte_analysis",
     "build_nte_transition",
     "build_cycle_kernel",
     "NacupedaStatistics",
@@ -69,15 +69,15 @@ class NTEMonopolyModel(GachaModel):
             pity_probability_map,
         )
 
-    @cached_property
+    @property
     def tm(self) -> MarkovTransition:
         return self.stationary.transition
 
-    @cached_property
+    @property
     def ss(self) -> StateSpace:
-        return self.tm.space
+        return self.stationary.hit_analysis.process.full_space
 
-    @cached_property
+    @property
     def kernel(self) -> StateKernel:
         return self.stationary.kernel
 
@@ -95,25 +95,22 @@ class NTEMonopolyModel(GachaModel):
         if item_num == 0:
             return FiniteDist.delta(0)
 
-        joint = self.stationary.first_state_dist(start_pos, item_pity)
+        analysis = self.stationary.hit_analysis
+        initial = analysis.process.boundary_space.delta([start_pos])
         if not multi_dist:
-            if item_num <= 12:
-                for _ in range(1, item_num):
-                    joint = self.kernel.apply(joint, method=method)
-            else:
-                joint = self.kernel.apply_power(item_num - 1, joint, method=method)
-            return joint.marginal_cost()
-
-        answers = [FiniteDist.delta(0), joint.marginal_cost()]
-        for _ in range(2, item_num + 1):
-            joint = self.kernel.apply(joint, method=method)
-            answers.append(joint.marginal_cost())
-        return answers
+            return analysis.nth_state_dist(
+                item_num, initial, initial_layer=item_pity, method=method,
+            ).marginal_cost()
+        return [FiniteDist.delta(0)] + [
+            joint.marginal_cost() for joint in analysis.iter_state_dists(
+                item_num, initial, initial_layer=item_pity, method=method,
+            )
+        ]
 
     @property
     def stationary_probability(self) -> float:
         """长期每抽获得 S 的概率。"""
-        return 1.0 / self.stationary.steady_dist.exp
+        return self.stationary.hit_analysis.long_run_hit_rate
 
     @property
     def nacupeda_statistics(self) -> NacupedaStatistics:

@@ -19,6 +19,7 @@ plans/
 skills/
 test/
 .agents/
+local_python_path.txt
 
 # leave logo file
 !/docs/source/logo.svg

@@ -8,10 +8,10 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 此外，还针对性编写了如下模板模型：
 
     适用于计算5.0版本前武器活动祈愿定轨时获取道具问题的模型
-    :class:`~GGanalysis.games.genshin_impact.ClassicGenshin5starEPWeaponModel`
+    :class:`~GGanalysis.games.genshin_impact.gacha_model.ClassicGenshin5starEPWeaponModel`
 
     适用于计算在活动祈愿中获得常驻祈愿五星/四星道具的模型
-    :class:`~GGanalysis.games.genshin_impact.GenshinCommon5starInUPpoolModel` 
+    :class:`~GGanalysis.games.genshin_impact.ClassicGenshinCommon5starInUPpoolModel`
 
 .. attention:: 
 
@@ -24,13 +24,15 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 
     - ``item_num`` 需求物品个数，由于 sphinx autodoc 的 `bug <https://github.com/sphinx-doc/sphinx/issues/9342>`_ 在下面没有显示
 
-    - ``multi_dist`` 是否以列表返回获取 1-item_num 个物品的所有分布列
+    - ``multi_dist`` 是否以列表返回获取 0-item_num 个物品的所有分布列
 
     - ``item_pity`` 道具保底状态，通俗的叫法为水位、垫抽
 
     - ``up_pity`` UP道具保底状态，设为 1 即为玩家所说的大保底
 
-    - ``cr_pity`` 「捕获明光」保底状态
+    - ``ep_pity`` 当前武器定轨模型的命定值状态；经典武器模型使用 ``fate_point``，二者不可混用
+
+    - ``cr_counter`` 「捕获明光」计数器，按当前模型状态定义取值；不等同于简单连歪次数
 
 基本模型
 ------------------------
@@ -66,8 +68,8 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 
     import GGanalysis.games.genshin_impact as GI
     # 原神角色池的计算
-    print('角色池在垫了20抽，有大保底，已经连歪两次的情况下抽3个UP五星抽数的分布')
-    dist_c = GI.up_5star_character(item_num=3, item_pity=20, up_pity=1, cr_pity=2)
+    print('角色池在垫了20抽，有大保底，捕获明光计数器为2的情况下抽3个UP五星抽数的分布')
+    dist_c = GI.up_5star_character(item_num=3, item_pity=20, up_pity=1, cr_counter=2)
     print('期望为', dist_c.exp, '方差为', dist_c.var, '分布为', dist_c.dist)
 
 武器活动祈愿模型
@@ -109,7 +111,7 @@ GGanalysis 使用基本的抽卡模板模型结合 `原神抽卡系统参数 <ht
 
     import GGanalysis.games.genshin_impact as GI
     print('武器池池在垫了30抽，有大保底，命定值为1的情况下抽1个UP五星抽数的分布')
-    dist_w = GI.up_5star_ep_weapon(item_num=1, item_pity=30, up_pity=1, fate_point=1)
+    dist_w = GI.up_5star_ep_weapon(item_num=1, item_pity=30, up_pity=1, ep_pity=1)
     print('期望为', dist_w.exp, '方差为', dist_w.var, '分布为', dist_w.dist)
 
 其它模型

@@ -1,10 +1,42 @@
 from __future__ import annotations
 
 from typing import Iterable, Union
+from typing import Callable as _Callable
 import numpy as np
-from scipy.signal import convolve
-from scipy.fft import irfft, next_fast_len, rfft
 from collections import OrderedDict
+from importlib import import_module as _import_module
+
+
+# 保留原有星号导出的名称；仅显式导入分布类时不加载 SciPy。
+__all__ = [
+    'annotations', 'Iterable', 'Union', 'np', 'OrderedDict',
+    'convolve', 'irfft', 'next_fast_len', 'rfft',
+    'linear_p_increase', 'calc_expectation', 'calc_variance', 'dist_squeeze',
+    'dist2cdf', 'cdf2dist', 'p2dist', 'dist2p', 'p2exp', 'p2var', 'pad_zero',
+    'prob_a_greater_than_b', 'cut_dist', 'calc_item_num_dist',
+    'independent_item_num_dist', 'calc_bernoulli_obtain', 'accurate_conv', 'FiniteDist',
+]
+_SCIPY_EXPORTS = {
+    'convolve': 'scipy.signal',
+    'irfft': 'scipy.fft', 'next_fast_len': 'scipy.fft', 'rfft': 'scipy.fft',
+}
+
+
+def _load_scipy(name: str) -> _Callable:
+    '''首次使用时取得原始 SciPy 函数并缓存，不改变算法选择或函数身份。'''
+    if name not in globals():
+        globals()[name] = getattr(_import_module(_SCIPY_EXPORTS[name]), name)
+    return globals()[name]
+
+
+def __getattr__(name: str) -> object:
+    if name in _SCIPY_EXPORTS:
+        return _load_scipy(name)
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__all__))
 
 
 def _irfft_probability(
@@ -42,7 +74,7 @@ def _irfft_probability(
             f'(tolerance {spectrum_tolerance:.3e}).'
         )
 
-    values = np.asarray(irfft(spectrum, n=size), dtype=float)
+    values = np.asarray(_load_scipy('irfft')(spectrum, n=size), dtype=float)
     if not np.all(np.isfinite(values)):
         raise FloatingPointError('inverse rFFT contains NaN or infinity.')
     value_scale = max(1.0, float(np.max(np.abs(values))))
@@ -103,7 +135,7 @@ def calc_expectation(dist: Union['FiniteDist', list, np.ndarray]) -> float:
 
 def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
     '''
-    计算离散分布列的方差
+    计算归一化离散分布的方差，使用中心化公式避免大均值下的相消误差。
     '''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
@@ -111,10 +143,7 @@ def calc_variance(dist: Union['FiniteDist', list, np.ndarray]) -> float:
         dist = np.asarray(dist)
     x = np.arange(dist.size, dtype=np.float64)
     ex = float(np.dot(x, dist))
-    ex2 = float(np.dot(x * x, dist))
-    var = ex2 - ex * ex
-    # 数值误差下可能出现 -1e-16 这种，钳到 0
-    return float(var) if var > 0.0 else 0.0
+    return float(np.dot((x - ex) ** 2, dist))
 
 def dist_squeeze(dist: Union['FiniteDist', np.ndarray], squeeze_factor) -> 'FiniteDist':
     '''
@@ -173,7 +202,7 @@ def dist2p(dist: Union[np.ndarray, 'FiniteDist']) -> np.ndarray:
     '''
     if isinstance(dist, FiniteDist):
         dist = dist.dist
-    dist = np.array(dist)
+    dist = np.asarray(dist, dtype=float)
     left_p = np.cumsum(dist[::-1])[::-1]
     return np.divide(dist, left_p, where=left_p!=0, out=np.zeros_like(dist))
 
@@ -215,20 +244,23 @@ def cut_dist(dist: Union[np.ndarray, 'FiniteDist'], cut_pos) -> np.ndarray:
     # 进行了切除后进行归一化
     ans = dist[cut_pos:].copy()
     ans[0] = 0
-    return ans/sum(ans)
+    return ans/np.sum(ans)
 
 def calc_item_num_dist(dist_list: list['FiniteDist'], pull) -> 'FiniteDist':
     '''
     根据的获得 0-k 个道具所需抽数分布列表计算使用 pull 抽时获得道具数量分布（第k个位置表达的是≥k的概率）
-    此方法会忽略概率太低的长尾部分，并将其概率累加到 k 个道具位置
+    超过 k 个的数量合并到 k 位置。输入必须覆盖截至 pull 的概率系数；
+    数组外的质量视为尚未获得，不能恢复已被截掉的 pull 以内概率。
     '''
+    if not isinstance(pull, (int, np.integer)) or pull < 0:
+        raise ValueError('pull must be a non-negative integer.')
+    if not dist_list:
+        raise ValueError('dist_list must not be empty.')
     item_num = len(dist_list) - 1
     ans = np.zeros(item_num+1)
     for i in range(0, item_num+1):
-        if len(dist_list[i]) <= pull+1:
-            ans[i] = 1
-        else:
-            ans[i] = dist_list[i].cdf[pull]
+        cdf = dist_list[i].cdf
+        ans[i] = cdf[min(pull, len(cdf) - 1)]
     ans[0:-1] -= ans[1:].copy()
     return FiniteDist(ans)
 
@@ -243,43 +275,41 @@ def independent_item_num_dist(f_dist: 'FiniteDist', pull: int, c_dist: 'FiniteDi
     - ``pull`` : 投入抽数
     - ``c_dist`` : 获取第一个道具所需抽数的条件分布（可选）
     - ``multi_dist`` : 是否以列表形式返回从投入0抽到pull抽的所有分布
+
+    首次和后续花费均须为正整数。输入应包含截至 pull 的全部概率系数，
+    数组外的质量视为等待尚未结束；不会强制归一化截断分布。
     '''
+    if not isinstance(pull, (int, np.integer)) or pull < 0:
+        raise ValueError('pull must be a non-negative integer.')
     if c_dist is None:
         c_dist = f_dist
-    conv_dist = FiniteDist(f_dist[:pull+1])
-    check_dist = FiniteDist(c_dist[:pull+1])
+    if f_dist[0] != 0 or c_dist[0] != 0:
+        raise ValueError('waiting times must be positive; probability at zero must be zero.')
+    conv_dist = f_dist.dist[:pull+1]
+    check_dist = c_dist.dist[:pull+1]
     if multi_dist:
         ans = np.zeros((pull+1, pull+1))  # [获得道具数量, 投入抽数]
         ans[0, :] = 1
-        if pull >= 1:
-            ans[1, :len(check_dist)] = check_dist.cdf[:]
-            ans[1, len(check_dist):] = 1
-        for item_num in range(2, pull+1):
-            # 每做一次卷积后都要把长度限制在需求长度内以加速计算
-            check_dist = FiniteDist((check_dist * conv_dist)[:pull+1])
-            if len(check_dist) == 1 and check_dist[0] == 0:  # 由于精度限制，计算几乎截止
-                ans[item_num:, :] = 0
-                break
-            else:
-                ans[item_num, :len(check_dist)] = check_dist.cdf[:]
-                ans[item_num, len(check_dist):] = 1
-        ans[:-1, :] -= ans[1:, :].copy()
-        return [FiniteDist(ans[:i+1, i], trim_tail_zeros=False) for i in range(pull+1)]
     else:
         ans = np.zeros(pull+1)
         ans[0] = 1
-        if pull >= 1:
-            ans[1] = 1 if len(c_dist) <= pull else check_dist.cdf[pull]
-        for item_num in range(2, pull+1):
-            # 每做一次卷积后都要把长度限制在需求长度内以加速计算
-            check_dist = FiniteDist((check_dist * conv_dist)[:pull+1], trim_tail_zeros=False)
-            if len(check_dist) == 1 and check_dist[0] == 0:  # 由于精度限制，计算几乎截止
-                ans[item_num:] = 0
-                break
-            else:
-                ans[item_num] = 1 if len(check_dist) <= pull else check_dist.cdf[pull]
-        ans[:-1] -= ans[1:].copy()
-        return FiniteDist(ans, trim_tail_zeros=False)
+    for item_num in range(1, pull+1):
+        if not np.any(check_dist):
+            break
+        if multi_dist:
+            cdf = np.cumsum(check_dist)
+            ans[item_num, :len(cdf)] = cdf
+            ans[item_num, len(cdf):] = cdf[-1]
+        else:
+            ans[item_num] = np.sum(check_dist)
+        if item_num < pull:
+            check_dist = _load_scipy('convolve')(check_dist, conv_dist)[:pull+1]
+            # 正整数花费下，获得 k 个目标至少需要 k 抽；清除 FFT 支撑外噪声。
+            check_dist[:item_num+1] = 0.0
+    ans[:-1] -= ans[1:].copy()
+    if multi_dist:
+        return [FiniteDist(ans[:i+1, i], trim_tail_zeros=False) for i in range(pull+1)]
+    return FiniteDist(ans, trim_tail_zeros=False)
 
 def calc_bernoulli_obtain(dist: 'FiniteDist', p: float, e_error = 1e-8, max_dist_len=1e5) -> 'FiniteDist':
     '''
@@ -294,6 +324,8 @@ def calc_bernoulli_obtain(dist: 'FiniteDist', p: float, e_error = 1e-8, max_dist
     # 概率为 1 等价于什么也没干
     if p == 1:
         return dist
+    next_fast_len = _load_scipy('next_fast_len')
+    rfft = _load_scipy('rfft')
     exp = 1/p
     def calc_2nd_moment(E, D):
         return (p * D + (2 - p) * E ** 2)/(p ** 2)
@@ -331,7 +363,7 @@ def calc_bernoulli_obtain(dist: 'FiniteDist', p: float, e_error = 1e-8, max_dist
 
 def accurate_conv(dist_a: 'FiniteDist', dist_b: 'FiniteDist') -> 'FiniteDist':
     '''有更高数值精确性的卷积，适用于计算分布概率低于1e-18的情况'''
-    ans = FiniteDist(convolve(dist_a.dist, dist_b.dist, method='direct'))
+    ans = FiniteDist(_load_scipy('convolve')(dist_a.dist, dist_b.dist, method='direct'))
     ans.exp = dist_a.exp + dist_b.exp
     ans.var = dist_a.var + dist_b.var
     return ans
@@ -459,12 +491,12 @@ class FiniteDist:  # 随机事件为有限个数的分布
             raise ValueError('pity_p must be a 1D array.')
         if len(pity_p) == 0:
             raise ValueError('pity_p must not be empty.')
-        left_p = 1.0
+        survival = np.empty(len(pity_p), dtype=float)
+        survival[0] = 1.0
+        np.cumprod(1.0 - pity_p[1:], out=survival[1:])
         dist = np.zeros(len(pity_p), dtype=float)
-        for i in range(1, len(pity_p)):
-            dist[i] = left_p * pity_p[i]
-            left_p *= 1 - pity_p[i]
-        return cls(dist, tail_mass=max(0.0, float(left_p)))
+        dist[1:] = survival[:-1] * pity_p[1:]
+        return cls(dist, tail_mass=max(0.0, float(survival[-1])))
 
     @classmethod
     def mixture(
@@ -606,7 +638,7 @@ class FiniteDist:  # 随机事件为有限个数的分布
     def p_sum(self) -> float:
         '''分布的总概率质量；第一次访问时计算并缓存。'''
         if self._p_sum is None:
-            self.calc_dist_attribution()
+            self._p_sum = float(np.sum(self.__dist))
         return self._p_sum
 
     @property
@@ -721,35 +753,41 @@ class FiniteDist:  # 随机事件为有限个数的分布
         
         - ``p_error`` ： 容许 ``p_sum`` 和 1 之间的差距，默认为 1e-6
         '''
-        self._p_sum = float(sum(self.dist))
-        if abs(self._p_sum-1) > p_error:  # 高于阈值认为概率和不为1
+        if not np.isfinite(self.p_sum) or abs(self.p_sum-1) > p_error:
             if self._exp is None:
                 self._exp = float('nan')
             if self._var is None:
                 self._var = float('nan')
             return
-        use_pulls = np.arange(self.__len__())
-        stored_exp = float(sum(use_pulls * self.dist))
-        stored_var = float(sum((use_pulls-stored_exp) ** 2 * self.dist))
+        if self._exp is not None and self._var is not None:
+            return
+        use_pulls = np.arange(len(self), dtype=float)
+        stored_exp = float(np.dot(use_pulls, self.__dist))
         if self._exp is None:
             self._exp = stored_exp
         if self._var is None:
-            self._var = stored_var
+            self._var = float(np.dot((use_pulls-stored_exp) ** 2, self.__dist))
 
     def calc_entropy_attribution(self, p_error=1e-6) -> None:
         '''计算分布熵相关属性 ``entropy_rate`` ``randomness_rate``
 
         - ``p_error`` ： 容许 ``p_sum`` 和 1 之间的差距，默认为 1e-6
+
+        零概率项对熵贡献为零。期望非正或分布无效时熵率为 nan；
+        随机度仅在期望大于 1、参考伯努利熵为正时有定义，否则为 nan。
         '''
-        if abs(self.p_sum-1) > p_error:  # 概率和不为1
+        if (not np.isfinite(self.p_sum) or abs(self.p_sum-1) > p_error
+                or np.any(self.__dist < 0) or not np.isfinite(self.exp) or self.exp <= 0):
             self._entropy_rate = float('nan')
             self._randomness_rate = float('nan')
             return
-        # 避免0的对数
-        temp = np.zeros(len(self.dist))
-        temp[0] = 1
-        self._entropy_rate = float(-sum(self.dist * np.log2(self.dist+temp)) / self.exp)
-        self._randomness_rate = float(self._entropy_rate / (-1/self.exp * np.log2(1/self.exp) - (1-1/self.exp) * np.log2(1-1/self.exp)))
+        positive = self.__dist[self.__dist > 0]
+        self._entropy_rate = float(-np.dot(positive, np.log2(positive)) / self.exp)
+        self._randomness_rate = float('nan')
+        if self.exp > 1:
+            p = 1.0 / self.exp
+            reference_entropy = -p * np.log2(p) - (1-p) * np.log1p(-p) / np.log(2.0)
+            self._randomness_rate = float(self._entropy_rate / reference_entropy)
 
     def quantile_point(self, quantile_p):
         '''返回分位点位置'''
@@ -757,14 +795,23 @@ class FiniteDist:  # 随机事件为有限个数的分布
 
     def normalized(self) -> 'FiniteDist':
         '''返回分布进行归一化后的结果'''
-        mass = float(sum(self.__dist))
+        mass = self.p_sum
         if mass == 0.0:
             raise ZeroDivisionError('cannot normalize a zero-mass FiniteDist.')
         return FiniteDist(self.__dist / mass, tail_mass=0.0)
 
-    def accurate_pow(self, n):
-        '''有更高数值精确性的自卷积n-1次，适用于计算分布概率低于1e-18的情况'''
+    def accurate_pow(self, n: int) -> 'FiniteDist':
+        '''使用直接卷积计算非负整数次幂；0 次返回零花费必然分布。
+
+        避免 FFT 的绝对误差底噪，适用于低于 1e-18 的尾概率；仍受浮点下溢限制。
+        '''
+        if not isinstance(n, (int, np.integer)) or n < 0:
+            raise ValueError('n must be a non-negative integer.')
+        if n == 0:
+            return FiniteDist([1], exp=0.0, var=0.0)
         ans = self.dist
+        if n > 1:
+            convolve = _load_scipy('convolve')
         for i in range(n-1):
             ans = convolve(ans, self.dist, method='direct')
         return FiniteDist(ans, exp=self.exp * n, var=self.var * n)
@@ -775,7 +822,10 @@ class FiniteDist:  # 随机事件为有限个数的分布
         返回两个分布值的和，以0位置对齐
         '''
         target_len = max(len(self), len(other))
-        return FiniteDist(pad_zero(self.dist, target_len) + pad_zero(other.dist, target_len))
+        ans = np.zeros(target_len, dtype=float)
+        ans[:len(self)] = self.__dist
+        ans[:len(other)] += other.__dist
+        return FiniteDist(ans)
 
     def __mul__(self, other: Union['FiniteDist', float, int, np.float64, np.int32]) -> 'FiniteDist':
         '''定义的 * 运算符
@@ -785,7 +835,7 @@ class FiniteDist:  # 随机事件为有限个数的分布
         '''
         # TODO 研究是否需要对空随机变量进行特判
         if isinstance(other, FiniteDist):
-            return FiniteDist(convolve(self.dist, other.dist))
+            return FiniteDist(_load_scipy('convolve')(self.dist, other.dist))
         else:
             return FiniteDist(self.dist * other)
     def __rmul__(self, other: Union['FiniteDist', float, int, np.float64, np.int32]) -> 'FiniteDist':
@@ -807,16 +857,17 @@ class FiniteDist:  # 随机事件为有限个数的分布
             # 将使用过的条目移动到末尾，表示最近使用
             self._pow_cache.move_to_end(pow_times)
             return self._pow_cache[pow_times]
+        if pow_times == 0:
+            return np.ones(1)
+        if pow_times == 1:
+            return self.dist.copy()
+        convolve = _load_scipy('convolve')
         # 特别优化，如果 pow_times-1 已经记录则直接在此基础上卷积，这里不想更复杂的利用缓存的组合实现了
         if pow_times >= 1 and pow_times-1 in self._pow_cache:
             ans = convolve(self.dist, self._pow_cache[pow_times-1])
         # 没有命中缓存则直接用快速幂思想增倍计算
         else:
             ans = np.ones(1)
-            if pow_times == 0:
-                return ans
-            if pow_times == 1:
-                return self.dist.copy()
             t = pow_times
             temp = self.dist.copy()
             dist_times = 1
@@ -849,18 +900,21 @@ class FiniteDist:  # 随机事件为有限个数的分布
         广义乘方扩展到两个 FiniteDist AB的运算，将返回 \sum{A**B[i]} 的值
         '''
         # 整数乘方
-        if isinstance(pow_times, int):
+        if isinstance(pow_times, (int, np.integer)):
+            pow_times = int(pow_times)
             if pow_times < 0:
                 raise ValueError("pow_times must be non-negative")
             return FiniteDist(self._compute_pow(pow_times))
         # FiniteDist 乘方
         elif isinstance(pow_times, FiniteDist):
-            ans = FiniteDist([0])
-            for i in range(len(pow_times)):
-                if pow_times[i] == 0:
-                    continue
-                ans += FiniteDist(pow_times[i] * self._compute_pow(i))
-            return ans
+            indices = np.flatnonzero(pow_times.__dist)
+            if len(indices) == 0:
+                return FiniteDist([0])
+            ans = np.zeros(int(indices[-1]) * (len(self) - 1) + 1, dtype=float)
+            for i in indices:
+                power = self._compute_pow(int(i))
+                ans[:len(power)] += pow_times.__dist[i] * power
+            return FiniteDist(ans)
         raise TypeError("pow_times must be an integer or FiniteDist")
 
     def __str__(self) -> str:
@@ -868,7 +922,7 @@ class FiniteDist:  # 随机事件为有限个数的分布
         return f"finite 1D dist {self.dist}"
 
     def __len__(self) -> int:
-        return len(self.dist)
+        return len(self.__dist)
 
 if __name__ == "__main__":
     pass

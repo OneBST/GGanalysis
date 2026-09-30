@@ -10,7 +10,7 @@
     见 https://github.com/OneBST/GGanalysis
 '''
 from GGanalysis.distribution_1d import *
-from GGanalysis.markov.markov_method_old import table2matrix
+from GGanalysis.markov import StateSpace, TransitionBuilder
 from GGanalysis.gacha_layers import *
 from GGanalysis.basic_models import *
 
@@ -83,7 +83,10 @@ class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
             ['fate1pity', 'fate2', 0.5],
             ['fate2', 'get', 1]
         ]
-        M = table2matrix(self.state_num, state_trans)
+        builder = TransitionBuilder(StateSpace.from_shape([len(self.state_num)]), backend="dense")
+        for source, destination, probability in state_trans:
+            builder.add(self.state_num[source], self.state_num[destination], probability)
+        M = builder.build(check=True).P
         self.layers.append(PityLayer(PITY_W5STAR))
         self.layers.append(MarkovLayer(M))
 
