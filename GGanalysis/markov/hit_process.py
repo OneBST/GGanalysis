@@ -12,11 +12,14 @@ from typing import Sequence, Iterator
 import numpy as np
 import scipy.sparse as sp
 
-from GGanalysis.markov.analysis import stationary_solve
+from GGanalysis.markov.analysis import stationary_solve, event_count_state_dist
 from GGanalysis.markov.builder import ProbabilityMatrixBuilder
 from GGanalysis.markov.state_space import StateSpace
-from GGanalysis.markov.transition import MarkovTransition, validate_matrix, validate_mass, validate_steps
-from GGanalysis.state_distribution import StateDist, StateKernel, ConvolutionMethod
+from GGanalysis.markov.transition import (
+    MarkovTransition, validate_probability_vector, validate_matrix, validate_mass, validate_steps,
+)
+from GGanalysis.state_distribution import StateDist, StateKernel, ConvolutionMethod, stateful_item_num_dist
+from GGanalysis.distribution_1d import FiniteDist
 
 
 def _snapshot_property(function):
@@ -86,9 +89,16 @@ class HitTransitionBuilder:
 class HitProcess:
     """一次抽取至多命中一个目标，规则不随抽取时间改变的过程。
 
-    ``layered=True`` 适用于完整状态按 ``(连续未命中次数, 边界状态)`` 排列、
-    未命中只进入下一层、命中后由 E 回到第 0 层的过程。此时计算核只传播
-    一个边界状态层，不传播整个完整状态空间。
+    这里的“层”是一组具有相同连续未命中次数的状态。例如边界状态为 A、B，
+    最迟第三抽命中，则完整状态可按以下顺序编码：第 0 层 (0,A)、(0,B)，
+    第 1 层 (1,A)、(1,B)，第 2 层 (2,A)、(2,B)。第一项为连续未命中次数，
+    A、B 表示命中后仍需保留的机制状态，不是获得数量。
+
+    ``layered=True`` 要求未命中只从第 l 层进入第 l+1 层，命中后由 E
+    重置回第 0 层，最后一层必定命中。局部矩阵允许 A、B 之间随机转移。
+    计算周期核时，只需维护当前未命中次数下的 B 个状态，不必每步传播
+    全部 L*B 个完整状态；L 为层数，B 为边界状态数。
+    一般的跳层、回退或循环转移应使用非分层过程。
     """
 
     @classmethod
@@ -100,15 +110,36 @@ class HitProcess:
         miss_layers: Sequence[np.ndarray | sp.spmatrix],
         embed: Sequence[int] | np.ndarray | sp.spmatrix,
     ) -> "HitProcess":
-        """从每层局部矩阵自动组装并验证分层过程。
+        """按连续未命中次数提供局部转移矩阵，自动拼成完整命中过程。
 
-        完整状态必须按 ``(层, 边界状态)`` 连续排列。两个矩阵序列长度均为
-        层数，每个矩阵形状均为 ``(B, B)``，列是本层起点；命中矩阵的行是
-        边界终点，未命中矩阵的行是下一层状态。最后一层未命中必须为零。
-        相同规则的层可以重复引用同一个矩阵，构建结果不与输入共享存储。
+        设有 L 个未命中次数取值，每个取值下有 B 个边界状态。完整编号必须
+        为 ``l*B+b``，其中 l 为连续未命中次数，b 为局部边界状态编号。
+        两个矩阵序列都包含 L 个形状为 (B,B) 的矩阵，采用 [终点,起点]：
 
-        ``embed`` 显式指定边界到完整空间的重置，可传矩阵或完整状态编号数组，
-        且必须回到第零层。返回 ``layered=True`` 的过程，不自动修复概率。
+        - ``hit_layers[l][j,i]``：从 (l,i) 出发，本抽命中并留下边界状态 j。
+        - ``miss_layers[l][j,i]``：从 (l,i) 出发，本抽未命中并进入 (l+1,j)。
+
+        二者每列之和相加必须为 1；最后一层的 miss 必须全零，即最迟
+        第 L 抽命中。embed 将命中后的边界状态重置到第 0 层，可传
+        (L*B,B) 概率矩阵，或长度为 B 的确定重置完整状态编号列表。
+        构建结果复制输入，返回已验证的 layered=True 过程，不修复概率。
+
+        例如两个机制状态 A、B，第一抽命中概率 0.2，第二抽为 0.5，
+        第三抽必定命中；命中和未命中均保持机制状态，命中后保底归零::
+
+            full = StateSpace.from_shape([3, 2])
+            boundary = StateSpace.from_shape([2])
+            identity = np.eye(2)
+            process = HitProcess.from_layers(
+                full, boundary,
+                hit_layers=[0.2*identity, 0.5*identity, identity],
+                miss_layers=[0.8*identity, 0.5*identity, np.zeros((2, 2))],
+                embed=[0, 1],
+            )
+
+        完整编号 0、1 对应 (0,A)、(0,B)，2、3 对应 (1,A)、(1,B)，
+        4、5 对应 (2,A)、(2,B)。例如从编号 2 出发，有 0.5 概率未命中
+        并进入编号 4，有 0.5 概率命中留下边界 A，再经 embed 回到编号 0。
         """
         size = boundary_space.N
         count, remainder = divmod(full_space.N, size)
@@ -120,11 +151,13 @@ class HitProcess:
             miss = sp.coo_matrix(miss, dtype=float, copy=True)
             validate_matrix(hit, (size, size), "hit layer")
             validate_matrix(miss, (size, size), "miss layer")
+            # 命中：本层完整编号 l*B+i → 边界编号 j。
             builder.add_hit_many(layer * size + hit.col, hit.row, hit.data)
             if layer + 1 == count:
                 if np.any(miss.data != 0):
                     raise ValueError("the last layer must have zero miss probability.")
             else:
+                # 未命中：本层完整编号 l*B+i → 下一层完整编号 (l+1)*B+j。
                 builder.add_miss_many(layer * size + miss.col,
                                       (layer + 1) * size + miss.row, miss.data)
         # 使用 cls 保持类方法的构造语义；边收集复用公共构建器。
@@ -232,11 +265,8 @@ class HitProcess:
             validate_steps(initial_layer)
             if not self.layered or initial_layer >= self.full_space.N // self.boundary_space.N:
                 raise ValueError("initial_layer requires a valid layer in a layered process.")
-        initial = np.asarray(initial, dtype=float)
         size = self.boundary_space.N if initial_layer is not None else self.full_space.N
-        if initial.shape != (size,) or not np.all(np.isfinite(initial)) or np.any(initial < 0):
-            raise ValueError("initial must be a finite nonnegative vector of the expected size.")
-        validate_mass(initial.sum(), 1)
+        initial = validate_probability_vector(initial, size, normalized=True)
 
         if self.layered and initial_layer is not None:
             hits, misses = self._layer_matrices
@@ -355,24 +385,54 @@ class HitProcessAnalysis:
     def nth_state_dist(
         self, count: int, initial: Sequence[float] | np.ndarray,
         initial_layer: int | None = None, *, method: ConvolutionMethod = "auto",
+        strategy: str = "step",
     ) -> StateDist:
         """返回指定初态下第 count 件的累计抽数与边界状态联合分布。
 
-        参数同 ``iter_state_dists``。少量目标顺序应用核，避免矩阵核自乘的
-        中间开销；较多目标使用 ``StateKernel.apply_power``。
+        参数同 ``iter_state_dists``。strategy='step'（默认）顺序应用核；
+        'power' 使用 StateKernel.apply_power，可能构造较大的稠密中间核。
+        不按目标件数自动选择策略。
         """
         validate_steps(count)
         if count == 0:
             raise ValueError("count must be positive.")
         if method not in ("auto", "direct", "fft"):
             raise ValueError("method must be auto, direct or fft.")
-        # 将原模型的少量目标策略集中到通用分析层。
-        if count <= 12:
+        if strategy not in ("step", "power"):
+            raise ValueError("strategy must be step or power.")
+        if strategy == "step":
             for result in self.iter_state_dists(count, initial, initial_layer, method=method):
                 pass
             return result
         first = self.first_state_dist(initial, initial_layer)
+        if count == 1:
+            return first
         return self._kernel.apply_power(int(count) - 1, first, method=method)
+
+    def item_num_dist(self, pull: int, initial: Sequence[float] | np.ndarray,
+                      initial_layer: int | None = None, multi_dist: bool = False,
+                      *, method: ConvolutionMethod = "auto") -> FiniteDist | list[FiniteDist]:
+        """由首件和周期核计算预算内命中数量。
+
+        初态语义同 first_state_dist；multi_dist=True 遍历投入 0 至 pull 步，
+        不同于多件花费查询遍历件数。每次命中计一件，周期须覆盖预算内系数。
+        返回 FiniteDist 或列表；不提供预算结束时的完整内部状态。
+        """
+        validate_steps(pull)
+        if pull == 0:
+            return [FiniteDist.delta(0)] if multi_dist else FiniteDist.delta(0)
+        return stateful_item_num_dist(self.first_state_dist(initial, initial_layer),
+                                      self._kernel, pull, multi_dist, method=method)
+
+    def event_count_state_dist(self, initial: Sequence[float] | np.ndarray, steps: int, *, strategy: str = "step",
+                               method: ConvolutionMethod = "auto") -> StateDist:
+        """逐步计算命中次数及结束完整状态，初态必须在完整状态空间。
+
+        命中后 embed 重置，过程继续；step 保留稀疏矩阵，power 将完整状态
+        转成稠密核，大状态空间不宜使用。此查询不受周期 max_steps 截断影响。
+        """
+        return event_count_state_dist((self.process._miss, self.process._embed @ self.process._hit),
+                                       initial, steps, strategy=strategy, method=method)
 
     @_snapshot_property
     def post_hit_stationary(self) -> np.ndarray:

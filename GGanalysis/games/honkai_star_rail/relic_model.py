@@ -7,8 +7,8 @@ import math
 import itertools
 
 from GGanalysis.games.honkai_star_rail.relic_data import *
-from GGanalysis.ScoredItem.genshin_like_scored_item import *
-from GGanalysis.ScoredItem.scored_item import ScoredItem, ScoredItemSet
+from GGanalysis.scored_item.genshin_like_scored_item import *
+from GGanalysis.scored_item.scored_item import ScoredItem, ScoredItemSet
 
 """
     崩坏：星穹铁道遗器类

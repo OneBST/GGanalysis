@@ -4,13 +4,17 @@
         2. 对于UP4星物品，没有考虑UP4星从常驻中也有概率获取的可能性
     计算所得4星综合概率会略高于实际值，获取UP4星的概率略低于实际值，但影响非常微弱可以忽略
     
-    捕获明光机制还没有完全解析，模型计算出来的所需抽数会比实际更高
-
-    同时由于复杂性，原神的平稳机制没有纳入计算，其影响也很低。如果想了解平稳机制的影响，可以使用 GGanalysislib 工具包
-    见 https://github.com/OneBST/GGanalysis
+    捕获明光采用双计数器猜想，B 计数器触发概率为拟合值，不代表已确认机制。
+    常驻五星角色/武器类别入口包含平稳机制；四星仍使用上述近似。
 '''
 from GGanalysis.distribution_1d import *
-from GGanalysis.markov import StateSpace, TransitionBuilder
+from functools import cached_property
+from GGanalysis.markov import (
+    StateSpace, TransitionBuilder, HitTransitionBuilder, HitProcessAnalysis,
+    ChainAnalysis, StateRewards,
+)
+from GGanalysis.markov.transition import validate_steps
+from .standard_pity import StandardGenshin5starModel
 from GGanalysis.gacha_layers import *
 from GGanalysis.basic_models import *
 
@@ -20,9 +24,12 @@ __all__ = [
     'PITY_W5STAR',
     'PITY_W4STAR',
     'CR_P',
+    'CR_B_P',
 
     'common_5star',
     'common_4star',
+    'standard_5star_character',
+    'standard_5star_weapon',
     'up_5star_character',
     'up_4star_character',
     'up_4star_specific_character',
@@ -41,6 +48,7 @@ __all__ = [
 
     'ClassicGenshinCommon5starInUPpoolModel',
     'CapturingRadianceModel',
+    'StandardGenshin5starModel',
 ]
 
 # 原神普通5星保底概率表
@@ -65,6 +73,8 @@ PITY_W4STAR[8] = 0.06 + 0.6
 PITY_W4STAR[9] = 1
 # 捕获明光计数器模型触发概率，此处定义为触发明光概率P，非等效UP概率。等效UP概率为 P+(1-P)/2=0.5+P/2
 CR_P = [0, 0, 0, 1]
+# 双计数器猜想：B 在 0～5 不触发，6～9 使用拟合值，10 起必触发。
+CR_B_P = [0, 0, 0, 0, 0, 0, 0.01, 0.05, 0.25, 0.99, 1]
 
 # 5.0前命定值为2的定轨获取特定UP5星武器
 class ClassicGenshin5starEPWeaponModel(CommonGachaModel):
@@ -210,61 +220,102 @@ class ClassicGenshinCommon5starInUPpoolModel(CommonGachaModel):
         parameter_list = [l1_param, l2_param]
         return parameter_list
     
-def capturing_radiance_dp(item_num=1, up_pity=0, cr_count=1, cr_p=CR_P):
-    # 估计值，是上限，有的情况不会到达
-    max_5star = (item_num // 3 * 5) + item_num % 3 * 2 + int(cr_count==0)
-    # (获取了n个五星时恰好获得了，第m个UP五星，此时的计数器值)
-    M = np.zeros((max_5star+1, item_num+1, 4), dtype=float)
-    # 初始值 分别为当前已经使用了多少个五星，当前获得UP五星数量，当前计数器值
-    M[up_pity,up_pity,cr_count] = 1
-    for i in range(1, max_5star+1):
-        for j in range(1, item_num+1):
-            # 本次通过大保底获得道具
-            if i >= 2:
-                for k in range(1,4):
-                    M[i,j,k] += M[i-2,j-1,k-1] * (0.5 - cr_p[k-1]/2)
-            # 本次小保底获得道具
-            for k in range(0,2):
-                M[i,j,k] += M[i-1,j-1,k+1] * (0.5 - cr_p[k+1]/2)
-            M[i,j,0] += M[i-1,j-1,0] * (0.5 - cr_p[0]/2)
-            # 本次触发捕获明光获得道具，默认回到计数器为1状态
-            for k in range(0,4):
-                M[i,j,1] += M[i-1,j-1,k] * cr_p[k]
-    # 返回消耗五星分布
-    return np.trim_zeros(np.sum(M[:, item_num, :], axis=1), 'b')
-
 class CapturingRadianceModel(GachaModel):
-    '''
-    针对原神5.0后加入的「捕获明光」机制的计数器模型
-    模型不完全完善，解析见 https://www.bilibili.com/video/BV13XBiYZErT/
-    '''
-    def __init__(self, pity5_p=PITY_5STAR, cr_p=CR_P) -> None:
+    """捕获明光双计数器猜想：五星层上的状态为 (A,B,大保底)。
+
+    默认初态 A=1、B=3。小保底的直接明光概率取 cr_p[A] 与 cr_b_p[B]
+    较大者；默认 A 仅在 3 时强制触发，其他情况只由 B 控制。
+    未触发明光的剩余概率均分给普通不歪和歪；不是歪后救回概率。
+    普通不歪令 A-1、B-2（最低零），歪令 A+1、B+3；明光重置至 (1,3)。
+    大保底仅清除保证标记，不更新 A、B。B 参数为用户提供的拟合猜想。
+
+    pity5_p 是五星保底概率表；cr_p 长度为 4，cr_b_p 长度为 11，
+    最后一项均须为 1。B>=10 直接明光；歪后暂存的 B 最大为 12。
+    """
+    def __init__(self, pity5_p=PITY_5STAR, cr_p=CR_P, *, cr_b_p=CR_B_P) -> None:
         self.common_5star = PityModel(pity5_p)
-        self.cr_p = cr_p
-    def _get_cr_5star_dist(self, item_num, up_pity=0, cr_counter=0):
-        return FiniteDist(capturing_radiance_dp(item_num, up_pity, cr_counter, self.cr_p))
-    def _get_dist(self, item_num, item_pity, up_pity, cr_counter):
-        # 计算抽五星所需的抽数分布
+        self.cr_p = np.array(cr_p, dtype=float, copy=True)
+        self.cr_b_p = np.array(cr_b_p, dtype=float, copy=True)
+        for table, length in ((self.cr_p, 4), (self.cr_b_p, 11)):
+            if (table.shape != (length,) or not np.all(np.isfinite(table)) or
+                    np.any(table < 0) or np.any(table > 1) or table[-1] != 1):
+                raise ValueError("明光概率表须为指定长度的概率向量，末项为 1。")
+            table.flags.writeable = False
+
+    @cached_property
+    def _analysis(self) -> HitProcessAnalysis:
+        full = StateSpace.from_shape([4, 13, 2])
+        boundary = StateSpace.from_shape([4, 13])
+        embed = [full.state_to_id([a, b, 0]) for a in range(4) for b in range(13)]
+        builder = HitTransitionBuilder(full, boundary, embed)
+        for a in range(4):
+            for b in range(13):
+                source = full.state_to_id([a, b, 0])
+                c = max(self.cr_p[a], self.cr_b_p[min(b, 10)])
+                builder.add_hit(source, boundary.state_to_id([1, 3]), c)
+                builder.add_hit(source, boundary.state_to_id([max(a-1, 0), max(b-2, 0)]), (1-c)/2)
+                if c < 1:
+                    builder.add_miss(source, full.state_to_id([a+1, b+3, 1]), (1-c)/2)
+                builder.add_hit(full.state_to_id([a, b, 1]), boundary.state_to_id([a, b]), 1)
+        return HitProcessAnalysis(builder.build(check=True), max_steps=2)
+
+    def _initial(self, up_pity: int, cr_counter: int, cr_counter_b: int) -> np.ndarray:
+        validate_steps(cr_counter)
+        validate_steps(cr_counter_b)
+        if up_pity not in (0, 1) or cr_counter > 3 or cr_counter_b > 12:
+            raise ValueError("up_pity 为 0/1，A 为 0～3，B 为 0～12。")
+        if up_pity and cr_counter == 0:
+            raise ValueError("up_pity 数值与 cr_counter 数值矛盾")
+        return self._analysis.process.full_space.delta([cr_counter, cr_counter_b, int(up_pity)])
+
+    def _get_cr_5star_dist(self, item_num: int, up_pity: int = 0,
+                          cr_counter: int = 1, cr_counter_b: int = 3) -> FiniteDist:
+        return self._analysis.nth_state_dist(
+            item_num, self._initial(up_pity, cr_counter, cr_counter_b), method="direct",
+        ).marginal_cost()
+
+    def _to_pulls(self, count_dist: FiniteDist, item_pity: int) -> FiniteDist:
+        # 五星等待周期 IID，只有首个五星使用当前水位的条件分布。
         f_dist = self.common_5star(1)
         c_dist = self.common_5star(1, item_pity=item_pity)
-        # 「捕获明光」机制下抽 item_num 个UP五星所需的五星层数，使用分布列定义抽卡层
-        cr_layer = PityLayer(self._get_cr_5star_dist(item_num, up_pity, cr_counter))
-        ans = cr_layer._forward((f_dist, c_dist), False, 0)
-        return ans
+        return PityLayer(count_dist)._forward((f_dist, c_dist), False, 0)
 
-    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity=0, up_pity=0, cr_counter=1) -> Union[
-        FiniteDist, list]:
+    @cached_property
+    def _small_pity_up_rate(self) -> float:
+        process = self._analysis.process
+        chain = ChainAnalysis(process.transition)
+        stationary = chain.long_run_state(self._initial(0, 1, 3))
+        small = (process.full_space.ids_to_states(np.arange(process.full_space.N))[:, 2] == 0)
+        up = np.asarray(process.hit.sum(axis=0)).ravel()
+        rewards = StateRewards(process.full_space, {"small": small, "small_up": small*up})
+        values = rewards.expectation(stationary)
+        return values["small_up"] / values["small"]
+
+    def small_pity_up_rate(self) -> float:
+        """返回长期小保底 UP 胜率，不计大保底；默认拟合参数约为 0.5526916771。
+
+        为初态 (A=1,B=3) 所在长期类的结果，不是指定当前计数器的下一次胜率。
+        若需含大保底的五星 UP 比例，可用 1/(2-p) 转换本返回值 p。
+        """
+        return self._small_pity_up_rate
+
+    def __call__(self, item_num: int = 1, multi_dist: bool = False, item_pity: int = 0,
+                 up_pity: int = 0, cr_counter: int = 1, cr_counter_b: int = 3) -> Union[FiniteDist, list]:
+        """返回获得 item_num 件 UP 的抽数分布，cr_counter 和 cr_counter_b 分别为 A、B。
+
+        item_pity 为五星水位，up_pity=1 为大保底。multi_dist=True 返回
+        0～item_num 件的分布列表；零件沿用旧接口，直接返回零花费 FiniteDist。
+        首次与后续 UP 之间保留 A、B 状态，不假设 UP 获得周期 IID。
+        """
+        validate_steps(item_num)
         if item_num == 0:
             return FiniteDist([1])
-        if up_pity and cr_counter==0:
-            raise ValueError("up_pity 数值与 cr_counter 数值矛盾")
+        initial = self._initial(up_pity, cr_counter, cr_counter_b)
         if not multi_dist:
-            return self._get_dist(item_num, item_pity, up_pity, cr_counter)
-        else:
-            ans_list = [FiniteDist([1])]
-            for i in range(1, item_num + 1):
-                ans_list.append(self._get_dist(i, item_pity, up_pity, cr_counter))
-            return ans_list
+            joint = self._analysis.nth_state_dist(item_num, initial, method="direct")
+            return self._to_pulls(joint.marginal_cost(), item_pity)
+        return [FiniteDist([1])] + [self._to_pulls(joint.marginal_cost(), item_pity)
+                                   for joint in self._analysis.iter_state_dists(item_num, initial, method="direct")]
 
 class EpitomizedPathModel(GachaModel):
     '''
@@ -316,6 +367,8 @@ common_4star = PityModel(PITY_4STAR)
 # 定义原神角色池模型
 classic_up_5star_character = DualPityModel(PITY_5STAR, [0, 0.5, 1])
 up_5star_character = CapturingRadianceModel(PITY_5STAR)
+standard_5star_character = StandardGenshin5starModel(PITY_5STAR, "character")
+standard_5star_weapon = StandardGenshin5starModel(PITY_5STAR, "weapon")
 up_4star_character = DualPityModel(PITY_4STAR, [0, 0.5, 1])
 up_4star_specific_character = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/3)
 # 定义原神武器池模型

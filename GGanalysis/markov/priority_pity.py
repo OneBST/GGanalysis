@@ -7,7 +7,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from GGanalysis.distribution_1d import FiniteDist
-from GGanalysis.markov.analysis import stationary_solve
+from GGanalysis.markov.analysis import stationary_solve, event_count_state_dist
 from GGanalysis.markov.builder import TransitionBuilder
 from GGanalysis.markov.state_space import StateSpace
 
@@ -132,15 +132,10 @@ def stationary_item_count_distribution(pity_p, pulls: int) -> np.ndarray:
     ).tocsr()
     miss = chain.transition.P - hit
     miss.eliminate_zeros()
-    state_by_count = np.zeros((pulls + 1, size), dtype=float)
-    state_by_count[0] = chain.stationary_distribution
-    for step in range(pulls):
-        active = state_by_count[:step + 1]
-        next_by_count = np.zeros_like(state_by_count)
-        next_by_count[:step + 1] = (miss @ active.T).T
-        next_by_count[1:step + 2] += (hit @ active.T).T
-        state_by_count = next_by_count
-    return state_by_count.sum(axis=1)
+    joint = event_count_state_dist((miss, hit), chain.stationary_distribution, pulls)
+    # 保留公开返回的固定 pulls+1 长度，包括不可能数量的零概率。
+    counts = joint.coeff.sum(axis=1)
+    return np.pad(counts, (0, pulls + 1 - len(counts)))
 
 
 __all__ = ["PriorityPityChain", "stationary_item_count_distribution"]

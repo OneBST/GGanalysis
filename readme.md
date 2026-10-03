@@ -2,7 +2,7 @@
 
 本工具包为快速构建抽卡游戏抽卡模型设计，通过引入“[抽卡层](https://github.com/OneBST/GGanalysis/blob/main/GGanalysis/gacha_layers.py)”，以抽卡层的组合快速实现复杂的抽卡逻辑，并以较低的时间复杂度计算抽卡模型对应的分布。除了计算分布，工具包还提供一些将计算结果可视化的[绘图工具](https://github.com/OneBST/GGanalysis/blob/main/GGanalysis/plot_tools.py)，并计划加入更多的针对各类抽卡问题的计算工具和设计工具。
 
-对于原神圣遗物、崩铁遗器这类随机提升副词条的模型提供了[词条模拟工具](https://github.com/OneBST/GGanalysis/blob/main/GGanalysis/SimulationTools/scored_item_sim.py)和更快速且误差很小的[近似计算工具](https://github.com/OneBST/GGanalysis/blob/main/GGanalysis/ScoredItem/scored_item.py)。但请注意，这部分代码接口可能大幅改动。
+对于原神圣遗物、崩铁遗器这类随机提升副词条的模型提供了[词条模拟工具](https://github.com/OneBST/GGanalysis/blob/main/GGanalysis/simulation/scored_item_sim.py)和更快速且误差很小的[近似计算工具](https://github.com/OneBST/GGanalysis/blob/main/GGanalysis/scored_item/scored_item.py)。但请注意，这部分代码接口可能大幅改动。
 
 工具包[在线文档](https://onebst.github.io/GGanalysis/)在持续完善中，使用交流QQ群：797922035。
 

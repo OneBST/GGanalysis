@@ -395,21 +395,39 @@ class StateKernel:
         right = rfft(previous._coeff, n=fft_len, axis=0)
         return irfft(left @ right, n=fft_len, axis=0)[:output_len]
 
-    def apply(self, dist: StateDist, method: ConvolutionMethod = "auto") -> StateDist:
-        """将本核作用于状态联合分布，返回传播后的联合分布。"""
+    def apply(self, dist: StateDist, method: ConvolutionMethod = "auto",
+              *, max_cost: int | None = None) -> StateDist:
+        """传播联合分布；max_cost=None 保留全部系数，否则只保留 0..max_cost。
+
+        max_cost 是非负预算，删除预算外质量而不归一化。direct 只计算预算内
+        系数；fft 使用足够的线性卷积长度再裁剪，避免循环卷积混回预算内。
+        """
         if not isinstance(dist, StateDist):
             raise TypeError("dist 必须为 StateDist")
         if dist.state_size != self.input_state_size:
             raise ValueError("StateDist 的状态数与核的输入状态数不匹配")
+        if max_cost is not None and (not isinstance(max_cost, (int, np.integer)) or max_cost < 0):
+            raise ValueError("max_cost 必须是非负整数或 None")
+        # 花费非负，预算外系数不会影响预算内结果。裁剪后不归一化。
+        if max_cost is not None:
+            kernel = StateKernel(self._coeff[:max_cost + 1])
+            initial = StateDist(dist._coeff[:max_cost + 1])
+            selected = kernel._resolved_method(initial.cost_size, kernel.input_state_size, method)
+            coeff = (kernel._apply_direct(initial, max_cost) if selected == "direct"
+                     else kernel._apply_fft(initial)[:max_cost + 1])
+            return StateDist(coeff)
         selected = self._resolved_method(dist.cost_size, self.input_state_size, method)
         coeff = self._apply_direct(dist) if selected == "direct" else self._apply_fft(dist)
         return StateDist(coeff)
 
-    def _apply_direct(self, dist: StateDist) -> np.ndarray:
+    def _apply_direct(self, dist: StateDist, max_cost: int | None = None) -> np.ndarray:
         """使用直接花费卷积和矩阵向量乘法传播联合分布。"""
-        output = np.zeros((self.cost_size + dist.cost_size - 1, self.output_state_size))
-        for tk in range(self.cost_size):
-            for td in range(dist.cost_size):
+        length = self.cost_size + dist.cost_size - 1
+        if max_cost is not None:
+            length = min(length, max_cost + 1)
+        output = np.zeros((length, self.output_state_size))
+        for tk in range(min(self.cost_size, length)):
+            for td in range(min(dist.cost_size, length - tk)):
                 output[tk + td] += self._coeff[tk] @ dist._coeff[td]
         return output
 
@@ -507,4 +525,60 @@ class StateKernel:
                 f"输入状态数={self.input_state_size})")
 
 
-__all__ = ["StateDist", "StateKernel"]
+def stateful_item_num_dist(
+    first_dist: StateDist, cycle_kernel: StateKernel, pull: int,
+    multi_dist: bool = False, *, method: ConvolutionMethod = "auto",
+) -> FiniteDist | list[FiniteDist]:
+    """由首件联合分布和状态周期核计算预算内数量，保留跨次状态依赖。
+
+    Parameters
+    ----------
+    first_dist : StateDist
+        首件的抽数与命中后状态联合分布，必须覆盖截至 pull 的系数。
+    cycle_kernel : StateKernel
+        下次命中的正整数抽数与结束状态核，输入输出为同一边界空间。
+        每次命中计一件；不支持零花费命中周期。
+    pull : int
+        非负抽数预算。预算外系数精确裁剪，不归一化。
+    multi_dist : bool
+        为真时返回投入 0 至 pull 抽的数量分布列表。
+    method : {'auto', 'direct', 'fft'}
+        周期应用的卷积方法；始终按件数顺序应用。
+
+    Returns
+    -------
+    FiniteDist or list[FiniteDist]
+        数量概率分布。尾部周期未覆盖到 pull 时无法恢复遗漏概率。
+    """
+    if not isinstance(pull, (int, np.integer)) or pull < 0:
+        raise ValueError("pull 必须是非负整数")
+    _check_method(method)
+    if (not cycle_kernel.is_square or cycle_kernel.input_state_size != first_dist.state_size
+            or np.any(first_dist.coeff[0]) or np.any(cycle_kernel.coeff[0])):
+        raise ValueError("需要相同边界空间以及正整数首件和周期花费")
+    at_least = np.zeros((pull + 1, pull + 1) if multi_dist else pull + 1)
+    at_least[0] = 1
+    joint = StateDist(first_dist.coeff[:pull + 1])
+    for count in range(1, pull + 1):
+        if not np.any(joint.coeff):
+            break
+        mass = joint.coeff.sum(axis=1)
+        if multi_dist:
+            cdf = np.cumsum(mass)
+            at_least[count, :len(cdf)] = cdf
+            at_least[count, len(cdf):] = cdf[-1]
+        else:
+            at_least[count] = mass.sum()
+        if count < pull:
+            joint = cycle_kernel.apply(joint, method=method, max_cost=pull)
+            # 正整数周期的严格支撑，避免 FFT 在不可能的抽数处留下底噪。
+            coeff = joint.coeff.copy()
+            coeff[:count + 1] = 0
+            joint = StateDist(coeff)
+    at_least[:-1] -= at_least[1:].copy()
+    if multi_dist:
+        return [FiniteDist(at_least[:t + 1, t], trim_tail_zeros=False) for t in range(pull + 1)]
+    return FiniteDist(at_least, trim_tail_zeros=False)
+
+
+__all__ = ["StateDist", "StateKernel", "stateful_item_num_dist"]

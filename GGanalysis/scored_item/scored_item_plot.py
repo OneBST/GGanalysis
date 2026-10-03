@@ -1,4 +1,4 @@
-from GGanalysis.ScoredItem.scored_item import *
+from GGanalysis.scored_item.scored_item import *
 from GGanalysis.plot_tools import *
 from matplotlib.ticker import AutoMinorLocator
 import matplotlib.ticker as mtick

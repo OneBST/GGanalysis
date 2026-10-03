@@ -57,6 +57,12 @@
 API
 --------------------------------------
 
+``MarkovLayer`` 的首次返回递推复用公共 ``first_hitting_time``。
+输入可以是普通守恒矩阵或 ``MarkovTransition``，编号 0 为目标及完整周期起点。
+``p_error`` 对应剩余质量阈值，``max_steps`` 默认 10000 是计算上限；
+达到上限仍未命中的质量保留在 ``FiniteDist.tail_mass``，不强制归一化。
+它仍是独立周期的抽卡层适配器，不代替保留跨次状态的 ``HitProcess``。
+
 .. autoclass:: GGanalysis.gacha_layers.GachaLayer
    :members:
    :special-members: __call__

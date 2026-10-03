@@ -32,9 +32,15 @@
    * - ``GGanalysis/markov/``
      - ``StateSpace``、``TransitionBuilder``、``HitTransitionBuilder``、``HitProcessAnalysis``；``StateRewards``、``group_mass``、``PriorityPityChain``
      - 状态编码、转移构建、命中过程、稳态与事件奖励统计、多稀有度保底优先级
-   * - ``GGanalysis/ScoredItem/``
+   * - ``GGanalysis/scored_item/``
      - ``scored_item.py``、``scored_item_tools.py``
      - 装备评分分布及组合、筛选
+   * - ``GGanalysis/simulation/``
+     - ``Statistics``、``HoyoItemSim``、``HoyoItemSetSim``
+     - 可复用的统计工具及装备抽样模拟
+   * - ``GGanalysis/reverse_engineering/``
+     - ``LinearAutoCracker``、词条权重似然函数
+     - 抽卡与装备机制的逆向工程；不限于参数推断
    * - ``GGanalysis/gacha_plot.py``、``GGanalysis/plot_tools.py``
      - ``DrawDistribution`` 等
      - 复用分布展示与绘图样式
@@ -45,6 +51,19 @@
 组合示例见 :doc:`start_using/custom_gacha_model`，非 IID 教程见
 :doc:`start_using/stateful_models`，一维 API 见 :doc:`reference_manual/basic_tools`。
 表中未收录到参考手册的接口，先阅读对应源码的 docstring；不要根据名字猜测语义。
+
+公开入口与包命名
+--------------------------------------
+
+模型、抽卡层和 ``markov`` 的公开工具均可从根包 ``GGanalysis`` 导入；
+也可以从对应模块或领域包导入同一对象。根包采用按需导出。
+``GeneralCouponCollection``、``HitProcess``、``StateRewards`` 等同时由
+``GGanalysis`` 和 ``GGanalysis.markov`` 提供，领域入口不要求用户了解实现文件。
+
+装备评分、模拟和逆向工程的目录分别为 ``scored_item``、``simulation``、
+``reverse_engineering``，使用小写名称；旧的大小写目录名不再提供。
+顶层包名保留 ``GGanalysis``，模块名 ``basic_models.py``、``gacha_layers.py``
+和目录名 ``markov`` 保持不变。
 
 模型选择与独立性假设
 --------------------------------------
@@ -120,7 +139,7 @@
 --------------------------------------
 
 测试、基准脚本和临时验证报告统一放在已被 Git 忽略的 ``test/``，暂不提交。
-可复用的模拟功能属于正式源码，例如 ``GGanalysis/SimulationTools/`` 或游戏内的模拟器。
+可复用的模拟功能属于正式源码，例如 ``GGanalysis/simulation/`` 或游戏内的模拟器。
 重要数学假设、验证结论和适用限制保留在正式文档中，不将临时运行日志搬入文档。
 
 常规参数变化与已有模型组合，优先检查概率质量、零目标、保底边界和已知结果；

@@ -1,7 +1,8 @@
 from GGanalysis.markov.state_space import StateSpace
+from GGanalysis.state_distribution import StateKernel
 import numpy as np
 import scipy.sparse as sp
-from typing import Any, Union, Literal, Optional
+from typing import Any, Union, Literal, Optional, Sequence
 
 class MarkovTransition():
     '''
@@ -93,6 +94,28 @@ class MarkovTransition():
         validate_mass(np.asarray(self.P.sum(axis=0)).ravel(), 1.0, atol)
 
 
+def validate_probability_vector(
+    vector: Sequence[float] | np.ndarray, size: int, name: str = "initial",
+    *, normalized: bool = False, flatten: bool = False, atol: float = 1e-12,
+) -> np.ndarray:
+    """返回有限非负状态质量向量的副本，不自动归一化。
+
+    默认要求一维且长度为 size；flatten=True 接受可展平的输入。
+    normalized=True 时通过 validate_mass 检查总质量为 1，atol 为其容差。
+    此辅助函数供马尔可夫模块内部使用，不限制非归一化中间质量。
+    """
+    values = np.array(vector, dtype=float, copy=True)
+    if flatten:
+        values = values.reshape(-1)
+    if values.shape != (size,):
+        raise ValueError(f"{name} must be a vector of length {size}.")
+    if not np.all(np.isfinite(values)) or np.any(values < 0):
+        raise ValueError(f"{name} must contain finite nonnegative probabilities.")
+    if normalized:
+        validate_mass(values.sum(), 1.0, atol)
+    return values
+
+
 def validate_matrix(matrix, shape: tuple[int, int], name: str) -> None:
     if matrix.shape != shape:
         raise ValueError(f"{name} must have shape {shape}.")
@@ -111,3 +134,25 @@ def validate_mass(actual, expected, atol: float = 1e-12) -> None:
 def validate_steps(value: int) -> None:
     if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value < 0:
         raise ValueError("max_steps must be a nonnegative integer.")
+
+
+def prepare_event_matrices(
+    matrices: Sequence[np.ndarray | sp.spmatrix | Sequence[Sequence[float]]] | StateKernel,
+) -> tuple[sp.csr_matrix, ...]:
+    """将单步事件转移整理为独立 CSR 矩阵，并检查联合概率守恒。（转换单抽核为稀疏格式）
+
+    第 r 个矩阵记录本步计 r 次事件及状态转移的联合概率。
+    各矩阵为同大小方阵，其和须列归一化；单个矩阵不要求列和为 1。
+    StateKernel 的累计轴在此解释为事件数量；不修复或归一化输入。
+    """
+    if isinstance(matrices, StateKernel):
+        matrices = matrices.coeff
+    blocks = tuple(sp.csr_matrix(matrix, dtype=float, copy=True) for matrix in matrices)
+    if not blocks:
+        raise ValueError("event_matrices must not be empty.")
+    size = blocks[0].shape[0]
+    for block in blocks:
+        validate_matrix(block, (size, size), "event matrix")
+        block.eliminate_zeros()
+    validate_mass(np.asarray(sum(blocks).sum(axis=0)).ravel(), 1)
+    return blocks

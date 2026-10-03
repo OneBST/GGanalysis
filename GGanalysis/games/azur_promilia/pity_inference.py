@@ -1,7 +1,7 @@
 '''
     蓝色星原：旅谣 概率模型推测工具
 
-    基于 GGanalysis.ReverseEngineering.gacha_model_autocracker 的线性软保底自动
+    基于 GGanalysis.reverse_engineering.gacha_model_autocracker 的线性软保底自动
     解析工具，结合官方公示的约束反推最可能的概率模型。
 
     五星（基础0.8%、第71抽开始上升、第90抽硬保底、综合1.58%）：
@@ -22,7 +22,7 @@
 import numpy as np
 from GGanalysis.distribution_1d import *
 from GGanalysis.games.azur_promilia.gacha_model import *
-from GGanalysis.ReverseEngineering.gacha_model_autocracker import LinearAutoCracker
+from GGanalysis.reverse_engineering.gacha_model_autocracker import LinearAutoCracker
 
 __all__ = [
     'AVG_P', 'AVG_P_4STAR',

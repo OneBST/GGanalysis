@@ -58,6 +58,40 @@
 ``compose``、``apply``、``apply_power`` 支持 ``method="auto"``、``"direct"``、``"fft"``。
 直接算法适合小规模核及数值对照，FFT 适合较长花费轴；二者都存在浮点误差。
 
+预算裁剪与命中数量
+--------------------------------------
+
+``K.apply(joint, max_cost=pull)`` 只保留花费不超过预算的系数，不归一化。
+花费非负，因此预算外系数不会重新贡献到预算内。直接法只计算预算内系数；
+FFT 法使用足够的线性卷积长度再裁剪，不用过短 FFT 将预算外质量卷回。
+这与删除末尾全零层不同：预算裁剪会丢弃有正概率的预算外结果。
+
+``stateful_item_num_dist(first_dist, cycle_kernel, pull)`` 计算固定预算内的命中数量。
+首件是 ``StateDist``，周期是同一边界空间的 ``StateKernel``，二者必须覆盖
+预算内全部系数，首件及周期花费均为正整数，每次命中计一件。
+后续周期允许依赖边界状态；不要求等待花费 IID。
+
+算法依次计算第 k 件的联合花费分布，裁剪预算外系数后汇总
+``P(数量 >= k)``，再相邻相减得到数量分布。``multi_dist=True`` 返回投入
+0 至 pull 抽的全部数量分布。预算结束时的内部状态不能由命中边界状态直接代替。
+只有一个边界状态时，与 ``independent_item_num_dist`` 的标量等待周期计算一致；
+标量接口保留专用实现，不转换成矩阵核。
+
+.. code-block:: python
+
+   import numpy as np
+   from GGanalysis import StateDist, StateKernel, stateful_item_num_dist
+
+   # 单状态几何命中周期截至 10 抽，足以计算 10 抽预算。
+   waiting = np.r_[0, 0.3 * 0.7 ** np.arange(10)]
+   first = StateDist(waiting[:, None])
+   cycle = StateKernel(waiting[:, None, None])
+   counts = stateful_item_num_dist(first, cycle, 10)
+   assert abs(counts.dist.sum() - 1) < 1e-12
+
+``StateKernel`` 始终使用稠密数组；稀疏一步事件矩阵的顺序传播见
+:doc:`markov`，不必将完整稀疏状态空间转成稠密核。
+
 概率质量与截断
 --------------------------------------
 
@@ -78,3 +112,5 @@ API
 
 .. autoclass:: GGanalysis.state_distribution.StateKernel
    :members:
+
+.. autofunction:: GGanalysis.state_distribution.stateful_item_num_dist

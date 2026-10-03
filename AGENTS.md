@@ -8,7 +8,7 @@
 - 一维分布与卷积：`GGanalysis/distribution_1d.py`（`FiniteDist`）；
   跨阶段状态与花费：`GGanalysis/state_distribution.py`（`StateDist`、`StateKernel`）。
 - 状态转移、命中和稳态分析：`GGanalysis/markov/`；装备评分：
-  `GGanalysis/ScoredItem/`；绘图：`GGanalysis/gacha_plot.py`、`GGanalysis/plot_tools.py`。
+  `GGanalysis/scored_item/`；绘图：`GGanalysis/gacha_plot.py`、`GGanalysis/plot_tools.py`。
 - 模型开发或新增游戏前，阅读 [开发指南](docs/source/development.rst) 的相关部分
   及机制相近的已有实现。优先复用；新增公共工具前先检索已有能力。
 

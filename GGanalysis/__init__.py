@@ -7,10 +7,10 @@ from importlib import import_module as _import_module
 from . import distribution_1d as _distribution_1d
 
 # 父包总会先于子模块执行。这里按需导出，避免仅导入 FiniteDist 时
-# 连带初始化抽卡层、状态分布和马尔可夫工具；旧名称保持可访问。
+# 连带初始化抽卡层、状态分布和马尔可夫工具。
 _EXPORT_GROUPS = {
     'distribution_1d': _distribution_1d.__all__,
-    'state_distribution': ('StateDist', 'StateKernel'),
+    'state_distribution': ('StateDist', 'StateKernel', 'stateful_item_num_dist'),
     'gacha_layers': (
         'comb', 'binom', 'warnings', 'GachaLayer', 'PityLayer', 'BernoulliLayer',
         'MarkovLayer', 'DynamicProgrammingLayer', 'CouponCollectorLayer',
@@ -25,12 +25,14 @@ _EXPORT_GROUPS = {
         'GeneralCouponCollection', 'lru_cache', 'random', 'get_equal_coupon_collection_exp',
     ),
     'markov.priority_pity': ('PriorityPityChain', 'stationary_item_count_distribution'),
-    'markov.state_space': ('StateSpace',),
+    'markov.state_space': ('Selector', 'StateSpace'),
     'markov.transition': ('MarkovTransition',),
-    'markov.builder': ('TransitionBuilder',),
+    'markov.builder': ('ProbabilityMatrixBuilder', 'TransitionBuilder'),
+    'markov.hit_process': ('HitTransitionBuilder', 'HitProcess', 'HitProcessAnalysis'),
     'markov.analysis': (
         'first_hitting_time', 'stationary_power', 'stationary_eigs',
-        'stationary_solve', 'StationaryInfo',
+        'stationary_solve', 'StationaryInfo', 'StateRewards', 'group_mass',
+        'ChainAnalysis', 'AbsorptionResult', 'TransitionRewards', 'event_count_state_dist',
     ),
 }
 _EXPORT_MODULES = {

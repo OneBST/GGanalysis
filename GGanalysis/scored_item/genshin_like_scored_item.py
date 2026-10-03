@@ -1,4 +1,4 @@
-from GGanalysis.ScoredItem.scored_item import ScoredItem
+from GGanalysis.scored_item.scored_item import ScoredItem
 from functools import lru_cache
 import itertools
 import numpy as np

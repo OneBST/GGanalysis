@@ -23,6 +23,14 @@
    kernel.validate(atol=1e-11)
    assert kernel.coeff.shape == (91, 73, 73)
 
+   # 固定抽数下的 S 数量：首件条件分布加位置继承周期，不使用 IID 卷积。
+   counts = up_5star_character.item_num_dist(100, start_pos=16, item_pity=25)
+   # 多件花费默认顺序应用；快速幂须显式选择。
+   third = up_5star_character(3, strategy="power", method="fft")
+
+数量查询的 multi_dist 遍历投入抽数，多件花费查询的 multi_dist 遍历目标件数。
+两个查询都保留位置依赖；只有输出时才汇总边界状态。
+
 构建与复用
 --------------------------------------
 

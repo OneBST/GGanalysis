@@ -4,6 +4,9 @@ from typing import Union
 from scipy.fft import next_fast_len, rfft
 from scipy.special import comb
 from scipy.stats import binom
+from GGanalysis.markov.analysis import first_hitting_time
+from GGanalysis.markov.transition import MarkovTransition
+from GGanalysis.markov.state_space import StateSpace
 import numpy as np
 import warnings
 
@@ -155,12 +158,29 @@ class BernoulliLayer(GachaLayer):
         return (p*(p*(Db+Eb**2)+(1-p)*(Da+Ea**2))+2*(1-p)*Ea*(p*Eb+(1-p)*Ea))/(p**2)
     
 class MarkovLayer(GachaLayer):
+    """由马尔可夫首次返回分布构造抽卡层。
+
+    Parameters
+    ----------
+    M : ndarray or MarkovTransition
+        守恒的一步矩阵，编号 0 为目标及完整周期起点。一步可以代表一次
+        高稀有度获得，实际抽数由前层组合；多轮组合仍要求周期独立。
+    p_error : float or None
+        首次命中剩余质量停止阈值；None 计算满 max_steps。
+    max_steps : int
+        最大转移步数；剩余质量保留为 FiniteDist.tail_mass，不归一化。
+    """
     # 马尔科夫抽卡层,对于不能在有限次数内移动到目标态的情况采用截断的方法处理
-    def __init__(self, M: np.ndarray, p_error=1e-8) -> None:
+    def __init__(self, M: np.ndarray | MarkovTransition, p_error=1e-8,
+                 *, max_steps: int = 10000) -> None:
         super().__init__()
         # 输入矩阵中，零状态为末态
-        self.M = M
+        self.transition = (M if isinstance(M, MarkovTransition)
+                           else MarkovTransition(StateSpace.from_shape([M.shape[0]]), M))
+        self.transition.validate()
+        self.M = self.transition.P
         self.p_error = p_error
+        self.max_steps = max_steps
         self.state_len = self.M.shape[0]
         self.dist = self._get_conditional_dist()
         self.exp = self.dist.exp
@@ -170,16 +190,13 @@ class MarkovLayer(GachaLayer):
     # 通过转移矩阵计算分布
     def _get_conditional_dist(self, begin_pos=0):
         # 从一个位置开始的转移的分布情况
-        dist = [0]
-        X = np.zeros(self.state_len)
-        X[begin_pos] = 1
-        while True:
-            X = np.matmul(self.M, X)
-            if sum(X) < self.p_error:
-                break
-            dist.append(X[0])
-            X[0] = 0
-        return FiniteDist(dist, tail_mass=max(0.0, float(sum(X))))
+        initial = np.zeros(self.state_len)
+        initial[begin_pos] = 1
+        dist, remaining = first_hitting_time(
+            self.transition, initial, [0] * self.transition.space.dims,
+            self.max_steps, tail_tol=self.p_error,
+        )
+        return FiniteDist(dist, tail_mass=remaining)
 
     def _forward(self, input, full_mode, begin_pos=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布

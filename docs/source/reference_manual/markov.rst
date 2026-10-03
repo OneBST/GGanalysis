@@ -21,6 +21,10 @@
 ``build(check=True)`` 或 ``transition.validate()`` 检查完整转移的列概率和。
 检查不修改矩阵；已移除 ``check_and_fix()``，不再提供自动修复。
 
+基础输入检查集中在 ``transition.py``，分析和命中过程复用同一实现。
+首次命中允许非归一化质量；稳态幂迭代会归一化正质量初始权重；
+事件计数、奖励和最终吸收分析要求归一化初态，不自动修复输入。
+
 矩形概率矩阵与快照
 --------------------------------------
 
@@ -71,6 +75,12 @@
 为假时先执行一步，可用于计算从目标状态出发的返回时间。
 ``return_pos=True`` 额外返回每个命中时刻的条件结束位置分布。
 
+``tail_tol=None`` 为默认值，计算满指定步数；设置有限非负阈值时，每次吸收后
+若剩余未命中质量不大于阈值就提前结束，返回数组截短至实际计算步数。
+``include_t0=True`` 时也检查零步吸收后的剩余质量。``steps`` 仍是计算上限，
+到达上限时可能尚未满足阈值，应检查返回的 ``surv``。不归一化或补全尾部；
+尾部质量小不代表尾部期望、方差误差小。永不命中的质量超过阈值时不会提前停止。
+
 .. code-block:: python
 
    import numpy as np
@@ -80,6 +90,12 @@
    transition = MarkovTransition(space, np.array([[0.5, 1.0], [0.5, 0.0]]))
    f, surv = first_hitting_time(transition, space.delta([1]), [0], steps=2)
    assert np.allclose(f, [0, 1, 0])
+   assert surv == 0
+
+   f, surv = first_hitting_time(
+       transition, space.delta([1]), [0], steps=100, tail_tol=1e-8,
+   )
+   assert np.allclose(f, [0, 1])
    assert surv == 0
 
 稳态满足 ``P @ pi = pi``，不能用任意初态下的一次等待时间直接取倒数替代稳态概率。
@@ -98,6 +114,97 @@
 
 可约链可能存在多个稳态，线性系统可能奇异；初态决定进入各闭合类的概率。
 这些接口不自动完成闭合类分解。``StationaryInfo`` 提供方法、是否收敛、迭代次数和残差。
+需要分解及初态相关结果时使用下述 ``ChainAnalysis``。
+
+状态结构、最终吸收与累计奖励
+--------------------------------------
+
+``ChainAnalysis(transition)`` 保存转移和空间的快照，外部修改不影响分析。
+``closed_classes`` 返回闭合互通类编号，``reachable_from(ids)`` 返回可达编号
+并包含起点。结构按严格正概率边判断，不将极小概率边当作零。
+
+``absorption(initial, targets)`` 接受归一化初态，以及名称到状态 selector 的映射。
+各目标类别必须互不重叠；首次进入任何目标后停止，不要求原目标已经是吸收态。
+返回 ``AbsorptionResult``，``probabilities`` 是各目标的竞争吸收概率，
+``never_hit`` 是永不进入目标并集的概率。默认计入零步命中；
+``include_t0=False`` 先传播一步，可计算首次返回。
+
+内部排除无法到达目标的区域，提取继续状态上的 Q，解
+``(I-Q) x = initial_U`` 得到期望访问次数，然后汇总进入目标的质量。
+只缓存最近一次继续状态划分的线性分解，不构造逆矩阵。
+
+.. code-block:: python
+
+   import numpy as np
+   from GGanalysis import ChainAnalysis, MarkovTransition, StateSpace, StateRewards
+
+   # 从状态 0 下一步以 0.4 成功、0.6 失败，两个终态都吸收。
+   chain = MarkovTransition(StateSpace.from_shape([3]), np.array([
+       [0, 0, 0], [0.4, 1, 0], [0.6, 0, 1],
+   ]))
+   analysis = ChainAnalysis(chain)
+   result = analysis.absorption([1, 0, 0], {"success": [1], "failure": [2]})
+   assert result.probabilities == {"success": 0.4, "failure": 0.6}
+   assert result.never_hit == 0
+   rewards = StateRewards(chain.space, {"steps": [1, 1, 1]})
+   total = analysis.expected_reward_until(
+       [1, 0, 0], {"success": [1], "failure": [2]}, rewards,
+   )
+   assert total["steps"] == 1
+
+``expected_reward_until`` 将访问次数与 ``StateRewards`` 的一步期望权重相乘。
+包括进入目标的最后一步奖励，初始零步命中不产生奖励。要求从初态几乎必然
+终止；存在非终止路径时拒绝计算，应明确增加失败终止目标，而不是隐式计算
+成功条件期望。是否存在非终止路径按可达结构判断，不以小概率容差代替。
+
+``long_run_state(initial)`` 分别求闭合类内部稳态，并按初态进入各类的概率混合。
+返回长期平均占用比例；周期类的逐步分布可以振荡，不承诺逐步极限存在。
+
+固定步数事件数量与奖励波动
+--------------------------------------
+
+``event_count_state_dist(event_matrices, initial, steps)`` 的第 r 个矩阵为
+``K_r[end, start]``，表示一步获得 r 件及结束状态的联合概率。
+矩阵总和须列归一化；一次可以获得多个，计数和转移不要求独立。
+结果是 ``StateDist``，累计轴此时表示数量，通过 ``marginal_cost()`` 得到数量分布。
+
+* ``strategy='step'`` 为默认，使用稀疏矩阵对活跃数量层批量顺序传播。
+* ``strategy='power'`` 显式构造稠密 ``StateKernel``，再调用快速幂。
+  大状态空间可能产生很大的中间核，不自动选择策略。
+* ``method`` 控制 power 的 direct/fft/auto 卷积后端，不决定 step/power。
+
+单步最多一件时，顺序传播时间为 O(steps**2 * E)，E 为非零转移边总数；
+联合分布空间为 O(steps * N)。核快速幂减少组合次数，但核的数量轴随幂增长，
+并非总计算量 O(log steps)，矩阵核自乘还可能破坏稀疏性。
+
+.. code-block:: python
+
+   import numpy as np
+   from GGanalysis import event_count_state_dist, TransitionRewards
+
+   events = [np.array([[0.7]]), np.array([[0.3]])]
+   counts = event_count_state_dist(events, [1], 10).marginal_cost()
+   reward = TransitionRewards.from_events(events)
+   mean, variance = reward.cumulative_moments([1], 10)
+   assert abs(mean - 3) < 1e-12
+   assert abs(variance - 2.1) < 1e-12
+
+``TransitionRewards`` 保存一个标量奖励的转移联合一阶矩 A 和二阶矩 B。
+支持稀疏矩阵、随机及非整数奖励；不能仅将随机奖励均值平方当作二阶矩。
+``from_events`` 用整数事件矩阵构造这两个矩。
+``cumulative_moments`` 递推状态概率和累计奖励一、二阶矩，返回固定步数的
+均值、方差，不构建完整数量分布。每步奖励条件分布不得额外依赖未编码的过去。
+
+``ChainAnalysis.long_run_rewards(reward, initial)`` 要求奖励描述同一转移矩阵。
+返回各闭合类的 ``class_weights``、``mean_rates``、``variance_rates``，以及混合
+平均率 ``mean_rate`` 和类间平均率方差 ``between_class_variance``。
+每类的 ``variance_rates`` 是累计奖励方差除以步数的极限，用泊松方程求解，
+包括跨步相关性并允许周期类。若类间平均率方差非零，整体方差有平方级主项，
+不能把各类线性方差增长率混合后当作整体线性增长率。
+
+开发验证以几何周期、跨命中状态交替、一次多件、周期链和可约链作确定性对照。
+状态周期法退化到 IID 工具时一致；事件分布的均值方差与矩递推一致；
+独立 0/1 奖励的长期方差率为 p(1-p)，相关两状态奖励的结果与解析协方差和一致。
 
 事件、奖励与分类汇总
 --------------------------------------

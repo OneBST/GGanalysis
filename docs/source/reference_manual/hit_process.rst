@@ -141,6 +141,16 @@ count 必须为正整数，零目标由调用者自行处理；任意初态结�
 API
 --------------------------------------
 
+``nth_state_dist`` 默认 ``strategy='step'`` 顺序应用周期核，显式指定
+``'power'`` 才使用稠密状态核快速幂，不再按 12 件阈值切换。
+``iter_state_dists`` 始终顺序产生每件结果，``method`` 只选择卷积后端。
+
+``item_num_dist(pull, initial, initial_layer, multi_dist)`` 复用首件和周期核，
+返回预算内命中数量分布；multi_dist 遍历投入 0 至 pull 步。
+``event_count_state_dist(initial, steps)`` 从完整空间初态逐步统计数量及结束状态，
+事件矩阵分别为 miss 和 embed @ hit，不受单周期 max_steps 上限影响。
+前者依赖周期的预算内系数完整；后者保留完整状态，默认稀疏顺序传播。
+
 .. autoclass:: GGanalysis.markov.hit_process.HitTransitionBuilder
    :members:
    :undoc-members:

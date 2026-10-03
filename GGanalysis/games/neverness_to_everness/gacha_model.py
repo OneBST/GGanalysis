@@ -88,8 +88,14 @@ class NTEMonopolyModel(GachaModel):
         start_pos: int = 0,
         item_pity: int = 0,
         method: ConvolutionMethod = "auto",
+        strategy: str = "step",
     ) -> Union[FiniteDist, list[FiniteDist]]:
-        """计算获得 ``item_num`` 个 S 所需抽数分布。"""
+        """计算获得 item_num 个 S 的花费；strategy 显式选择 step/power。
+
+        multi_dist=True 始终顺序产生所有件数结果；method 控制卷积后端。
+        """
+        if strategy not in ("step", "power"):
+            raise ValueError("strategy must be step or power.")
         if not isinstance(item_num, int) or item_num < 0:
             raise ValueError("item_num must be a non-negative integer.")
         if item_num == 0:
@@ -99,13 +105,21 @@ class NTEMonopolyModel(GachaModel):
         initial = analysis.process.boundary_space.delta([start_pos])
         if not multi_dist:
             return analysis.nth_state_dist(
-                item_num, initial, initial_layer=item_pity, method=method,
+                item_num, initial, initial_layer=item_pity, method=method, strategy=strategy,
             ).marginal_cost()
         return [FiniteDist.delta(0)] + [
             joint.marginal_cost() for joint in analysis.iter_state_dists(
                 item_num, initial, initial_layer=item_pity, method=method,
             )
         ]
+
+    def item_num_dist(self, pull: int, start_pos: int = 0, item_pity: int = 0,
+                      multi_dist: bool = False, *, method: ConvolutionMethod = "auto"
+                      ) -> FiniteDist | list[FiniteDist]:
+        """返回投入 pull 抽的 S 数量分布；multi_dist 遍历 0 至 pull 抽。"""
+        analysis = self.stationary.hit_analysis
+        initial = analysis.process.boundary_space.delta([start_pos])
+        return analysis.item_num_dist(pull, initial, item_pity, multi_dist, method=method)
 
     @property
     def stationary_probability(self) -> float:
