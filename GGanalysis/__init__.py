@@ -12,7 +12,7 @@ _EXPORT_GROUPS = {
     'distribution_1d': _distribution_1d.__all__,
     'state_distribution': ('StateDist', 'StateKernel', 'stateful_item_num_dist'),
     'gacha_layers': (
-        'comb', 'binom', 'warnings', 'GachaLayer', 'PityLayer', 'BernoulliLayer',
+        'GachaLayer', 'PityLayer', 'BernoulliLayer',
         'MarkovLayer', 'DynamicProgrammingLayer', 'CouponCollectorLayer',
     ),
     'basic_models': (
@@ -22,7 +22,7 @@ _EXPORT_GROUPS = {
         'PityBernoulliModel', 'DualPityBernoulliModel',
     ),
     'markov.coupon_collection': (
-        'GeneralCouponCollection', 'lru_cache', 'random', 'get_equal_coupon_collection_exp',
+        'GeneralCouponCollection', 'get_equal_coupon_collection_exp',
     ),
     'markov.priority_pity': ('PriorityPityChain', 'stationary_item_count_distribution'),
     'markov.state_space': ('Selector', 'StateSpace'),

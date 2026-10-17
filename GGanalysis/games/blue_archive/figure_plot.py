@@ -1,7 +1,7 @@
 import GGanalysis as gg
 import GGanalysis.games.blue_archive as BA
 from GGanalysis.gacha_plot import QuantileFunction, DrawDistribution
-from GGanalysis.basic_models import cdf2dist
+from GGanalysis.distribution_1d import cdf2dist
 from GGanalysis.plot_tools import *
 
 import matplotlib.pyplot as plt

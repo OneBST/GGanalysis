@@ -20,7 +20,7 @@
     运行方式： python -m GGanalysis.games.azur_promilia.pity_inference
 '''
 import numpy as np
-from GGanalysis.distribution_1d import *
+from GGanalysis.distribution_1d import calc_expectation, linear_p_increase, p2dist, p2exp
 from GGanalysis.games.azur_promilia.gacha_model import *
 from GGanalysis.reverse_engineering.gacha_model_autocracker import LinearAutoCracker
 

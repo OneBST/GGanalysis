@@ -1,9 +1,10 @@
 '''
     注意，本模块使用概率模型仅为根据游戏测试阶段推测，不能保证完全准确
 '''
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from typing import Union
+from GGanalysis.distribution_1d import FiniteDist, cdf2dist
+from GGanalysis.basic_models import DualPityBernoulliModel, DualPityModel, GachaModel, PityModel
 
 __all__ = [
     'PITY_5STAR',

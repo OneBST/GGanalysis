@@ -1,4 +1,4 @@
-from GGanalysis.basic_models import *
+from GGanalysis.basic_models import GeneralCouponCollectorModel
 
 __all__ = [
     'model_1_1_3',

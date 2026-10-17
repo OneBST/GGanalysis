@@ -3,10 +3,25 @@ from typing import Union
 from functools import lru_cache
 import random
 
+__all__ = ["GeneralCouponCollection", "get_equal_coupon_collection_exp"]
+
 class GeneralCouponCollection():
     '''
-        不同奖券概率不均等的奖券集齐问题类
-        默认以集齐为吸收态，状态按照从低到高位对应输入列表的从前往后
+    独立、固定概率抽取下的不同种类集齐问题，使用集合位掩码递推。
+
+    Parameters
+    ----------
+    p_list : list or numpy.ndarray
+        各种类每抽概率，应为有限正数，和不超过 1；剩余概率为空抽。
+        每次至多一种，重复道具不改变后续概率。支持 1～15 个目标种类。
+    item_names : list of str or None
+        可选的等长名称列表，用于名字/位掩码转换。
+
+    Notes
+    -----
+    第 i 位表示是否拥有 p_list[i]；默认起点为 0，目标为所有位。
+    目标匹配允许拥有额外种类，不记录同类数量。已有保底或状态依赖时
+    不应输入平均概率代替原机制。概率表构造后不应修改，以免缓存期望失效。
     '''
     def __init__(self, p_list: Union[list, np.ndarray], item_names: list[str]=None) -> None:
         # 输入合法性检查
@@ -86,7 +101,11 @@ class GeneralCouponCollection():
         return ans.astype(int)
 
     def get_expectation(self, state=None, target_state=None):
-        '''带缓存递归计算抽取奖券到目标态时抽取数量期望'''
+        """返回从 state 到包含 target_state 全部种类的完整等待期望。
+
+        两个参数为位掩码，None 使用默认状态；已满足目标时返回 0。
+        使用带缓存解析递归，不依赖有限抽数 DP 或模拟。
+        """
         if state is None:
             state = self.default_init_state
         if target_state is None:
@@ -107,7 +126,11 @@ class GeneralCouponCollection():
         return (1 + continuation) / total_p
 
     def collection_dp(self, n, init_state=None):
-        '''通过DP计算抽n次后的状态分布，返回DP数组'''
+        """返回零抽至 n 抽的完整集合状态概率，形状为 (2**种类数,n+1)。
+
+        init_state 为起点位掩码，None 使用默认值。行是集合状态，列是抽数；
+        内存随种类数指数增长，只查集齐概率时优先 get_collection_p。
+        """
         if init_state is None:
             init_state = self.default_init_state
         M = np.zeros((1 << self.item_types, n+1))
@@ -133,7 +156,13 @@ class GeneralCouponCollection():
             probabilities = self._step(probabilities, coupon_p, pairs)
 
     def get_collection_p(self, n, init_state=None, target_state=None, DP_array=None):
-        '''返回抽n抽后达到目标状态的概率数组'''
+        """返回 0～n 抽满足目标的累计概率数组，不是首次完成概率。
+
+        init_state、target_state 为位掩码，None 使用默认值。默认使用流式
+        递推；若提供 collection_dp 的 DP_array，则按目标汇总其每一列，
+        结果长度取决于该数组列数，调用者须保证与所需范围和初态一致。
+        有限抽数以外的尾部不补概率，相邻差可转为首次完成分布。
+        """
         if init_state is None:
             init_state = self.default_init_state
         if target_state is None:
@@ -161,7 +190,11 @@ class GeneralCouponCollection():
         return counter
 
 def get_equal_coupon_collection_exp(item_type, init_type=0, target_type=None):
-    '''获得每样道具均等情况下的集齐期望'''
+    """返回等概率且每抽必得一种时，从已有 init_type 种到 target_type 种的期望。
+
+    item_type 是总种类数；target_type=None 表示集齐所有种类。
+    三个参数均为种数而非位掩码；没有额外空抽概率。返回完整等待期望。
+    """
     ans = 0
     if target_type is None: 
         target_type = item_type

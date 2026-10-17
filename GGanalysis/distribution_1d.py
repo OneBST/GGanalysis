@@ -7,10 +7,8 @@ from collections import OrderedDict
 from importlib import import_module as _import_module
 
 
-# 保留原有星号导出的名称；仅显式导入分布类时不加载 SciPy。
+# 仅公开本模块提供的分布工具；仅导入分布类时不加载 SciPy。
 __all__ = [
-    'annotations', 'Iterable', 'Union', 'np', 'OrderedDict',
-    'convolve', 'irfft', 'next_fast_len', 'rfft',
     'linear_p_increase', 'calc_expectation', 'calc_variance', 'dist_squeeze',
     'dist2cdf', 'cdf2dist', 'p2dist', 'dist2p', 'p2exp', 'p2var', 'pad_zero',
     'prob_a_greater_than_b', 'cut_dist', 'calc_item_num_dist',

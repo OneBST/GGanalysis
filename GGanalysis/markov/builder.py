@@ -18,6 +18,20 @@ class ProbabilityMatrixBuilder:
     起点使用列索引，不要求矩阵为方阵或列和为 1。
     ``add(from_id, to_id, p)`` 将概率累加到 ``P[to_id, from_id]``，
     即从 from_id 状态转移到 to_id 的概率为 p。
+
+    Parameters
+    ----------
+    from_space, to_space : StateSpace
+        起点和终点编码；可为不同维度及不同状态数。
+    backend : {'sparse', 'dense'}
+        默认 sparse，返回 CSR；dense 返回 NumPy 数组。
+    dtype : real floating dtype
+        概率存储类型，默认 float64。
+
+    Notes
+    -----
+    重复边相加，build() 返回独立快照；矩形分支矩阵不要求列和为 1。
+    完整守恒转移可使用 TransitionBuilder，再调用 build(check=True)。
     '''
     def __init__(
         self,
@@ -186,8 +200,19 @@ class ProbabilityMatrixBuilder:
 class TransitionBuilder:
     """同一状态空间上的构建器，返回独立 ``MarkovTransition``。
 
-    ``space`` 是状态空间，``backend`` 可选 sparse/dense，``dtype`` 为实浮点类型。
-    ``build(check=True)`` 只验证概率守恒，不修复概率。
+    Parameters
+    ----------
+    space : StateSpace
+        起点/终点共用状态空间；没有概率规则，须继续添加边。
+    backend : {'sparse', 'dense'}
+        返回转移矩阵的存储方式，默认 sparse。
+    dtype : real floating dtype
+        概率存储类型，默认 float64。
+
+    Notes
+    -----
+    add(from_id,to_id,p) 的参数方向与 P[to,from] 索引顺序相反。
+    build(check=True) 验证概率守恒，不修复概率；结果不与后续构建器修改共享。
     """
 
     def __init__(self, space: StateSpace,
@@ -239,9 +264,9 @@ class TransitionBuilder:
         return result
 
     @property
-    def matrix(self) -> MarkovTransition:
-        """返回独立快照，修改结果不影响后续构建。"""
-        return self.build()
+    def matrix(self) -> np.ndarray | sp.csr_matrix:
+        """返回原始概率矩阵的独立快照；需要 MarkovTransition 时使用 build()。"""
+        return self._builder.matrix
 
 
 __all__ = ["ProbabilityMatrixBuilder", "TransitionBuilder"]

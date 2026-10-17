@@ -2,6 +2,7 @@
 ======================================
 
 定义位置：``GGanalysis/markov/hit_process.py``，从 ``GGanalysis.markov`` 导入。
+工具选择及其与普通状态链的关系见 :doc:`markov_overview`。
 适用于每步至多获得一个目标、规则不随时间改变的有限状态过程。
 它将逐步转移转换成 :doc:`state_distribution`，避免每个游戏重复实现命中递推。
 
@@ -30,6 +31,9 @@
 ``transition`` 获得独立副本，修改它们不会改变过程或内部缓存。
 ``HitProcessAnalysis`` 固定过程及计算上限，缓存结果对外返回副本。
 更改规则或计算上限时构造新对象；改变初态只需向计算方法传入不同向量。
+大周期核和缓存结果的副本可能占用明显内存；同一查询结果需重复使用时先保存
+到局部变量，不要在热循环中反复读取 ``analysis.kernel`` 等属性。
+连续获得多件优先调用 ``iter_state_dists``，由内部复用周期核。
 
 首次与连续命中
 --------------------------------------
@@ -54,7 +58,7 @@ count 必须为正整数，零目标由调用者自行处理；任意初态结�
    builder.add_hit(0, 0, 0.5)
    builder.add_miss(0, 1, 0.5)
    builder.add_hit(1, 0, 1.0)
-   process = builder.build()
+   process = builder.build(check=True)
    analysis = HitProcessAnalysis(process, max_steps=2)
    initial = full.delta([0])
    analysis.kernel.validate()
@@ -63,9 +67,8 @@ count 必须为正整数，零目标由调用者自行处理；任意初态结�
    assert np.allclose(analysis.first_state_dist(full.delta([1])).marginal_cost().dist, [0, 1])
    assert abs(analysis.long_run_hit_rate - 2 / 3) < 1e-10
 
-旧接口的迁移：移除构造函数中的 ``initial``、``initial_layer`` 参数，改在
-``first_state_dist`` / ``nth_state_dist`` 调用时传入；``first_state_dist`` 由属性改为方法。
-多个初态使用同一个分析对象即可，不需要为稳态计算提供占位初态。
+多个初态可使用同一个分析对象，向方法传入不同 initial；构造时不绑定初态，
+也不需要为稳态计算提供占位初态。
 
 ``layered=True`` 是有条件的优化：完整状态必须按“连续未命中次数、边界状态”排列，
 未命中只能前进一层，命中后由 E 回到第 0 层。不能仅因模型有保底就开启。
@@ -77,22 +80,32 @@ count 必须为正整数，零目标由调用者自行处理；任意初态结�
 从局部层矩阵自动构建
 --------------------------------------
 
-若机制天然按保底层描述，可用 ``HitProcess.from_layers`` 替代逐条填写完整编号。
+这里每一“层”指相同连续未命中次数下的一组状态。例如机制有 A、B 两种模式，
+最迟第三抽命中，则第 0 层为 (0,A)、(0,B)，第 1 层为 (1,A)、(1,B)，
+第 2 层为 (2,A)、(2,B)。完整编号依次为 0～5，即 l*B+b；
+未命中从本层进入下一层，命中留下边界模式后重置到第 0 层。
+每层内部的模式仍可随机变化，不要求编号按固定顺序跳转。
+
+若机制天然按这种结构描述，可用 ``HitProcess.from_layers`` 替代逐条填写完整编号。
 传入每层的 ``B×B`` 命中和未命中矩阵，公共工具自动加上层偏移、组装完整稀疏矩阵、
 启用分层计算并验证守恒。重复规则的层可引用同一矩阵；最后一层未命中必须为零。
 完整空间、边界空间和 ``embed`` 仍由模型显式定义，工具不推断哪些信息需要保留。
 
 .. code-block:: python
 
-   from GGanalysis.markov import HitProcess
+   import numpy as np
+   from GGanalysis.markov import StateSpace, HitProcess
 
+   full = StateSpace.from_shape([3, 2])
+   boundary = StateSpace.from_shape([2])
+   identity = np.eye(2)
    layered = HitProcess.from_layers(
        full, boundary,
-       hit_layers=[[[0.5]], [[1.0]]],
-       miss_layers=[[[0.5]], [[0.0]]],
-       embed=[0],
+       hit_layers=[0.2*identity, 0.5*identity, identity],
+       miss_layers=[0.8*identity, 0.5*identity, np.zeros((2, 2))],
+       embed=[0, 1],
    )
-   assert np.allclose(layered.cycle_kernel(2).coeff[:, 0, 0], [0, 0.5, 0.5])
+   assert np.allclose(layered.cycle_kernel(3).coeff[:, 0, 0], [0, 0.2, 0.4, 0.4])
 
 例如异环只需构造一次位置移动矩阵，再按落点命中率逐行拆分为命中和未命中矩阵。
 普通阶段、变格阶段分别复用各自的层矩阵，硬保底层使用原地命中的单位矩阵；
@@ -105,10 +118,22 @@ count 必须为正整数，零目标由调用者自行处理；任意初态结�
 ``cycle_kernel(..., return_remaining=True)`` 返回 ``(StateKernel, remaining_by_state)``，
 后者长度为边界状态数，分别对应各输入边界状态。默认返回类型不变。
 剩余质量来自计算末端的存活向量，同时检查“已命中 + 剩余 = 初始质量”。
+若存活向量/矩阵精确为零，递推会停止，预分配的未使用尾部仍为零，返回约定不变。
+这里没有新增小概率截断阈值；非零尾部仍计算至上限。循环提前停止也不会取消
+结果数组的预分配，因此不能据此任意放大 max_steps。
 零步计算返回零命中质量和全部剩余质量。初始向量要求归一化。
 
 .. code-block:: python
 
+   from GGanalysis.markov import StateSpace, HitTransitionBuilder
+
+   full = StateSpace.from_shape([2])
+   boundary = StateSpace.from_shape([1])
+   builder = HitTransitionBuilder(full, boundary, embed=[0])
+   builder.add_hit(0, 0, 0.5)
+   builder.add_miss(0, 1, 0.5)
+   builder.add_hit(1, 0, 1)
+   process = builder.build(check=True)
    joint, remaining = process.first_hit(full.delta([0]), 1, return_remaining=True)
    dist = joint.marginal_cost(tail_mass=remaining)
    dist.validate()

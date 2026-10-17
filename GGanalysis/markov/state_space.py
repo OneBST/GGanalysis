@@ -31,6 +31,8 @@ class StateSpace():
     离散多维状态空间(Discrete multi-dimensional state space)
     使用混合进制方式将多维状态编码为一维编号。
 
+    Parameters
+    ----------
     maxes : Sequence[int]
         每一维的最大取值（包含上界），例如：
         [a_max, b_max, c_max, d_max]
@@ -41,6 +43,13 @@ class StateSpace():
         - "clip"  : 小于 0 的值截断为 0 大于 max 的值截断为 max
         - "wrap"  : 对 (max+1) 取模，形成循环状态空间
         - "error" : 一旦越界立即抛出 ValueError
+
+    Notes
+    -----
+    from_shape([3,2]) 与 StateSpace([2,1]) 等价，按 C 顺序编码，末维变化最快。
+    编号只代表标签，不要求转移按整数递增。不规则有限状态可由调用者映射到
+    一维编号后使用 from_shape([N])；转移概率由矩阵或构建器另行定义。
+    clip/wrap 仅适用于确实存在饱和/循环的机制，不用于掩盖状态遗漏。
     '''
 
     def __init__(
@@ -156,7 +165,6 @@ class StateSpace():
         out = np.zeros(self.dims, dtype=np.int64)
         rem = int(idx)
         for k, stride in enumerate(self.strides):
-            base = self.shape[k]      # 当前维的进制（长度）
             out[k] = rem // stride    # 当前维的值
             rem = rem % stride        # 剩余部分留给后续维
 
@@ -240,16 +248,8 @@ class StateSpace():
     def _make_block_accessor(self, selector: Selector):
         '''
         根据 selector 生成一个访问器：
-        返回 (kind, accessor)
-
-        kind:
-            "scalar" : 单点
-            "block"  : 连续块 view
-            "mask"   : 布尔 mask
-        accessor:
-            - scalar: (dist, idx) -> None
-            - block : (dist) -> ndarray view
-            - mask  : (dist) -> ndarray view (boolean indexed)
+        返回 (kind, access)：block 为取得块及原数组索引的访问函数，
+        mask 为已计算的布尔掩码。布尔索引读取产生副本，清零必须写回原数组。
         '''
         if self._is_block_selector(selector):
             # 快路径
@@ -263,9 +263,7 @@ class StateSpace():
         else:
             # 慢路径
             m = self.mask(selector, sparse=False, dtype=bool)
-            def access(dist):
-                return dist[m]
-            return "mask", access
+            return "mask", m
 
     def hit(self, dist: np.ndarray, selector: Selector) -> float:
         dist = np.asarray(dist)
@@ -276,7 +274,7 @@ class StateSpace():
             block, _, _ = access(dist)
             return float(block) if np.isscalar(block) else float(block.sum())
         else:  # mask
-            return float(access(dist).sum())
+            return float(dist[access].sum())
 
     def clear(self, dist: np.ndarray, selector: Selector) -> None:
         dist = np.asarray(dist)
@@ -290,7 +288,7 @@ class StateSpace():
             else:
                 block[...] = 0.0
         else:  # mask
-            dist[self.mask(selector)] = 0.0
+            dist[access] = 0.0
 
     def hit_and_clear(self, dist: np.ndarray, selector: Selector) -> float:
         dist = np.asarray(dist)
@@ -308,7 +306,7 @@ class StateSpace():
                 block[...] = 0.0
                 return hit
         else:  # mask
-            m = self.mask(selector)
+            m = access
             hit = float(dist[m].sum())
             dist[m] = 0.0
             return hit
@@ -328,7 +326,7 @@ class StateSpace():
                     return hit
             return f
         else:
-            m = self.mask(selector)
+            m = access
             def f(dist):
                 hit = float(dist[m].sum())
                 dist[m] = 0.0
@@ -430,8 +428,9 @@ class StateSpace():
         若 selector 对应的状态在 1D 编码中为连续块，返回 ``slice(start, stop)``。
         不满足连续性条件时抛出 ValueError。
 
-        与 ``select_ids()`` 不同，本方法不分配状态数组，时间复杂度 O(dims)，
-        返回的 slice 可直接用于 numpy 数组的快速切片索引。
+        不展开全部笛卡尔积状态编号，但会为各维选择生成数组并检查连续性。
+        时间和临时空间取决于各维长度及显式编号列表长度之和，不保证 O(dims)。
+        返回的 slice 可直接用于 numpy 数组的切片索引。
 
         连续性条件（C-order 混合进制编码下的充要条件）：
         从第一个取值数量 > 1 的维度开始，之后的所有维度必须是该维度的全选

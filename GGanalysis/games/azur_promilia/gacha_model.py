@@ -15,9 +15,9 @@
     四星部分未纳入「五星挤四星」的交互，与原神模块口径一致，会略微高估
     （近似 13.0043%，精确 12.9366%，公示值 12%），详见 pity_inference.py。
 '''
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from GGanalysis.distribution_1d import p2exp
+from GGanalysis.basic_models import PityBernoulliModel, PityModel
 
 __all__ = [
     'BASE_P', 'SOFT_PITY_BEGIN', 'HARD_PITY',

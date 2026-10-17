@@ -1,22 +1,29 @@
 from GGanalysis.markov.state_space import StateSpace
-from GGanalysis.state_distribution import StateKernel
 import numpy as np
 import scipy.sparse as sp
 from typing import Any, Union, Literal, Optional, Sequence
 
+__all__ = ["MarkovTransition"]
+
 class MarkovTransition():
     '''
-    马尔科夫链转移矩阵
-    使用 CSR 格式以加速 P @ p 计算。
+    已有完整矩阵时的单步状态转移，采用列向量方向。
 
-    矩阵 P 的含义：
-        P[to, from] = Pr(X_{t+1} = to | X_t = from)
+    Parameters
+    ----------
+    space : StateSpace
+        起点和终点共用的状态编码。
+    P : numpy.ndarray or scipy.sparse matrix
+        形状为 (N,N)，P[to,from] 是从 from 到 to 的一步概率。
+    backend : {'dense', 'sparse'} or None
+        默认由输入推断；显式指定时输入须匹配。稀疏输入统一为 CSR。
 
-    支持两种后端：
-    - dense : numpy.ndarray (N, N)
-    - sparse: scipy.sparse 矩阵（内部统一为 CSR，以便高效执行 P @ p）
-
-    TODO 考虑实用性后决定是否加入 自动从普通转移矩阵生成吸收链的功能：给定原始转移矩阵 P 和一组吸收态，自动构造一个新矩阵。也可以据此构造一个计算吸收概率和吸收时间期望的函数。
+    Notes
+    -----
+    构造器检查形状和有限非负系数，列概率和需调用 validate() 检查。
+    step(p)、对象调用以及 @ 均表示 P @ p，不改变传入向量。
+    转移矩阵没有快照隔离保证，构造后仍可修改；分析对象是否复制由其接口说明。
+    最终吸收及闭合类分析见 ChainAnalysis，不需先手动修改目标行列。
     '''
     def __init__(
         self,
@@ -137,16 +144,15 @@ def validate_steps(value: int) -> None:
 
 
 def prepare_event_matrices(
-    matrices: Sequence[np.ndarray | sp.spmatrix | Sequence[Sequence[float]]] | StateKernel,
+    matrices: Sequence[np.ndarray | sp.spmatrix | Sequence[Sequence[float]]],
 ) -> tuple[sp.csr_matrix, ...]:
     """将单步事件转移整理为独立 CSR 矩阵，并检查联合概率守恒。（转换单抽核为稀疏格式）
 
     第 r 个矩阵记录本步计 r 次事件及状态转移的联合概率。
     各矩阵为同大小方阵，其和须列归一化；单个矩阵不要求列和为 1。
-    StateKernel 的累计轴在此解释为事件数量；不修复或归一化输入。
+    输入为矩阵序列，各层必须本来表示单步事件数量，不做等待花费到数量的转换。
+    高层 StateKernel 输入由分析入口提取 coeff；此处只改变存储格式，不修复概率。
     """
-    if isinstance(matrices, StateKernel):
-        matrices = matrices.coeff
     blocks = tuple(sp.csr_matrix(matrix, dtype=float, copy=True) for matrix in matrices)
     if not blocks:
         raise ValueError("event_matrices must not be empty.")

@@ -1,6 +1,7 @@
-from GGanalysis.basic_models import cdf2dist
+from GGanalysis.distribution_1d import FiniteDist, cdf2dist, dist_squeeze
 from GGanalysis.markov.coupon_collection import GeneralCouponCollection
-from GGanalysis.basic_models import *
+from GGanalysis.basic_models import BernoulliGachaModel
+import numpy as np
 
 __all__ = [
     'P_3',
@@ -183,7 +184,6 @@ def get_common_refund(rc3=0.5, rc2=1, rc1=1,has_up=False):
 if __name__ == '__main__':
     import copy
     import matplotlib.pyplot as plt
-    from GGanalysis.distribution_1d import *
     
     # 平稳时来自保底的比例
     print("平稳时来自保底的比例为", 1/(EXCHANGE_PULL*0.03+1), "UP来自保底的比例为", 1/(EXCHANGE_PULL*0.007+1))

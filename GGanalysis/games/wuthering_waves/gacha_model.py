@@ -2,9 +2,8 @@
     注意，本模块使用概率模型仅为根据游戏测试阶段推测，不能保证完全准确
     分析文章 https://www.bilibili.com/read/cv34870533/
 '''
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from GGanalysis.basic_models import DualPityBernoulliModel, DualPityModel, PityModel
 
 __all__ = [
     'PITY_5STAR',
@@ -74,4 +73,3 @@ if __name__ == '__main__':
                     p_raise = p_step
                     print(p, i, p_step, PITY_5STAR[70:81])
     '''
-    

@@ -131,6 +131,7 @@ CDF 的第 t 项为花费不超过 t 的概率。``quantile_point(q)`` 搜索 CD
 
 不等概率集齐的低层工具定义于 ``GGanalysis/markov/coupon_collection.py``；
 常规用户优先使用 :doc:`basic_models` 中的集齐模型。
+固定概率的适用条件、位掩码状态和完整示例见 :doc:`coupon_collection`。
 
 数值计算与边界
 --------------------------------------
@@ -162,7 +163,6 @@ API
 .. automodule:: GGanalysis.distribution_1d
    :members: linear_p_increase, pad_zero, cut_dist, calc_expectation, calc_variance, dist2cdf, cdf2dist, p2dist, dist2p, p2exp, p2var, calc_item_num_dist, independent_item_num_dist, calc_bernoulli_obtain, accurate_conv
 
-.. autoclass:: GGanalysis.markov.coupon_collection.GeneralCouponCollection
-   :members:
-
-.. autofunction:: GGanalysis.markov.coupon_collection.get_equal_coupon_collection_exp
+集齐工具的 API 统一维护在 :doc:`coupon_collection`：
+:class:`~GGanalysis.markov.coupon_collection.GeneralCouponCollection` 与
+:func:`~GGanalysis.markov.coupon_collection.get_equal_coupon_collection_exp`。

@@ -1,4 +1,5 @@
 from GGanalysis.scored_item.scored_item import *
+from GGanalysis.distribution_1d import dist2cdf
 '''
     为词条评分类道具开发的组合评估工具
 '''

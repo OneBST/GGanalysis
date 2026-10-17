@@ -2,6 +2,7 @@
 ======================================
 
 定义位置：``GGanalysis/markov/``，公共入口为 ``GGanalysis.markov``。
+首次使用先读 :doc:`markov_overview`，其中列出模块关系、构造入口和工具选择。
 普通转移记录每一步的状态；按“获得一次目标”组合花费则见 :doc:`hit_process`。
 
 状态编码与转移方向
@@ -36,6 +37,8 @@
 
 构建器配置在初始化后固定，边可以继续添加。添加非零边会使内部缓存失效；
 ``build()`` 和 ``matrix`` 均返回独立快照，修改结果不会改变构建器或此前的结果。
+两种构建器的 ``matrix`` 均为原始 NumPy/CSR 概率矩阵；
+``TransitionBuilder.build()`` 才返回 ``MarkovTransition``，可使用其传播和验证方法。
 ``MarkovTransition`` 本身仍可修改；三个稳态求解入口会重新检查转移概率守恒。
 
 .. code-block:: python
@@ -218,6 +221,9 @@
 .. code-block:: python
 
    from GGanalysis.markov import StateRewards, group_mass
+   from GGanalysis.markov import StateSpace
+
+   space = StateSpace.from_shape([2])
 
    rewards = StateRewards(space, {
        "event": [0.5, 1.0],
@@ -242,10 +248,20 @@
 
 ``PriorityPityChain`` 按编号从小到大处理互斥道具，实际概率为该类原始概率与
 尚未分配概率的较小值。``remove_pity=True`` 使高优先级命中也重置低优先级计数。
+状态数是各类 ``len(table)+extra_state-1`` 的乘积，类别数增加时可能迅速膨胀。
+稳态求解复用 ``stationary_solve(method='auto', direct_size_limit=10000)``，
+保留原有稀疏直接法阈值。迭代法避免 LU 分解的填充开销，不能消除状态空间爆炸；
+大模型应考虑可达状态压缩或专用结构。
 ``stationary_rates`` 返回各类长期每抽概率；``interarrival_dist`` 是平稳条件下
 相邻两次该类命中的间隔，其他类别在期间仍照常改变状态。
 
-``stationary_item_count_distribution`` 只处理单类道具，初始保底进度按长期稳态混合；
+``PriorityPityChain.item_num_dist(item_type, pull, initial=None)`` 返回指定类别
+在固定抽数内的数量 ``FiniteDist``，默认从随机时刻的完整平稳分布开始。
+提供 initial 时则从给定完整初态开始；其他类别仍正常改变保底进度。
+它与间隔分布共用类别命中/未命中矩阵，但间隔分布使用命中后加权初态。
+
+``stationary_item_count_distribution`` 是单类别链数量查询的便捷封装，
+仍返回固定长度为 pulls+1 的数组，初始保底进度按长期稳态混合；
 不等于“从零垫抽开始”的数量分布。应用见 :doc:`../start_using/stationary_distribution`。
 
 API

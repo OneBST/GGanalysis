@@ -241,6 +241,13 @@ class StateKernel:
         形状必须为 ``(花费长度, 输出状态数, 输入状态数)``。
     trim_tail_zeros : bool
         是否删除末尾所有矩阵元素都严格为 0 的花费层，默认删除。
+
+    注意
+    ----
+    第一轴表示可加的非负整数累计量，本文默认是花费。事件计数入口使用
+    同一轴表示单步获得数量，输入层必须已经具有该语义，不会从等待时间核
+    自动转换。可输入同形状的稠密矩阵列表，内部统一成三维稠密数组；
+    稀疏事件矩阵列表应直接交给事件计数入口，不必先构造 StateKernel。
     """
 
     def __init__(self, coeff: Union[ArrayLike, "StateKernel"], trim_tail_zeros: bool = True) -> None:

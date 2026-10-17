@@ -1,6 +1,5 @@
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from GGanalysis.basic_models import DualPityModel, PityBernoulliModel, PityModel
 
 __all__ = [
     'PITY_ELITE',

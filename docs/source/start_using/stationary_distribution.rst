@@ -27,6 +27,9 @@
 
 .. code:: Python
 
+    from GGanalysis.markov import PriorityPityChain
+
+    probe = PriorityPityChain([[0, 0.5], [0, 0.25, 1]], extra_state=0)
     # 第 1 类道具的真实相邻获得间隔，计算到 500 抽
     interval = probe.interarrival_dist(item_type=1, max_steps=500)
     print(interval.dist[1:])
@@ -37,11 +40,30 @@
 
 .. code:: Python
     
+    import numpy as np
     from GGanalysis.markov import stationary_item_count_distribution
 
     # 单类道具第一抽概率 1/2，第二抽必成，起始保底进度按长期稳态混合。
     counts = stationary_item_count_distribution([0, 0.5, 1], 2)
     assert np.allclose(counts, [0, 2 / 3, 1 / 3])
+
+也可直接查询多类别保底链中的指定类别，保留其他类别对保底的影响：
+
+.. code:: Python
+
+    import numpy as np
+    from GGanalysis.markov import PriorityPityChain
+
+    probe = PriorityPityChain([[0, 0.5], [0, 0.25, 1]], extra_state=0)
+    # 返回 FiniteDist。
+    counts = probe.item_num_dist(item_type=1, pull=10)
+    # 显式指定完整初态，不使用平稳混合。
+    fresh = probe.item_num_dist(1, 2, initial=probe.space.delta([0, 0]))
+    assert np.allclose(fresh.dist, [0.375, 0.5625, 0.0625])
+
+数量分布默认从随机时刻开始；相邻获得间隔从命中后的状态开始。
+这两种初态不同，不能用同一个初态代替。单类别便捷函数继续返回数组，
+类内 ``item_num_dist`` 则统一返回本包的 ``FiniteDist``。
 
 
 结果的适用条件

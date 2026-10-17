@@ -193,6 +193,7 @@ def first_hitting_time(
         raise ValueError("tail_tol must be None or a finite nonnegative real number.")
 
     space = tm.space
+    P = tm.P
     f = np.zeros(steps + 1, dtype=np.float64)
 
     # 不需要hit位置分布，走 compile_hit_and_clear 的 block accessor
@@ -203,7 +204,7 @@ def first_hitting_time(
             if tail_tol is not None and p.sum() <= tail_tol:
                 return f[:1].copy(), float(p.sum())
         for t in range(1, steps + 1):
-            p = tm(p)
+            p = P @ p
             f[t] = hitter(p)
             if tail_tol is not None and p.sum() <= tail_tol:
                 return f[:t + 1].copy(), float(p.sum())
@@ -227,7 +228,7 @@ def first_hitting_time(
             return f[:1].copy(), float(p.sum()), pos_after[:1].copy()
 
     for t in range(1, steps + 1):
-        p = tm(p)
+        p = P @ p
         hit_vals = p[hit_ids]
         win_mass = float(hit_vals.sum())
         f[t] = win_mass
@@ -266,8 +267,9 @@ def stationary_power(
 
     converged = False
     iterations = 0
+    P = tm.P
     for iterations in range(1, max_iter + 1):
-        p_next = tm._step(p)
+        p_next = P @ p
         if lazy:
             p_next = (1.0 - lazy) * p_next + lazy * p
         s = p_next.sum()
@@ -394,7 +396,8 @@ def event_count_state_dist(
     validate_steps(steps)
     if strategy not in ("step", "power") or method not in ("auto", "direct", "fft"):
         raise ValueError("invalid strategy or convolution method.")
-    blocks = prepare_event_matrices(event_matrices)
+    matrices = event_matrices.coeff if isinstance(event_matrices, StateKernel) else event_matrices
+    blocks = prepare_event_matrices(matrices)
     joint = validate_probability_vector(initial, blocks[0].shape[0], normalized=True, flatten=True)[None, :]
     if steps == 0:
         return StateDist(joint)
@@ -499,10 +502,16 @@ class ChainAnalysis:
             raise ValueError("target groups must be disjoint.")
         return groups
 
-    def _absorb(self, initial, groups):
+    def _prepare_system(self, groups: Mapping[str, np.ndarray]) -> tuple[np.ndarray, _TransientSystem]:
+        """显式返回目标并集和继续状态系统；缓存仅用于复用线性分解。"""
         targets = np.concatenate(list(groups.values())) if groups else np.empty(0, dtype=int)
         continuing = np.setdiff1d(self._reach(self._P, targets), targets)
-        visits = self._system(continuing).visits(initial)
+        return targets, self._system(continuing)
+
+    def _absorb(self, initial, groups):
+        _, system = self._prepare_system(groups)
+        continuing = system.states
+        visits = system.visits(initial)
         probabilities = {
             name: float(initial[ids].sum() + (self._P[ids][:, continuing] @ visits).sum())
             for name, ids in groups.items()
@@ -555,13 +564,11 @@ class ChainAnalysis:
         if not include_t0:
             vector = self._P @ vector
         groups = self._targets(targets)
-        self._absorb(vector, groups)
-        targets = np.concatenate(list(groups.values())) if groups else np.empty(0, dtype=int)
+        targets, system = self._prepare_system(groups)
         reached = self._reach(self._forward, np.flatnonzero(vector), stop=targets)
         # 用可达结构判断非终止，不把极小失败概率当作零。
-        if len(np.setdiff1d(reached, np.union1d(targets, self._last_system.states))):
+        if len(np.setdiff1d(reached, np.union1d(targets, system.states))):
             raise ValueError("termination is not almost sure; specify an explicit failure target.")
-        system = self._last_system
         visits = system.visits(vector)
         return {name: float(row[system.states] @ visits) + prefix.get(name, 0.0)
                 for name, row in rewards.weights.items()}
@@ -634,7 +641,8 @@ class TransitionRewards:
     @classmethod
     def from_events(cls, event_matrices: _EventInput) -> "TransitionRewards":
         """从计数事件矩阵 K_r 构造奖励 R=r 的一阶和二阶转移矩。"""
-        blocks = prepare_event_matrices(event_matrices)
+        matrices = event_matrices.coeff if isinstance(event_matrices, StateKernel) else event_matrices
+        blocks = prepare_event_matrices(matrices)
         P = sum(blocks)
         return cls(MarkovTransition(StateSpace.from_shape([P.shape[0]]), P),
                    sum(r * block for r, block in enumerate(blocks)),

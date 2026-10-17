@@ -38,8 +38,21 @@ def _snapshot_property(function):
 class HitTransitionBuilder:
     """分别收集未命中边和命中边；命中边的终点属于边界空间。
 
-    ``embed`` 可传 S×B 矩阵，或长度为 B 的完整状态编号数组。
-    后者表示每个边界状态确定地重置到一个完整状态。
+    Parameters
+    ----------
+    full_space : StateSpace
+        逐步递推需要的完整状态，状态数为 S。
+    boundary_space : StateSpace
+        命中后影响下一轮的状态，状态数为 B；不要求是完整空间的编号子集。
+    embed : array_like or sparse matrix
+        S×B 概率矩阵，或长度为 B 的完整状态编号数组。后者表示每个边界
+        状态确定地重置到一个完整状态；矩阵可表达随机重置。
+
+    Notes
+    -----
+    初始化仅设置空间和重置，不自动生成命中/未命中边。添加边后调用
+    build(check=True)，检查每个起点的命中+未命中质量及 embed 列和为 1。
+    不规则状态可自行映射为一维 StateSpace，随机性通过边概率表达。
     """
 
     def __init__(self, full_space: StateSpace, boundary_space: StateSpace, embed):
@@ -99,6 +112,21 @@ class HitProcess:
     计算周期核时，只需维护当前未命中次数下的 B 个状态，不必每步传播
     全部 L*B 个完整状态；L 为层数，B 为边界状态数。
     一般的跳层、回退或循环转移应使用非分层过程。
+
+    Parameters
+    ----------
+    full_space, boundary_space : StateSpace
+        完整空间及命中后边界空间，状态数分别为 S、B。
+    miss, hit, embed : matrix
+        已组装的完整矩阵，形状依次为 (S,S)、(B,S)、(S,B)，列为起点。
+        构造时复制为 CSR，不自动推导转移；局部矩阵入口为 from_layers。
+    layered : bool
+        默认 False；只有满足上述未命中次数分层约束时才设为 True。
+
+    Notes
+    -----
+    构造器检查基本形状及系数，完整概率守恒另调用 validate()。
+    from_layers 则在组装后自动执行完整验证。
     """
 
     @classmethod
@@ -275,12 +303,16 @@ class HitProcess:
             for cost, layer in enumerate(range(initial_layer, initial_layer + len(coeff) - 1), 1):
                 coeff[cost] = hits[layer] @ alive
                 alive = misses[layer] @ alive
+                if not np.any(alive):
+                    break
         else:
             alive = np.asarray(initial, dtype=float)
             coeff = np.zeros((max_steps + 1, self.boundary_space.N))
             for cost in range(1, max_steps + 1):
                 coeff[cost] = self._hit @ alive
                 alive = self._miss @ alive
+                if not np.any(alive):
+                    break
         result = StateDist(coeff)
         if return_remaining:
             self.validate()
@@ -305,11 +337,15 @@ class HitProcess:
             for cost in range(1, min(max_steps, len(hits)) + 1):
                 coeff[cost] = hits[cost - 1] @ alive
                 alive = misses[cost - 1] @ alive
+                if not np.any(alive):
+                    break
         else:
             alive = self._embed
             for cost in range(1, max_steps + 1):
                 coeff[cost] = (self._hit @ alive).toarray()
                 alive = self._miss @ alive
+                if not np.any(alive.data):
+                    break
         result = StateKernel(coeff)
         if return_remaining:
             self.validate()
@@ -326,6 +362,20 @@ class HitProcessAnalysis:
     或 ``iter_state_dists`` 传入，共享同一周期缓存，初态结果不自动缓存。
     ``max_steps`` 是每个周期的上限，不是多次命中的累计上限。
     稳态要求已覆盖完整周期；无限尾部还须独立检查尾部矩的截断误差。
+
+    Parameters
+    ----------
+    process : HitProcess
+        规则固定的命中过程；命中后由其 embed 连接下一轮。
+    max_steps : int
+        每次命中周期的非负计算上限，不是多件累计预算。有限保底应覆盖
+        所有边界起点的完整周期；截断不会自动归一化或补全尾部。
+
+    Notes
+    -----
+    first_state_dist、nth_state_dist 的 initial 默认是完整空间概率向量；
+    只有分层过程显式指定 initial_layer 时才使用该层的边界长度向量。
+    查询结果返回独立对象；更新规则或上限应构造新分析对象。
     """
 
     def __init__(self, process: HitProcess, max_steps: int) -> None:

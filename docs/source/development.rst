@@ -48,6 +48,8 @@
 模型选型见 :doc:`reference_manual/basic_models`，抽卡层约定见 :doc:`reference_manual/gacha_layers`。
 状态类型见 :doc:`reference_manual/state_distribution`，转移及命中过程见
 :doc:`reference_manual/markov`、:doc:`reference_manual/hit_process`。
+Markov 的整体结构、构造入口和选型路线见 :doc:`reference_manual/markov_overview`，
+固定概率集齐问题见 :doc:`reference_manual/coupon_collection`。
 组合示例见 :doc:`start_using/custom_gacha_model`，非 IID 教程见
 :doc:`start_using/stateful_models`，一维 API 见 :doc:`reference_manual/basic_tools`。
 表中未收录到参考手册的接口，先阅读对应源码的 docstring；不要根据名字猜测语义。
@@ -59,6 +61,13 @@
 也可以从对应模块或领域包导入同一对象。根包采用按需导出。
 ``GeneralCouponCollection``、``HitProcess``、``StateRewards`` 等同时由
 ``GGanalysis`` 和 ``GGanalysis.markov`` 提供，领域入口不要求用户了解实现文件。
+
+公开导出只包含本包提供的类型和工具，不转导出 ``np``、``random``、
+``lru_cache``、``warnings`` 或 SciPy 函数。各模块用 ``__all__`` 声明公开名称；
+内部代码明确导入所需符号，第三方能力从 NumPy、SciPy 或标准库直接导入。
+例如使用 ``from GGanalysis import FiniteDist`` 和 ``import numpy as np``，
+不要依赖从模型模块间接取得 NumPy。分布工具如 ``cdf2dist`` 从
+``GGanalysis.distribution_1d`` 或根包导入，不再借道 ``basic_models``。
 
 装备评分、模拟和逆向工程的目录分别为 ``scored_item``、``simulation``、
 ``reverse_engineering``，使用小写名称；旧的大小写目录名不再提供。
