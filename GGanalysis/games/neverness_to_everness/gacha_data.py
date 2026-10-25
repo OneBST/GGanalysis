@@ -64,6 +64,26 @@ HARD_PITY = 90
 END_POS = 73
 PITY_START = 70
 
+# 角色棋盘集点赠礼：每十次主抽额外赠送一件，不替换落格奖励，不因 S 重置。
+POINT_GIFT_PERIOD = 10
+POINT_GIFT_A_CHARACTER_PROBABILITY = 0.2
+POINT_GIFT_A_ARC_DISC_PROBABILITY = 1.0 - POINT_GIFT_A_CHARACTER_PROBABILITY
+
+# 装扮类型、奖励格标签、同名棋盘一次性累计领取次数、重复兑换失纬棋子数。
+CHARACTER_COSMETIC_RULES = {
+    "wing": ("HD3", 50, 4),
+    "paint": ("HD2", 120, 16),
+    "outfit": ("HD1", 200, 16),
+}
+
+# 弧盘研募采用逐单抽判定；S 不重置 A 级保底，UP 同时重置 S/UP 保底。
+ARC_DISC_S_PROBABILITY = 0.03
+ARC_DISC_UP_GIVEN_S = 0.25
+ARC_DISC_A_PROBABILITY = 0.07
+ARC_DISC_S_PITY = 60
+ARC_DISC_UP_PITY = 80
+ARC_DISC_A_PITY = 10
+
 # 格子类型对应的五星角色概率；未列出的类型概率为 0。
 TILE_5STAR_PROBABILITY = {
     "L": 0.002,
@@ -159,6 +179,16 @@ CHARACTER_POOL_PITY_MAP_5 = parse_5star_probability_map(CHARACTER_MAP_PITY_INFO)
 
 
 __all__ = [
+    "CHARACTER_COSMETIC_RULES",
+    "POINT_GIFT_PERIOD",
+    "POINT_GIFT_A_CHARACTER_PROBABILITY",
+    "POINT_GIFT_A_ARC_DISC_PROBABILITY",
+    "ARC_DISC_S_PROBABILITY",
+    "ARC_DISC_UP_GIVEN_S",
+    "ARC_DISC_A_PROBABILITY",
+    "ARC_DISC_S_PITY",
+    "ARC_DISC_UP_PITY",
+    "ARC_DISC_A_PITY",
     "HARD_PITY",
     "END_POS",
     "PITY_START",

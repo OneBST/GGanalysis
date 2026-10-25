@@ -119,6 +119,165 @@
 长期 S 概率由公共分析的稳态周期期望倒数给出。零垫抽的首件分布与稳态周期分布不同，
 不可互换；格子进入率还需排除不掷骰的硬保底抽。
 
+角色棋盘的集点赠礼
+--------------------------------------
+
+按集点赠礼规则，每累计 10 次主抽额外赠送一件 A 级道具，20% 为 A 角色、
+80% 为 A 弧盘。该赠礼不替换落格奖励，自然获得 A 或 S 不重置赠礼进度；
+原地 S 硬保底也计入主抽次数。限定棋盘之间共享赠礼计数。
+因此角色棋盘没有用于该赠礼的“连续未出 A”计数，不采用武器池的 A 保底转移。
+
+.. code-block:: python
+
+   from GGanalysis.games.neverness_to_everness import character_stationary
+
+   rates = character_stationary.a_grade_stationary_rates
+   # 接下来抽 21 次，已有 9 点赠礼进度：固定获得三次额外赠礼。
+   gift = character_stationary.point_gift_dist(pull=21, gift_pity=9)
+   assert abs(gift["A_character"].exp - 0.6) < 1e-12
+   assert abs(gift["A_arc_disc"].exp - 2.4) < 1e-12
+
+``point_gift_dist`` 只含额外赠礼，返回两类数量的边缘分布；二者之和是固定赠礼总数，
+不能按独立分布卷积。单次赠礼类型按独立的 20%/80% 抽样建模。
+``a_grade_stationary_rates`` 将 A/W 落格率分别加上 0.02/0.08，得到每主抽的
+A 角色/A 弧盘期望数量。当前保存的棋盘计算结果约为 11.6749446731%、
+11.3156000590%，合计 22.9905447322%。这是含额外奖励的等效产率，
+同抽允许获得两件 A，不是“至少得到一个 A”的事件概率。
+原 ``tile_entry_probabilities`` 仍只记录棋盘落格事件。
+
+公示文案为 11.6700%/11.3100%，合计 22.9800%；当前模型不通过修改移动概率
+或强制归一化拟合该数值。规则来源为用户提供的集点赠礼条款，公开资料可参考
+`卡池规则转载 <https://kater.me/c/7v9wd2rmnj?bid=73>`_；
+`官方限定棋盘公告 <https://steamcommunity.com/app/4508340/allnews/?l=schinese>`_
+亦明确限定棋盘共享集点赠礼计数。
+
+装扮首次获得与长期重访
+--------------------------------------
+
+本仓库位置编号以起点 0 为基准；普通和变格限定棋盘上的风向标 ``HD3`` 均在
+位置 3，涂装 ``HD2`` 在位置 56，时装 ``HD1`` 在位置 65。
+分别在同名棋盘累计 50/120/200 次主抽可领取一次装扮礼遇，不因提前落格获得而
+重置累计进度，也不作为每次获得后反复重置的保底。同名棋盘累计进度继承；
+两类首获查询均假设尚未拥有目标装扮、装扮累计从零开始，并在到点时立即领取。
+零初态取位置 0、S 进度 0；平稳起态取长期刚出 S 后的位置稳态、S 进度 0。
+后者不是随机主抽时点的位置与 S 进度联合稳态。
+重复时装/涂装/滑翔翼分别兑换 16/16/4 失纬棋子，不改变棋盘运动。
+
+设 P 为完整角色过程转移，J 为实际进入目标装扮格的转移，K=P-J。
+J 必须排除原地 S 硬保底；停留在目标格并不等于再次领取格子奖励。
+正式实现位于 ``cosmetic_model.py``，以 ``NTECosmeticModel`` 组合已有角色转移、
+``first_hitting_time`` 和 ``FiniteDist``，不新增公共 Markov 算法。
+将 J 汇入额外吸收态，只计算剩余领取期限 C 之前的首达概率；最后仍未获得的
+路径全部在 C 领取，得到 min(自然首达时间, C) 的完整分布，tail_mass 为零。
+这不是无限尾部分布的截断，不归一化、不递推至 2000 抽。
+计算过程保留 S 进度、位置及出 S 后的位置继承。
+
+.. code-block:: python
+
+   from GGanalysis.games.neverness_to_everness import up_5star_character
+
+   wing = up_5star_character.cosmetics["wing"]  # 另有 paint/outfit
+   initial = wing()                           # 位置0、S进度0、装扮累计0
+   stationary = wing.stationary_start_dist()  # 长期刚出S后的位置稳态，S/装扮进度0
+   conditional = wing(start_pos=16, item_pity=25, cosmetic_pity=10)
+   print(initial.exp, stationary.exp)         # 两种有限首获分布的期望
+   print(wing.stationary_probability)         # 长期每主抽实际落格概率
+   print(wing.revisit_expectation)            # 直接取上述概率的倒数
+   # 如需表达某一起态的首获“等效综合率”，可取期望倒数，不能当作长期落格率。
+   print(1 / stationary.exp)
+
+.. list-table:: 从零初态出发的期望与长期实际落格重访（主抽）
+   :header-rows: 1
+
+   * - 装扮
+     - 位置
+     - 含累计领取首获均值
+     - 平稳位置起态含领取首获均值
+     - 长期落格重访均值
+   * - 滑翔翼
+     - 3
+     - 29.1775698399
+     - 32.6063786601
+     - 58.4396568852
+   * - 车辆涂装
+     - 56
+     - 97.4666386588
+     - 96.8561827960
+     - 301.2871610332
+   * - 角色时装
+     - 65
+     - 147.4996607732
+     - 145.3324467394
+     - 301.2871610332
+
+长期均值直接取目标实际进入率的倒数；一次性的累计领取不贡献无限长期产率。
+模型只提供长期落格概率与平均重访，不生成无保底的重访分布。
+两类首获分布均与独立的按 S 进度层递推核验，概率完整；另检查领取期限、
+已达领取次数、原地 S 硬保底不领格子奖励但照常累计领取进度等边界。
+
+公示“首次综合概率”不能直接作为独立伯努利概率使用，其起态口径未由这些条款
+唯一确定。上表明确区分两种起态，不强制使其期望倒数等于公示综合概率。
+验证脚本及首获分布 CSV 保留在被忽略的 ``test/``。
+
+弧盘研募：UP S 与综合概率
+--------------------------------------
+
+武器池采用本地分析目录 ``2026-10-24-异环抽卡解析视频/analysis_code/weapon.py``
+及配套规则台账选用的逐件口径，不自动同步服务端机制。每件基础 S 概率 3%，
+其中 UP 占 25%，基础 A 概率 7%；60 件保 S、80 件保 UP、10 件保 A。
+优先级为 UP 保底、S 保底、A 保底。A级保底不挤占 S，剩余概率全部给 A。
+
+UP 同时清 S/UP 计数，非 UP S 只清 S。所有 S 均不清 A 计数；实际 A 才清 A，
+未出 A 的计数在 9 饱和，遇到 S 优先时继续等待 A。计数跨期继承。
+综合概率使用抽取前状态 ``(连续未出 S 件数, 连续未出 UP 件数, 连续未出 A 件数)``，
+从零状态枚举 29555 个可达状态，构造稀疏转移，再通过公共稳态求解和
+``StateRewards`` 加权计算长期每件率，不使用模拟。
+
+.. code-block:: python
+
+   from GGanalysis.games.neverness_to_everness import (
+       up_5star_arc_disc, arc_disc_stationary_rates,
+   )
+
+   first = up_5star_arc_disc()
+   five = up_5star_arc_disc(item_num=5)
+   conditional = up_5star_arc_disc(item_pity=20, up_pity=70)
+   rates = arc_disc_stationary_rates()
+   # S 包含 UP；互斥品质为 S/A/B，不能再加一次 UP。
+   assert abs(rates["S"] + rates["A"] + rates["B"] - 1) < 1e-11
+   assert abs(rates["UP"] - 1 / first.exp) < 1e-11
+
+长期 S、UP、A、B 综合概率分别约为 4.1981424982%、1.6830092953%、
+13.4752295660%、82.3266279358%。这些是每件长期率，不是指定预算的获得概率。
+该实现与参考逐件规则在所有可达状态逐项核对，并检查概率守恒、稳态残差和
+UP 更新周期率；1—5 把 UP 的花费分布另用独立数量递推核验。
+
+``up_5star_arc_disc`` 只返回 UP S 的累计逐件花费分布。UP 后 S/UP 计数归零，
+A 计数虽然继承，但不影响下次 S/UP 的概率，因此后续 UP 周期可以 IID 卷积。
+零状态首 UP 均值约为 59.4173783123 件。不再提供 ``first_5star_arc_disc``
+普通 S 等待分布入口；任意 S 目前只计算长期综合概率。
+
+十连支付成本
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+若只能以十连支付，取得第 k 把 UP 的总件数为 T，则钥匙花费为
+``10 * ceil(T / 10)``。应先计算累计件数的分布，再整体取整；
+不能将每把的等待分别取整后相加，否则会丢失同一十连里的多把 UP。
+这是相同逐件过程的支付观察，不改变包内保底规则。
+
+.. code-block:: python
+
+   import numpy as np
+   from GGanalysis.distribution_1d import FiniteDist
+
+   total = up_5star_arc_disc(item_num=5)
+   # 下标为支付的十连包数，乘 10 后为钥匙数。
+   package_index = (np.arange(len(total.dist)) + 9) // 10
+   paid_packages = FiniteDist(np.bincount(package_index, weights=total.dist))
+   expected_keys = 10 * paid_packages.exp
+
+零状态首 UP 的十连支付平均成本约为 61.5283479968 钥匙。
+
 API
 --------------------------------------
 
@@ -127,7 +286,15 @@ API
 .. autofunction:: GGanalysis.games.neverness_to_everness.gacha_kernel.build_nte_analysis
 
 .. autoclass:: GGanalysis.games.neverness_to_everness.gacha_model.NTEMonopolyModel
-   :members: __call__, stationary_probability
+   :members: __call__, stationary_probability, cosmetics
+
+.. autoclass:: GGanalysis.games.neverness_to_everness.cosmetic_model.NTECosmeticModel
+   :members: __call__, stationary_start_dist, stationary_probability, revisit_expectation
 
 .. autoclass:: GGanalysis.games.neverness_to_everness.stationary_statistic.NTEStationaryAnalysis
    :members:
+
+.. autoclass:: GGanalysis.games.neverness_to_everness.gacha_model.NTEArcDiscUPModel
+   :members: __call__
+
+.. autofunction:: GGanalysis.games.neverness_to_everness.stationary_statistic.arc_disc_stationary_rates

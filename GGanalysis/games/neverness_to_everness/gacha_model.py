@@ -1,14 +1,20 @@
 """异环 Neverness to Everness 测试服棋盘抽卡模型。"""
 
 from typing import Sequence, Union
+from functools import cached_property
 
 import numpy as np
 
-from GGanalysis.basic_models import GachaModel, PityBernoulliModel, PityModel
+from GGanalysis.basic_models import GachaModel, PityBernoulliModel
 from GGanalysis.distribution_1d import FiniteDist
 from GGanalysis.markov import MarkovTransition, StateSpace
 from GGanalysis.state_distribution import ConvolutionMethod, StateKernel
 from GGanalysis.games.neverness_to_everness.gacha_data import (
+    ARC_DISC_S_PROBABILITY,
+    ARC_DISC_UP_GIVEN_S,
+    ARC_DISC_S_PITY,
+    ARC_DISC_UP_PITY,
+    CHARACTER_COSMETIC_RULES,
     CHARACTER_MAP_INFO,
     CHARACTER_MAP_PITY_INFO,
     CHARACTER_POOL_NORMAL_MAP_5,
@@ -28,7 +34,9 @@ from GGanalysis.games.neverness_to_everness.gacha_kernel import (
 from GGanalysis.games.neverness_to_everness.stationary_statistic import (
     NacupedaStatistics,
     NTEStationaryAnalysis,
+    arc_disc_stationary_rates,
 )
+from GGanalysis.games.neverness_to_everness.cosmetic_model import NTECosmeticModel
 
 
 __all__ = [
@@ -38,14 +46,15 @@ __all__ = [
     "NacupedaStatistics",
     "NTEStationaryAnalysis",
     "NTEMonopolyModel",
+    "NTECosmeticModel",
     "character_stationary",
     "standard_stationary",
     "up_5star_character",
     "standard_5star_character",
     "PITY_ARC_DISC_S",
     "NTEArcDiscUPModel",
-    "first_5star_arc_disc",
     "up_5star_arc_disc",
+    "arc_disc_stationary_rates",
 ]
 
 
@@ -131,18 +140,54 @@ class NTEMonopolyModel(GachaModel):
         """当前 banner 的纳库佩达事件统计。"""
         return self.stationary.nacupeda_statistics
 
+    @cached_property
+    def _cosmetics(self) -> dict[str, NTECosmeticModel]:
+        tiles = {tile.split("_")[0] for tile in
+                 (*self.stationary.normal_map_info, *self.stationary.pity_map_info)}
+        return {name: NTECosmeticModel(self.stationary, tile, cap, duplicate)
+                for name, (tile, cap, duplicate) in CHARACTER_COSMETIC_RULES.items() if tile in tiles}
+
+    @property
+    def cosmetics(self) -> dict[str, NTECosmeticModel]:
+        """当前棋盘的 wing/paint/outfit 装扮模型；不含对应格子的棋盘返回空字典。"""
+        return dict(self._cosmetics)
+
 class NTEArcDiscUPModel(PityBernoulliModel):
-    """假设 80 抽保底会重置 S/UP 进度。"""
+    """逐件判定的 UP S 弧盘花费模型。
 
-    def __init__(self):
-        super().__init__(PITY_ARC_DISC_S, 0.25)
+    任意 S 清 S 计数，只有 UP 清 UP 计数；80 抽保底强制 UP。
+    UP 后 S/UP 状态归零，继承的 A 计数不影响 UP，因此后续周期 IID。
+    花费单位为一件弧盘，不对十连支付取整。
+    """
 
-    def _first_dist(self, item_pity=0, up_pity=0):
-        cap = 80 - up_pity
+    def __init__(self) -> None:
+        super().__init__(PITY_ARC_DISC_S, ARC_DISC_UP_GIVEN_S)
+
+    def _first_dist(self, item_pity: int = 0, up_pity: int = 0) -> FiniteDist:
+        cap = ARC_DISC_UP_PITY - up_pity
         dist = super().__call__(item_pity=item_pity).dist
         return FiniteDist(np.r_[dist[:cap], 1 - dist[:cap].sum()])
 
-    def __call__(self, item_num=1, multi_dist=False, item_pity=0, up_pity=0):
+    def __call__(self, item_num: int = 1, multi_dist: bool = False,
+                 item_pity: int = 0, up_pity: int = 0) -> FiniteDist | list[FiniteDist]:
+        """返回获得指定数量 UP S 所需的累计件数分布。
+
+        Parameters
+        ----------
+        item_num : int
+            目标 UP S 数量。
+        multi_dist : bool
+            为真时返回从零件到 item_num 件的累计花费分布列表。
+        item_pity : int
+            当前连续未出任意 S 的件数，仅影响首个 UP 周期。
+        up_pity : int
+            当前连续未出 UP S 的件数，仅影响首个 UP 周期。
+
+        Returns
+        -------
+        FiniteDist or list[FiniteDist]
+            索引为逐件花费；十连支付需对累计件数整体向上取整到十的倍数。
+        """
         answers = [FiniteDist.delta(0)]
         if item_num:
             answers.append(self._first_dist(item_pity, up_pity))
@@ -172,12 +217,10 @@ standard_stationary: NTEStationaryAnalysis = standard_5star_character.stationary
 
 
 # 弧盘研募：任意 S 基础概率 3%，60 抽保 S；每次出 S 有 25% 为当期 UP。
-PITY_ARC_DISC_S = np.zeros(61)
-PITY_ARC_DISC_S[1:60] = 0.03
-PITY_ARC_DISC_S[60] = 1
+PITY_ARC_DISC_S = np.zeros(ARC_DISC_S_PITY + 1)
+PITY_ARC_DISC_S[1:ARC_DISC_S_PITY] = ARC_DISC_S_PROBABILITY
+PITY_ARC_DISC_S[ARC_DISC_S_PITY] = 1
 
-# 首个任意 S 的分布；多件 S 的联合过程还会受到第 80 抽 UP 保底影响。
-first_5star_arc_disc = PityModel(PITY_ARC_DISC_S)
 up_5star_arc_disc = NTEArcDiscUPModel()
 
 
