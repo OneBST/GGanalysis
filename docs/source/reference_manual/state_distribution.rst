@@ -1,0 +1,118 @@
+状态分布与状态核
+======================================
+
+定义位置：``GGanalysis/state_distribution.py``。
+当一次目标的花费与结束状态相关，而且结束状态影响下一阶段时，使用这些类型。
+完整例子见 :doc:`../start_using/stateful_models`。
+
+三个类型的区别
+--------------------------------------
+
+.. list-table:: 概率系数约定
+   :header-rows: 1
+   :widths: 22 33 45
+
+   * - 类型
+     - 索引
+     - 含义
+   * - ``FiniteDist``
+     - ``dist[t]``
+     - 花费恰为 t 的概率
+   * - ``StateDist``
+     - ``coeff[t, s]``
+     - 已给定初始条件，花费为 t 且结束状态为 s 的联合概率
+   * - ``StateKernel``
+     - ``coeff[t, end, start]``
+     - 从 start 出发，花费 t 后结束于 end 的联合条件概率
+
+本文默认第一累计轴表示花费；事件计数工具将同一轴用于数量，具体对照见
+:doc:`markov_overview` 的“两个累计轴不能混淆”。转换为稀疏矩阵不会转换轴的含义。
+状态编号的含义由调用者维护。两端状态数相等不代表
+状态含义一致，组合前必须确认编码相同。``coeff`` 返回只读视图，修改系数应复制后重建对象。
+
+状态分布
+--------------------------------------
+
+``StateDist.delta`` 创建确定初态；``from_product`` 仅适用于花费与状态独立的情况。
+``mixture`` 按权重叠加联合分布；调用者负责保证概率权重合法。
+
+``marginal_cost()`` 对状态求和，``marginal_state()`` 对花费求和。
+后者将状态编号作为 ``FiniteDist`` 的索引，编号本身通常没有可解释的数值期望。
+``condition_state`` 和 ``condition_cost`` 会除以对应事件质量，返回条件概率；
+条件事件质量为零时抛出异常。
+
+状态核运算
+--------------------------------------
+
+* ``B @ A`` 或 ``B.compose(A)``：先 A 后 B，花费相加，对中间状态求和。
+* ``K @ joint`` 或 ``K.apply(joint)``：向前推进已有联合分布。
+* ``K ** n``：同一规则重复 n 次；必须为方形核，且前后状态语义一致。
+* ``K.apply_power(n, joint)``：直接将重复过程作用于初始分布。
+* ``K.cost_dist(start_state)``：给定起始状态的一次花费边缘分布。
+* ``K.marginal_transition()``：对花费求和，得到普通列向量转移矩阵。
+
+重复核不要求各轮花费 IID，但要求状态包含影响未来的全部信息。
+``StateDist`` 没有两个分布间的卷积运算，因为它没有起始状态轴。
+核的 ``*`` 是数乘；组合应使用 ``@``。
+
+``identity`` 创建零花费恒等核，``from_finite_dist`` 将普通花费嵌入为不改变状态的核。
+``deterministic(transition, cost)`` 指定确定花费；状态转移矩阵本身仍可以随机。
+``compose``、``apply``、``apply_power`` 支持 ``method="auto"``、``"direct"``、``"fft"``。
+直接算法适合小规模核及数值对照，FFT 适合较长花费轴；二者都存在浮点误差。
+
+预算裁剪与命中数量
+--------------------------------------
+
+``K.apply(joint, max_cost=pull)`` 只保留花费不超过预算的系数，不归一化。
+花费非负，因此预算外系数不会重新贡献到预算内。直接法只计算预算内系数；
+FFT 法使用足够的线性卷积长度再裁剪，不用过短 FFT 将预算外质量卷回。
+这与删除末尾全零层不同：预算裁剪会丢弃有正概率的预算外结果。
+
+``stateful_item_num_dist(first_dist, cycle_kernel, pull)`` 计算固定预算内的命中数量。
+首件是 ``StateDist``，周期是同一边界空间的 ``StateKernel``，二者必须覆盖
+预算内全部系数，首件及周期花费均为正整数，每次命中计一件。
+后续周期允许依赖边界状态；不要求等待花费 IID。
+
+算法依次计算第 k 件的联合花费分布，裁剪预算外系数后汇总
+``P(数量 >= k)``，再相邻相减得到数量分布。``multi_dist=True`` 返回投入
+0 至 pull 抽的全部数量分布。预算结束时的内部状态不能由命中边界状态直接代替。
+只有一个边界状态时，与 ``independent_item_num_dist`` 的标量等待周期计算一致；
+标量接口保留专用实现，不转换成矩阵核。
+
+.. code-block:: python
+
+   import numpy as np
+   from GGanalysis import StateDist, StateKernel, stateful_item_num_dist
+
+   # 单状态几何命中周期截至 10 抽，足以计算 10 抽预算。
+   waiting = np.r_[0, 0.3 * 0.7 ** np.arange(10)]
+   first = StateDist(waiting[:, None])
+   cycle = StateKernel(waiting[:, None, None])
+   counts = stateful_item_num_dist(first, cycle, 10)
+   assert abs(counts.dist.sum() - 1) < 1e-12
+
+``StateKernel`` 始终使用稠密数组；稀疏一步事件矩阵的顺序传播见
+:doc:`markov`，不必将完整稀疏状态空间转成稠密核。
+
+概率质量与截断
+--------------------------------------
+
+``StateDist.total_mass()`` 返回已表示的质量，``StateKernel.validate()``
+检查每个起点对应的总质量是否为 1 及是否存在明显负系数。
+构造器并不代替完整的概率合法性检查，输入也应检查有限值。
+``StateDist`` 和 ``StateKernel`` 没有独立的尾质量字段，截断信息需由调用者记录。
+
+若初始质量为 1，截断结果的 ``1 - joint.total_mass()`` 是未表示的质量；
+对核应分别检查 ``1 - kernel.coeff.sum(axis=(0, 1))``，不能只看某一列。
+不要自动归一化每列来通过验证，这会将原过程改为条件过程。
+
+API
+--------------------------------------
+
+.. autoclass:: GGanalysis.state_distribution.StateDist
+   :members:
+
+.. autoclass:: GGanalysis.state_distribution.StateKernel
+   :members:
+
+.. autofunction:: GGanalysis.state_distribution.stateful_item_num_dist

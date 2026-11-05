@@ -1,6 +1,6 @@
 import GGanalysis as gg
 import GGanalysis.games.genshin_impact as GI
-from GGanalysis.ScoredItem import combine_items
+from GGanalysis.scored_item import combine_items
 
 # 注意，以下定义的分数指每次副词条强化为最高属性为10，其他情况依次为9、8、7
 

@@ -1,6 +1,8 @@
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from typing import Union
+from GGanalysis.distribution_1d import FiniteDist, cut_dist, p2dist
+from GGanalysis.gacha_layers import BernoulliLayer, CouponCollectorLayer, PityLayer
+from GGanalysis.basic_models import BernoulliGachaModel, CommonGachaModel, PityBernoulliModel, PityModel
 
 '''
     注意，本模块按公示概率进行建模，但忽略了一些情况

@@ -15,6 +15,11 @@ doctrees/
 figure/
 build/
 dist/
+plans/
+skills/
+test/
+.agents/
+local_python_path.txt
 
 # leave logo file
 !/docs/source/logo.svg
@@ -24,6 +29,7 @@ test.py
 temp.py
 .DS_Store
 launch.json
+import_performance_test.py
 GGanalysislib/
 
 # vs code setting

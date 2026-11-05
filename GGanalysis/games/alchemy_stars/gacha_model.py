@@ -1,6 +1,5 @@
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from GGanalysis.basic_models import BernoulliGachaModel, DualPityModel, PityModel
 
 # base on https://alchemystars.fandom.com/wiki/Recruitment and publicity in the chinese server
 __all__ = [

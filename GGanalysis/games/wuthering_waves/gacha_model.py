@@ -2,9 +2,8 @@
     注意，本模块使用概率模型仅为根据游戏测试阶段推测，不能保证完全准确
     分析文章 https://www.bilibili.com/read/cv34870533/
 '''
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from GGanalysis.basic_models import DualPityBernoulliModel, DualPityModel, PityModel
 
 __all__ = [
     'PITY_5STAR',
@@ -45,6 +44,9 @@ up_4star_specific_weapon = DualPityBernoulliModel(PITY_4STAR, [0, 0.5, 1], 1/3)
 
 if __name__ == '__main__':
     print(1.5*common_5star(1).exp)
+    print(5*up_5star_character(1).exp)
+    print(5*up_5star_weapon(1).exp)
+    print(7*up_5star_character(1).exp+5*up_5star_weapon(1).exp)
     print(PITY_5STAR[70])
     print(PITY_5STAR[75])
     '''
@@ -71,4 +73,3 @@ if __name__ == '__main__':
                     p_raise = p_step
                     print(p, i, p_step, PITY_5STAR[70:81])
     '''
-    

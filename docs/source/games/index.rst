@@ -14,3 +14,4 @@
    reverse_1999/index
    alchemy_stars/index
    girls_frontline2_exilium/index
+   neverness_to_everness/index

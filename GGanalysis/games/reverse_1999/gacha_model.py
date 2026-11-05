@@ -1,6 +1,8 @@
-from GGanalysis.distribution_1d import *
-from GGanalysis.gacha_layers import *
-from GGanalysis.basic_models import *
+import numpy as np
+from GGanalysis.basic_models import (
+    BernoulliGachaModel, DualPityBernoulliModel, DualPityCouponCollectorModel, DualPityModel,
+    GeneralCouponCollectorModel, PityBernoulliModel, PityCouponCollectorModel, PityModel,
+)
 
 __all__ = [
     'PITY_6STAR',

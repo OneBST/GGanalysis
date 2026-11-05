@@ -1,4 +1,4 @@
-from GGanalysis.SimulationTools.scored_item_sim import HoyoItemSim, HoyoItemSetSim
+from GGanalysis.simulation.scored_item_sim import HoyoItemSim, HoyoItemSetSim
 from GGanalysis.games.honkai_star_rail.relic_data import W_MAIN_STAT,W_SUB_STAT,CAVERN_RELICS,PLANAR_ORNAMENTS,DEFAULT_MAIN_STAT,DEFAULT_STAT_SCORE
 
 class StarRailRelicSim(HoyoItemSim):

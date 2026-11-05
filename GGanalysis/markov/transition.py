@@ -1,29 +1,38 @@
-from GGanalysis.markov.state_space import *
+from GGanalysis.markov.state_space import StateSpace
 import numpy as np
 import scipy.sparse as sp
-import warnings
-from typing import Any, List, Union, Literal
+from typing import Any, Union, Literal, Optional, Sequence
+
+__all__ = ["MarkovTransition"]
 
 class MarkovTransition():
     '''
-    马尔科夫链转移矩阵
-    使用 CSR 格式以加速 P @ p 计算。
+    已有完整矩阵时的单步状态转移，采用列向量方向。
 
-    矩阵 P 的含义：
-        P[to, from] = Pr(X_{t+1} = to | X_t = from)
+    Parameters
+    ----------
+    space : StateSpace
+        起点和终点共用的状态编码。
+    P : numpy.ndarray or scipy.sparse matrix
+        形状为 (N,N)，P[to,from] 是从 from 到 to 的一步概率。
+    backend : {'dense', 'sparse'} or None
+        默认由输入推断；显式指定时输入须匹配。稀疏输入统一为 CSR。
 
-    支持两种后端：
-    - dense : numpy.ndarray (N, N)
-    - sparse: scipy.sparse 矩阵 (推荐使用 CSR 便于列操作和 SpMV)
-
-    TODO 考虑实用性后决定是否加入 自动从普通转移矩阵生成吸收链的功能：给定原始转移矩阵 P 和一组吸收态，自动构造一个新矩阵。也可以据此构造一个计算吸收概率和吸收时间期望的函数。
+    Notes
+    -----
+    构造器检查形状和有限非负系数，列概率和需调用 validate() 检查。
+    step(p)、对象调用以及 @ 均表示 P @ p，不改变传入向量。
+    转移矩阵没有快照隔离保证，构造后仍可修改；分析对象是否复制由其接口说明。
+    最终吸收及闭合类分析见 ChainAnalysis，不需先手动修改目标行列。
     '''
     def __init__(
         self,
         space: StateSpace,
         P: Union[np.ndarray, sp.spmatrix],  # np.ndarray 或 scipy.sparse 矩阵
-        backend: Literal["sparse", "dense"] = "sparse",  # "sparse" 或 "dense"
+        backend: Optional[Literal["sparse", "dense"]] = None,
     ) -> None:
+        if backend is None:
+            backend = "sparse" if sp.issparse(P) else "dense"
         # 参数合法性检查
         if backend not in ("sparse", "dense"):
             raise ValueError("backend must be 'sparse' or 'dense'.")
@@ -46,6 +55,7 @@ class MarkovTransition():
             # 统一转换为 CSR 格式
             if not isinstance(self.P, sp.csr_matrix):
                 self.P = self.P.tocsr()
+        validate_matrix(self.P, (self.N, self.N), "P")
 
     def __call__(self, p: np.ndarray) -> np.ndarray:
         '''Sugar for one-step propagation: tm(p) == tm.step(p).'''
@@ -70,140 +80,85 @@ class MarkovTransition():
             P2 = self.P.copy()
         return MarkovTransition(self.space, P=P2, backend=self.backend)
 
-    # 完成矩阵转移
     def step(self, p: np.ndarray) -> np.ndarray:
+        '''执行一次状态传播 ``p_next = P @ p``。'''
+        return self._step(p)
+
+    # 完成矩阵转移（保留内部入口以兼容现有分析代码）
+    def _step(self, p: np.ndarray) -> np.ndarray:
         # 单步转移 p_next = P @ p
-        p = np.asarray(p).reshape(-1)
-        if p.size != self.N:
-            raise ValueError(f"p must have length {self.N}.")
+        p = np.asarray(p)
+        if p.ndim != 1 or p.size != self.N:
+            raise ValueError(f"p must be a one-dimensional vector of length {self.N}.")
         return self.P @ p
 
-    def propagate(
-        self,
-        p0: np.ndarray,
-        steps: int,
-        record: bool = False,
-    ) -> Union[np.ndarray, List[np.ndarray]]:
-        '''
-        多步递推
-        参数：
-        - p0     : 初始分布
-        - steps  : 递推步数
-        - record : 是否记录整个轨迹
-        返回：
-        - record=False ：返回 p_T
-        - record=True  ：返回 [p0, p1, ..., p_T]
-        '''
-        p = np.asarray(p0, dtype=np.float64).reshape(-1)
-        if p.size != self.N:
-            raise ValueError(f"p0 must have length {self.N}.")
-        if steps < 0:
-            raise ValueError("steps must be >= 0.")
-        if not record:
-            for _ in range(steps):  # 稀疏矩阵这样比矩阵自乘更快
-                p = self.step(p)
-            return p
-        traj = [p.copy()]
-        for _ in range(steps):
-            p = self.step(p)
-            traj.append(p.copy())
-        return traj
+    def validate(self, atol: float = 1e-12) -> None:
+        """检查形状、有限非负系数与列和为 1，不修改矩阵。
 
-    def column_sums(self) -> np.ndarray:
-        # 返回每一列的概率和（长度 N 的一维数组）。
-        if self.backend == "dense":
-            return self.P.sum(axis=0, dtype=np.float64)
-        else:
-            # 稀疏矩阵 sum(axis=0) 返回 1xN 矩阵，这里拉平
-            return np.asarray(self.P.sum(axis=0)).ravel()
+        ``atol`` 为列和的绝对误差容限，不用于修复概率缺失。
+        """
+        validate_matrix(self.P, (self.N, self.N), "P")
+        validate_mass(np.asarray(self.P.sum(axis=0)).ravel(), 1.0, atol)
 
-    def check_and_fix(
-        self,
-        tol: float = 1e-12,  # 容忍误差限
-        on_underflow: Literal["self_loop", "renorm", "error"] = "self_loop",
-        on_overflow: Literal["error", "renorm"] = "error",
-        fill_unreachable: Literal["error", "self_loop"] = "self_loop",
-        warn: bool = True,
-    ) -> None:
-        '''
-        概率校验和修复 要求每一列概率和应为1
 
-        - 列和 == 0
-            视为该状态无转移定义（不可达/未定义）
-            默认在对角线上补一个自环概率 1
-        - 列和 < 1 - tol
-            概率缺失
-            - self_loop 把缺失概率补到自环
-            - renorm    整列按比例放大
-            - error     直接报错
-        - 列和 > 1 + tol
-            概率溢出
-            - error   直接报错
-            - renorm  整列按比例缩放
-        '''
-        # 输入检查
-        if on_underflow not in ("self_loop", "renorm", "error"):
-            raise ValueError("on_underflow must be self_loop|renorm|error")
-        if on_overflow not in ("error", "renorm"):
-            raise ValueError("on_overflow must be error|renorm")
-        if fill_unreachable not in ("self_loop", "error"):
-            raise ValueError("fill_unreachable must be self_loop|error")
-        col_sum = self.column_sums()
-        # 记录需要补到对角线（自环）的概率
-        diag_add = np.zeros(self.N, dtype=np.float64)
+def validate_probability_vector(
+    vector: Sequence[float] | np.ndarray, size: int, name: str = "initial",
+    *, normalized: bool = False, flatten: bool = False, atol: float = 1e-12,
+) -> np.ndarray:
+    """返回有限非负状态质量向量的副本，不自动归一化。
 
-        for j, s in enumerate(col_sum):
-            if abs(s - 1.0) <= tol:
-                continue
-            # 列和为 0：完全没有定义转移
-            if s == 0.0:
-                if fill_unreachable == "error":
-                    raise ValueError(f"Column {j} has no outgoing probability (sum=0).")
-                diag_add[j] += 1.0
-                if warn:
-                    warnings.warn(f"Column {j} state {self.space.id_to_state(j)} sum=0; filled self-loop with 1.0", RuntimeWarning)
-                continue
-            # 列和小于 1：概率缺失
-            if s < 1.0 - tol:
-                if on_underflow == "error":
-                    raise ValueError(f"Column {j} state {self.space.id_to_state(j)} sums to {s} < 1 (missing probability).")
-                if on_underflow == "renorm":
-                    self._scale_column(j, 1.0 / s)
-                    if warn:
-                        warnings.warn(f"Column {j} state {self.space.id_to_state(j)} renormalized by factor {1.0/s}", RuntimeWarning)
-                else:
-                    diag_add[j] += (1.0 - s)  # 默认：把缺失概率补到自环
-                    if warn:
-                        warnings.warn(f"Column {j} state {self.space.id_to_state(j)} sums to {s}; added {1.0-s} to self-loop", RuntimeWarning)
-            # 列和大于 1：概率溢出
-            elif s > 1.0 + tol:
-                if on_overflow == "error":
-                    raise ValueError(f"Column {j} state {self.space.id_to_state(j)} sums to {s} > 1 (probability overflow).")
-                else:
-                    self._scale_column(j, 1.0 / s)
-                    if warn:
-                        warnings.warn(f"Column {j} state {self.space.id_to_state(j)} overflow {s}; renormalized", RuntimeWarning)
-        # 统一补加自环
-        if np.any(diag_add != 0):
-            self._add_to_diagonal(diag_add)
-        # 最终一致性检查
-        col_sum2 = self.column_sums()
-        if np.max(np.abs(col_sum2 - 1.0)) > 1e-8 and warn:
-            warnings.warn(f"After check_and_fix, max|col_sum-1|={np.max(np.abs(col_sum2-1.0))}.", RuntimeWarning)
+    默认要求一维且长度为 size；flatten=True 接受可展平的输入。
+    normalized=True 时通过 validate_mass 检查总质量为 1，atol 为其容差。
+    此辅助函数供马尔可夫模块内部使用，不限制非归一化中间质量。
+    """
+    values = np.array(vector, dtype=float, copy=True)
+    if flatten:
+        values = values.reshape(-1)
+    if values.shape != (size,):
+        raise ValueError(f"{name} must be a vector of length {size}.")
+    if not np.all(np.isfinite(values)) or np.any(values < 0):
+        raise ValueError(f"{name} must contain finite nonnegative probabilities.")
+    if normalized:
+        validate_mass(values.sum(), 1.0, atol)
+    return values
 
-    def _add_to_diagonal(self, diag_add: np.ndarray) -> None:
-        # 用来补到自环的函数
-        if self.backend == "dense":
-            self.P[np.arange(self.N), np.arange(self.N)] += diag_add.astype(self.P.dtype, copy=False)
-        else:
-            D = sp.diags(diag_add, offsets=0, shape=(self.N, self.N), format="csr")
-            self.P = (self.P + D).tocsr()
 
-    def _scale_column(self, col: int, factor: float) -> None:
-        # 将某一列整体按 factor 缩放
-        if self.backend == "dense":
-            self.P[:, col] *= factor
-        else:
-            start, end = self.P.indptr[col], self.P.indptr[col + 1]
-            if start != end:
-                self.P.data[start:end] *= factor
+def validate_matrix(matrix, shape: tuple[int, int], name: str) -> None:
+    if matrix.shape != shape:
+        raise ValueError(f"{name} must have shape {shape}.")
+    data = matrix.data if sp.issparse(matrix) else np.asarray(matrix)
+    if not np.all(np.isfinite(data)) or np.any(data < 0):
+        raise ValueError(f"{name} must contain finite nonnegative probabilities.")
+
+
+def validate_mass(actual, expected, atol: float = 1e-12) -> None:
+    if not np.isfinite(atol) or atol < 0:
+        raise ValueError("atol must be finite and nonnegative.")
+    if not np.allclose(actual, expected, rtol=0, atol=atol):
+        raise ValueError("Probability mass is not conserved.")
+
+
+def validate_steps(value: int) -> None:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)) or value < 0:
+        raise ValueError("max_steps must be a nonnegative integer.")
+
+
+def prepare_event_matrices(
+    matrices: Sequence[np.ndarray | sp.spmatrix | Sequence[Sequence[float]]],
+) -> tuple[sp.csr_matrix, ...]:
+    """将单步事件转移整理为独立 CSR 矩阵，并检查联合概率守恒。（转换单抽核为稀疏格式）
+
+    第 r 个矩阵记录本步计 r 次事件及状态转移的联合概率。
+    各矩阵为同大小方阵，其和须列归一化；单个矩阵不要求列和为 1。
+    输入为矩阵序列，各层必须本来表示单步事件数量，不做等待花费到数量的转换。
+    高层 StateKernel 输入由分析入口提取 coeff；此处只改变存储格式，不修复概率。
+    """
+    blocks = tuple(sp.csr_matrix(matrix, dtype=float, copy=True) for matrix in matrices)
+    if not blocks:
+        raise ValueError("event_matrices must not be empty.")
+    size = blocks[0].shape[0]
+    for block in blocks:
+        validate_matrix(block, (size, size), "event matrix")
+        block.eliminate_zeros()
+    validate_mass(np.asarray(sum(blocks).sum(axis=0)).ravel(), 1)
+    return blocks

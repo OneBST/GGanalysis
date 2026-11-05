@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from copy import deepcopy
-from GGanalysis.SimulationTools.statistical_tools import Statistics
+from GGanalysis.simulation.statistical_tools import Statistics
 import multiprocessing
 from tqdm import tqdm
 

@@ -1,11 +1,19 @@
-from GGanalysis.distribution_1d import *
+from GGanalysis.distribution_1d import FiniteDist, calc_expectation, cut_dist, p2dist
+from GGanalysis.distribution_1d import _fft_probability_converged, _irfft_probability
 from typing import Union
-from scipy.fftpack import fft,ifft
+from scipy.fft import next_fast_len, rfft
 from scipy.special import comb
 from scipy.stats import binom
-from functools import lru_cache
+from GGanalysis.markov.analysis import first_hitting_time
+from GGanalysis.markov.transition import MarkovTransition
+from GGanalysis.markov.state_space import StateSpace
 import numpy as np
 import warnings
+
+__all__ = [
+    'GachaLayer', 'PityLayer', 'BernoulliLayer', 'MarkovLayer',
+    'DynamicProgrammingLayer', 'CouponCollectorLayer',
+]
 
 class GachaLayer(object):
     # 抽卡层的基类，定义了抽卡层的基本行为
@@ -17,7 +25,6 @@ class GachaLayer(object):
     def __call__(self, input: tuple=None, *args: any, **kwds: any) -> tuple[FiniteDist, FiniteDist]:
         # 返回一个元组 (完整分布, 条件分布)
         return self._forward(input, 1), self._forward(input, 0, *args, **kwds)
-    @lru_cache
     def _forward(self, input, full_mode, *args, **kwds) -> FiniteDist:
         # 根据full_mode在这项里进行完整分布或条件分布的计算，返回一个分布
         pass
@@ -40,7 +47,6 @@ class PityLayer(GachaLayer):
     def __str__(self) -> str:
         return f"Pity Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
     
-    @lru_cache
     def _forward(self, input, full_mode, item_pity=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -86,7 +92,6 @@ class BernoulliLayer(GachaLayer):
     def __str__(self) -> str:
         return f"Bernoulli Layer E={round(self.exp, 2)} V={round(self.var, 2)}"
     
-    @lru_cache
     def _forward(self, input, full_mode) -> FiniteDist:
         # 作为第一层（不过一般不会当做第一层吧）
         if input is None:
@@ -102,10 +107,13 @@ class BernoulliLayer(GachaLayer):
                 if calc_error < self.e_error or test_len > self.max_dist_len:
                     if test_len > self.max_dist_len:
                         print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
-                    dist = FiniteDist(dist)
-                    dist.exp = self.exp
-                    dist.var = self.var
-                    return dist
+                    tail_mass = max(0.0, 1.0 - float(np.sum(dist)))
+                    return FiniteDist(
+                        dist,
+                        exp=self.exp,
+                        var=self.var,
+                        tail_mass=tail_mass,
+                    )
                 test_len *= 2
         # 作为后续输入层
         f_dist: FiniteDist = input[0]
@@ -118,24 +126,36 @@ class BernoulliLayer(GachaLayer):
             return c_dist
         output_E = self.p*c_dist.exp + (1-self.p) * (f_dist.exp * self.exp + c_dist.exp)  # 叠加后的期望
         output_D = self._calc_combined_2nd_moment(f_dist.exp, c_dist.exp, f_dist.var, c_dist.var) - output_E**2  # 叠加后的方差
-        test_len = int(output_E+10*output_D**0.5)
+        test_len = max(int(output_E + 10 * output_D ** 0.5), len(f_dist), len(c_dist), 2)
+        previous = None
         while True:
-            # 通过频域关系进行计算
-            F_f = fft(pad_zero(f_dist.dist, test_len))
-            F_c = fft(pad_zero(c_dist.dist, test_len))
-            output_dist = (self.p * F_c) / (1 - (1-self.p) * F_f)
-            output_dist = FiniteDist(abs(ifft(output_dist)))
+            # 通过实数 FFT 求概率生成函数，并扩大长度检查循环混叠。
+            fft_len = next_fast_len(test_len, real=True)
+            F_f = rfft(f_dist.dist, n=fft_len)
+            F_c = rfft(c_dist.dist, n=fft_len)
+            output_spectrum = (self.p * F_c) / (1 - (1-self.p) * F_f)
+            output_array = _irfft_probability(output_spectrum, fft_len)
             # 解决输出位置0处不是0的问题
-            output_dist[0] = 0
-            # 误差限足够小则停止
-            calc_error = abs(calc_expectation(output_dist)-output_E)/output_E
-            if calc_error < self.e_error or test_len > self.max_dist_len:
-                if test_len > self.max_dist_len:
-                    print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+            output_array[0] = 0.0
+            output_dist = FiniteDist(output_array)
+            converged, errors = _fft_probability_converged(
+                output_dist.dist,
+                previous,
+                output_E,
+                float(output_spectrum[0].real),
+                self.e_error,
+            )
+            if converged or fft_len > self.max_dist_len:
+                if fft_len > self.max_dist_len and not converged:
+                    print(
+                        'Warning: distribution is too long! len:', fft_len,
+                        'Expectation/Mass/Prefix errors:', errors,
+                    )
                 output_dist.exp = output_E
                 output_dist.var = output_D
                 return output_dist
-            test_len *= 2
+            previous = output_dist.dist.copy()
+            test_len = fft_len * 2
 
     def _calc_combined_2nd_moment(self, Ea, Eb, Da, Db):
         # 计算联合二阶矩 a表示完整序列 b表示条件序列
@@ -143,12 +163,29 @@ class BernoulliLayer(GachaLayer):
         return (p*(p*(Db+Eb**2)+(1-p)*(Da+Ea**2))+2*(1-p)*Ea*(p*Eb+(1-p)*Ea))/(p**2)
     
 class MarkovLayer(GachaLayer):
+    """由马尔可夫首次返回分布构造抽卡层。
+
+    Parameters
+    ----------
+    M : ndarray or MarkovTransition
+        守恒的一步矩阵，编号 0 为目标及完整周期起点。一步可以代表一次
+        高稀有度获得，实际抽数由前层组合；多轮组合仍要求周期独立。
+    p_error : float or None
+        首次命中剩余质量停止阈值；None 计算满 max_steps。
+    max_steps : int
+        最大转移步数；剩余质量保留为 FiniteDist.tail_mass，不归一化。
+    """
     # 马尔科夫抽卡层,对于不能在有限次数内移动到目标态的情况采用截断的方法处理
-    def __init__(self, M: np.ndarray, p_error=1e-8) -> None:
+    def __init__(self, M: np.ndarray | MarkovTransition, p_error=1e-8,
+                 *, max_steps: int = 10000) -> None:
         super().__init__()
         # 输入矩阵中，零状态为末态
-        self.M = M
+        self.transition = (M if isinstance(M, MarkovTransition)
+                           else MarkovTransition(StateSpace.from_shape([M.shape[0]]), M))
+        self.transition.validate()
+        self.M = self.transition.P
         self.p_error = p_error
+        self.max_steps = max_steps
         self.state_len = self.M.shape[0]
         self.dist = self._get_conditional_dist()
         self.exp = self.dist.exp
@@ -158,18 +195,14 @@ class MarkovLayer(GachaLayer):
     # 通过转移矩阵计算分布
     def _get_conditional_dist(self, begin_pos=0):
         # 从一个位置开始的转移的分布情况
-        dist = [0]
-        X = np.zeros(self.state_len)
-        X[begin_pos] = 1
-        while True:
-            X = np.matmul(self.M, X)
-            if sum(X) < self.p_error:
-                break
-            dist.append(X[0])
-            X[0] = 0
-        return FiniteDist(dist)
+        initial = np.zeros(self.state_len)
+        initial[begin_pos] = 1
+        dist, remaining = first_hitting_time(
+            self.transition, initial, [0] * self.transition.space.dims,
+            self.max_steps, tail_tol=self.p_error,
+        )
+        return FiniteDist(dist, tail_mass=remaining)
 
-    @lru_cache
     def _forward(self, input, full_mode, begin_pos=0) -> FiniteDist:
         # 输入为空，本层为第一层，返回初始分布
         if input is None:
@@ -205,7 +238,6 @@ class DynamicProgrammingLayer(GachaLayer):
     def __str__(self) -> str:
         return f"DP Layer {self.dp_function}"
     
-    @lru_cache
     def _forward(self, input, full_mode, *args: any, **kwds: any) -> FiniteDist:
         # 以下代码修改自 PityLayer
         # 输入为空，本层为第一层，返回初始分布
@@ -272,7 +304,6 @@ class CouponCollectorLayer(GachaLayer):
     def _calc_coefficient_3(self, i, j, initial_types, target_types):
         return (target_types-initial_types+i-j-1) / self.types
 
-    @lru_cache
     def _forward(self, input, full_mode, initial_types=0, target_types=None) -> FiniteDist:
         # 便于和推导统一的标记，同时自动识别应该如何处理
         if target_types is not None:
@@ -312,10 +343,13 @@ class CouponCollectorLayer(GachaLayer):
                 if calc_error < self.e_error or test_len > self.max_dist_len:
                     if test_len > self.max_dist_len:
                         print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
-                    dist = FiniteDist(dist)
-                    dist.exp = output_E
-                    dist.var = output_D
-                    return dist
+                    tail_mass = max(0.0, 1.0 - float(np.sum(dist)))
+                    return FiniteDist(
+                        dist,
+                        exp=output_E,
+                        var=output_D,
+                        tail_mass=tail_mass,
+                    )
                 test_len *= 2
 
         # 作为后续输入层
@@ -357,12 +391,14 @@ class CouponCollectorLayer(GachaLayer):
             ans_2moment *= C1
             return ans_2moment
         output_D = calc_combined_output_2nd_moment() - output_E**2  # 叠加后的方差
-        test_len = int(output_E+10*output_D**0.5)
+        test_len = max(int(output_E + 10 * output_D ** 0.5), len(f_dist), len(c_dist), 2)
+        previous = None
         while True:
             # 通过频域关系进行计算
-            F_f = fft(pad_zero(f_dist.dist, test_len))
-            F_c = fft(pad_zero(c_dist.dist, test_len))
-            output_dist = 0
+            fft_len = next_fast_len(test_len, real=True)
+            F_f = rfft(f_dist.dist, n=fft_len)
+            F_c = rfft(c_dist.dist, n=fft_len)
+            output_spectrum = np.zeros_like(F_f, dtype=np.complex128)
             C1 = self._calc_coefficient_1(a, k)
             # 预计算F_f ^ (k-a)减少计算量
             buff_F_f_multi = F_f ** (k-a)
@@ -373,20 +409,30 @@ class CouponCollectorLayer(GachaLayer):
                         continue
                     C2 = self._calc_coefficient_2(i, j, a, k)
                     C3 = self._calc_coefficient_3(i, j, a, k)
-                    output_dist += (C2/C3) *  (C3**(k-a)*buff_F_f_multi / (1-C3*F_f))
-            output_dist = output_dist * C1 * F_c / F_f
-            output_dist = FiniteDist(abs(ifft(output_dist)))
+                    output_spectrum += (C2/C3) *  (C3**(k-a)*buff_F_f_multi / (1-C3*F_f))
+            output_spectrum = output_spectrum * C1 * F_c / F_f
+            output_array = _irfft_probability(output_spectrum, fft_len)
             # 解决输出位置0处不是0的问题
-            output_dist[0] = 0
-            # 误差限足够小则停止
-            calc_error = abs(output_dist.exp-output_E)/output_E
-            if calc_error < self.e_error or test_len > self.max_dist_len:
-                if test_len > self.max_dist_len:
-                    print('Warning: distribution is too long! len:', test_len, 'Error:', calc_error)
+            output_array[0] = 0.0
+            output_dist = FiniteDist(output_array)
+            converged, errors = _fft_probability_converged(
+                output_dist.dist,
+                previous,
+                output_E,
+                float(output_spectrum[0].real),
+                self.e_error,
+            )
+            if converged or fft_len > self.max_dist_len:
+                if fft_len > self.max_dist_len and not converged:
+                    print(
+                        'Warning: distribution is too long! len:', fft_len,
+                        'Expectation/Mass/Prefix errors:', errors,
+                    )
                 output_dist.exp = output_E
                 output_dist.var = output_D
                 return output_dist
-            test_len *= 2
+            previous = output_dist.dist.copy()
+            test_len = fft_len * 2
 
 if __name__ == "__main__":
     pass

@@ -7,8 +7,8 @@ import itertools
 
 from GGanalysis import FiniteDist
 from GGanalysis.games.genshin_impact.artifact_data import *
-from GGanalysis.ScoredItem.genshin_like_scored_item import *
-from GGanalysis.ScoredItem.scored_item import ScoredItem, ScoredItemSet
+from GGanalysis.scored_item.genshin_like_scored_item import *
+from GGanalysis.scored_item.scored_item import ScoredItem, ScoredItemSet
 
 """
     原神圣遗物类
@@ -235,7 +235,7 @@ class GenshinDefinedArtifact(ScoredItem):
         super().__init__(ans.score_dist, ans.sub_stats_exp, 1, stats_score=self.stats_score)
 
 # 导入所需的最优组合组件
-from GGanalysis.ScoredItem.scored_item_tools import (
+from GGanalysis.scored_item.scored_item_tools import (
     get_mix_dist,
     remove_worst_combination,
     select_best_combination,
@@ -338,7 +338,7 @@ if __name__ == "__main__":
             'cd': 1,
     }
     from matplotlib import pyplot as plt
-    from GGanalysis.ScoredItem import check_subexp_sum
+    from GGanalysis.scored_item import check_subexp_sum
     flower = GenshinArtifact(type='flower', stats_score=TEST_STAT_SCORE)
     score = check_subexp_sum(flower, TEST_STAT_SCORE)
     print(score)

@@ -1,6 +1,10 @@
 自定义抽卡模型
 ========================
 
+先查 :doc:`../reference_manual/basic_models` 的现成模型；需要组合机制时查
+:doc:`../reference_manual/gacha_layers`。以下例子假设每次目标获得后完全重置；
+跨次状态依赖的模型见 :doc:`stateful_models`，不要直接套用 IID 组合。
+
 .. admonition:: 抽卡问题例子
     :class: note
 

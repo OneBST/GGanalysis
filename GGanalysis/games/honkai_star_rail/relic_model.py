@@ -7,8 +7,8 @@ import math
 import itertools
 
 from GGanalysis.games.honkai_star_rail.relic_data import *
-from GGanalysis.ScoredItem.genshin_like_scored_item import *
-from GGanalysis.ScoredItem.scored_item import ScoredItem, ScoredItemSet
+from GGanalysis.scored_item.genshin_like_scored_item import *
+from GGanalysis.scored_item.scored_item import ScoredItem, ScoredItemSet
 
 """
     崩坏：星穹铁道遗器类
@@ -120,7 +120,10 @@ class StarRailRelic(ScoredItem):
             if sub_stats_filter is not None:
                 if sub_stats_filter(stat_comb) is False:
                     continue
-            temp_base = get_init_state(stat_comb, init_score=self.main_stat_score[self.main_stat])
+            temp_base = get_init_state(
+                stat_comb,
+                init_score=self.main_stat_score[self.main_stat],
+            )
             temp_level_up = get_state_level_up(stat_comb)
             # 初始3词条和初始四词条的情况
             temp_3 = (

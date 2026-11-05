@@ -1,6 +1,7 @@
 import numpy as np
 import GGanalysis.games.genshin_impact as GI
 from matplotlib import pyplot as plt
+from GGanalysis.games.genshin_impact.standard_pity import standard_5star_type_probability
 
 # 计算常驻类别概率
 def calc_type_P(item_pity, not_met):
@@ -8,20 +9,10 @@ def calc_type_P(item_pity, not_met):
     # dist = c.conditional_distribution(1, item_pity)
     dist = GI.common_5star(1, item_pity=item_pity)
     # 计算单抽类别概率
-    def pull_type_P(pull_num):
-        A = 30
-        B = 30
-        if pull_num > 147:
-            B += 300*(pull_num-147)
-        # 轮盘选择法截断了
-        if A+B > 10000:
-            # print(B, pull_num)
-            return min(10000, B)/10000
-        # 轮盘选择法没有截断
-        return B/(A+B)
     ans_P = 0
     for i in range(1, len(dist)):
-        ans_P += pull_type_P(not_met+i)*dist[i]
+        # 本抽之前两类进度为 item_pity+i-1、not_met+i-1。
+        ans_P += standard_5star_type_probability(not_met+i-1, item_pity+i-1)*dist[i]
     return ans_P
 
 
