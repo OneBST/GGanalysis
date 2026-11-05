@@ -17,45 +17,45 @@ from GGanalysis.markov import (
 from GGanalysis.state_distribution import StateDist, StateKernel
 from GGanalysis.games.neverness_to_everness.gacha_data import END_POS, HARD_PITY, parse_tile_type
 from GGanalysis.games.neverness_to_everness.gacha_data import (
-    ARC_DISC_S_PROBABILITY, ARC_DISC_UP_GIVEN_S, ARC_DISC_A_PROBABILITY,
-    ARC_DISC_S_PITY, ARC_DISC_UP_PITY, ARC_DISC_A_PITY,
+    WEAPON_5STAR_PROBABILITY, WEAPON_UP_GIVEN_5STAR, WEAPON_A_PROBABILITY,
+    WEAPON_5STAR_PITY, WEAPON_UP_PITY, WEAPON_A_PITY,
     POINT_GIFT_PERIOD, POINT_GIFT_A_CHARACTER_PROBABILITY,
-    POINT_GIFT_A_ARC_DISC_PROBABILITY,
+    POINT_GIFT_A_WEAPON_PROBABILITY,
 )
 from GGanalysis.games.neverness_to_everness.gacha_kernel import (
     ProbabilityMap, build_nte_analysis, _position_move_matrix,
 )
 
-__all__ = ["NacupedaStatistics", "NTEStationaryAnalysis", "arc_disc_stationary_rates"]
+__all__ = ["NacupedaStatistics", "NTEStationaryAnalysis", "weapon_stationary_rates"]
 
 
-def _arc_disc_outcomes(state: tuple[int, int, int]
+def _weapon_outcomes(state: tuple[int, int, int]
                        ) -> list[tuple[tuple[int, int, int], float, str]]:
     """逐件互斥结果；优先级为 UP80、S60、A10，S 不清 A。"""
     s, u, a = state
-    if u == ARC_DISC_UP_PITY - 1:
+    if u == WEAPON_UP_PITY - 1:
         probabilities = (1.0, 0.0, 0.0, 0.0)
     else:
-        p_s = 1.0 if s == ARC_DISC_S_PITY - 1 else ARC_DISC_S_PROBABILITY
-        p_a = 1.0 - p_s if a == ARC_DISC_A_PITY - 1 else min(ARC_DISC_A_PROBABILITY, 1.0 - p_s)
-        probabilities = (p_s * ARC_DISC_UP_GIVEN_S,
-                         p_s * (1.0 - ARC_DISC_UP_GIVEN_S),
+        p_s = 1.0 if s == WEAPON_5STAR_PITY - 1 else WEAPON_5STAR_PROBABILITY
+        p_a = 1.0 - p_s if a == WEAPON_A_PITY - 1 else min(WEAPON_A_PROBABILITY, 1.0 - p_s)
+        probabilities = (p_s * WEAPON_UP_GIVEN_5STAR,
+                         p_s * (1.0 - WEAPON_UP_GIVEN_5STAR),
                          p_a, 1.0 - p_s - p_a)
-    next_a = min(a + 1, ARC_DISC_A_PITY - 1)
+    next_a = min(a + 1, WEAPON_A_PITY - 1)
     ends = ((0, 0, next_a), (0, u + 1, next_a),
             (s + 1, u + 1, 0), (s + 1, u + 1, next_a))
     return [(end, p, kind) for end, p, kind in
-            zip(ends, probabilities, ("UP", "non_UP_S", "A", "B")) if p > 0]
+            zip(ends, probabilities, ("UP", "non_UP_5star", "A", "B")) if p > 0]
 
 
-def _build_arc_disc_process() -> tuple[tuple[tuple[int, int, int], ...], MarkovTransition, StateRewards]:
+def _build_weapon_process() -> tuple[tuple[tuple[int, int, int], ...], MarkovTransition, StateRewards]:
     """从零状态枚举可达联合状态，以公共工具组装稀疏转移和奖励。"""
     states = [(0, 0, 0)]
     lookup = {states[0]: 0}
     sources, targets, probabilities, kinds = [], [], [], []
     # 列表迭代会继续访问末尾新增状态，即广度优先枚举。
     for source, state in enumerate(states):
-        for end, probability, kind in _arc_disc_outcomes(state):
+        for end, probability, kind in _weapon_outcomes(state):
             if end not in lookup:
                 lookup[end] = len(states)
                 states.append(end)
@@ -67,18 +67,18 @@ def _build_arc_disc_process() -> tuple[tuple[tuple[int, int, int], ...], MarkovT
     builder = TransitionBuilder(space)
     builder.add_many(sources, targets, probabilities)
     transition = builder.build(check=True)
-    weights = {name: np.zeros(len(states)) for name in ("S", "UP", "A", "B")}
+    weights = {name: np.zeros(len(states)) for name in ("5star", "UP", "A", "B")}
     for source, probability, kind in zip(sources, probabilities, kinds):
-        if kind in ("UP", "non_UP_S"):
-            weights["S"][source] += probability
-        if kind != "non_UP_S":
+        if kind in ("UP", "non_UP_5star"):
+            weights["5star"][source] += probability
+        if kind != "non_UP_5star":
             weights[kind][source] += probability
     return tuple(states), transition, StateRewards(space, weights)
 
 
 @lru_cache(maxsize=1)
-def _arc_disc_stationary_rates() -> tuple[tuple[str, float], ...]:
-    states, transition, rewards = _build_arc_disc_process()
+def _weapon_stationary_rates() -> tuple[tuple[str, float], ...]:
+    states, transition, rewards = _build_weapon_process()
     initial = np.zeros(len(states))
     initial[0] = 1.0
     steady, info = stationary_power(transition, x0=initial, tol=1e-13, return_info=True)
@@ -87,13 +87,13 @@ def _arc_disc_stationary_rates() -> tuple[tuple[str, float], ...]:
     return tuple(rewards.expectation(steady).items())
 
 
-def arc_disc_stationary_rates() -> dict[str, float]:
+def weapon_stationary_rates() -> dict[str, float]:
     """返回考虑 S/UP/A 保底的长期每件综合概率。
 
     Returns
     -------
     dict[str, float]
-        ``S`` 为任意 S（包含 UP），``UP`` 为 UP S，``A``、``B`` 为对应品质。
+        ``5star`` 为任意 S（包含 UP），``UP`` 为 UP S，``A``、``B`` 为对应品质。
         互斥品质满足 S + A + B = 1，UP 是 S 的子集，不能再相加。
         每次调用返回独立字典，首次调用计算并缓存长期率。
 
@@ -106,7 +106,7 @@ def arc_disc_stationary_rates() -> dict[str, float]:
     完整状态为逐件抽取前的 (未出 S 件数, 未出 UP 件数, 未出 A 件数)。
     这是长期事件率，不是零进度首件等待的倒数，也不是固定预算下的命中概率。
     """
-    return dict(_arc_disc_stationary_rates())
+    return dict(_weapon_stationary_rates())
 
 
 @dataclass(frozen=True)
@@ -277,7 +277,7 @@ class NTEStationaryAnalysis:
         Returns
         -------
         dict[str, float]
-            ``A_character``、``A_arc_disc`` 分别为 A 角色、A 弧盘的期望数量，
+            ``A_character``、``A_weapon`` 分别为 A 角色、A 弧盘的期望数量，
             ``A_total`` 为二者之和。落格 A/W 奖励分别加上每十抽赠礼的
             20%/80% 贡献；赠礼独立于落格及 S 进度，因此同抽可以获得两件 A。
             这是等效综合产率，不是每抽至少获得一件 A 的概率。
@@ -289,9 +289,9 @@ class NTEStationaryAnalysis:
         """
         entries = self.tile_entry_probabilities
         character = entries.get("A", 0.0) + POINT_GIFT_A_CHARACTER_PROBABILITY / POINT_GIFT_PERIOD
-        arc_disc = entries.get("W", 0.0) + POINT_GIFT_A_ARC_DISC_PROBABILITY / POINT_GIFT_PERIOD
-        return {"A_character": character, "A_arc_disc": arc_disc,
-                "A_total": character + arc_disc}
+        weapon = entries.get("W", 0.0) + POINT_GIFT_A_WEAPON_PROBABILITY / POINT_GIFT_PERIOD
+        return {"A_character": character, "A_weapon": weapon,
+                "A_total": character + weapon}
 
     def point_gift_dist(self, pull: int, gift_pity: int = 0) -> dict[str, FiniteDist]:
         """给定主抽数，返回额外赠礼中两种 A 的数量边缘分布。
@@ -306,7 +306,7 @@ class NTEStationaryAnalysis:
         Returns
         -------
         dict[str, FiniteDist]
-            ``A_character`` 和 ``A_arc_disc`` 为赠礼数量边缘分布，不含棋盘奖励。
+            ``A_character`` 和 ``A_weapon`` 为赠礼数量边缘分布，不含棋盘奖励。
             赠礼总数 m=(gift_pity+pull)//10；角色数服从 Binomial(m, 0.2)，
             弧盘数等于 m 减角色数。两者相关，不能当作独立分布卷积。
             剩余赠礼进度为 (gift_pity+pull)%10。
@@ -318,7 +318,7 @@ class NTEStationaryAnalysis:
         gifts = (gift_pity + pull) // POINT_GIFT_PERIOD
         character = binom.pmf(np.arange(gifts + 1), gifts, POINT_GIFT_A_CHARACTER_PROBABILITY)
         return {"A_character": FiniteDist(character),
-                "A_arc_disc": FiniteDist(character[::-1])}
+                "A_weapon": FiniteDist(character[::-1])}
 
     @cached_property
     def nacupeda_statistics(self) -> NacupedaStatistics:

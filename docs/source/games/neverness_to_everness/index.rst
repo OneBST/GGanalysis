@@ -2,6 +2,10 @@
 ========================
 
 本模型使用仓库中保存的测试服棋盘规则与数据，不代表自动同步的最新游戏规则。
+模型标识符统一使用 ``weapon`` 表示武器、``5star`` 表示游戏中的 S 级；
+常量使用大写 ``WEAPON`` / ``5STAR``，综合概率返回键使用 ``5star``。
+A/B 稀有度及棋盘格子编码保持原样。
+
 规则定义见 ``gacha_data.py``，位置移动规则位于 ``gacha_kernel.py``。
 
 角色棋盘模型
@@ -135,7 +139,7 @@
    # 接下来抽 21 次，已有 9 点赠礼进度：固定获得三次额外赠礼。
    gift = character_stationary.point_gift_dist(pull=21, gift_pity=9)
    assert abs(gift["A_character"].exp - 0.6) < 1e-12
-   assert abs(gift["A_arc_disc"].exp - 2.4) < 1e-12
+   assert abs(gift["A_weapon"].exp - 2.4) < 1e-12
 
 ``point_gift_dist`` 只含额外赠礼，返回两类数量的边缘分布；二者之和是固定赠礼总数，
 不能按独立分布卷积。单次赠礼类型按独立的 20%/80% 抽样建模。
@@ -236,15 +240,15 @@ UP 同时清 S/UP 计数，非 UP S 只清 S。所有 S 均不清 A 计数；实
 .. code-block:: python
 
    from GGanalysis.games.neverness_to_everness import (
-       up_5star_arc_disc, arc_disc_stationary_rates,
+       up_5star_weapon, weapon_stationary_rates,
    )
 
-   first = up_5star_arc_disc()
-   five = up_5star_arc_disc(item_num=5)
-   conditional = up_5star_arc_disc(item_pity=20, up_pity=70)
-   rates = arc_disc_stationary_rates()
+   first = up_5star_weapon()
+   five = up_5star_weapon(item_num=5)
+   conditional = up_5star_weapon(item_pity=20, up_pity=70)
+   rates = weapon_stationary_rates()
    # S 包含 UP；互斥品质为 S/A/B，不能再加一次 UP。
-   assert abs(rates["S"] + rates["A"] + rates["B"] - 1) < 1e-11
+   assert abs(rates["5star"] + rates["A"] + rates["B"] - 1) < 1e-11
    assert abs(rates["UP"] - 1 / first.exp) < 1e-11
 
 长期 S、UP、A、B 综合概率分别约为 4.1981424982%、1.6830092953%、
@@ -252,9 +256,9 @@ UP 同时清 S/UP 计数，非 UP S 只清 S。所有 S 均不清 A 计数；实
 该实现与参考逐件规则在所有可达状态逐项核对，并检查概率守恒、稳态残差和
 UP 更新周期率；1—5 把 UP 的花费分布另用独立数量递推核验。
 
-``up_5star_arc_disc`` 只返回 UP S 的累计逐件花费分布。UP 后 S/UP 计数归零，
+``up_5star_weapon`` 只返回 UP S 的累计逐件花费分布。UP 后 S/UP 计数归零，
 A 计数虽然继承，但不影响下次 S/UP 的概率，因此后续 UP 周期可以 IID 卷积。
-零状态首 UP 均值约为 59.4173783123 件。不再提供 ``first_5star_arc_disc``
+零状态首 UP 均值约为 59.4173783123 件。不再提供 ``first_5star_weapon``
 普通 S 等待分布入口；任意 S 目前只计算长期综合概率。
 
 十连支付成本
@@ -270,7 +274,7 @@ A 计数虽然继承，但不影响下次 S/UP 的概率，因此后续 UP 周�
    import numpy as np
    from GGanalysis.distribution_1d import FiniteDist
 
-   total = up_5star_arc_disc(item_num=5)
+   total = up_5star_weapon(item_num=5)
    # 下标为支付的十连包数，乘 10 后为钥匙数。
    package_index = (np.arange(len(total.dist)) + 9) // 10
    paid_packages = FiniteDist(np.bincount(package_index, weights=total.dist))
@@ -280,6 +284,113 @@ A 计数虽然继承，但不影响下次 S/UP 的概率，因此后续 UP 周�
 
 API
 --------------------------------------
+
+活动盲盒模型
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``NTEBlindBoxModel`` 在 ``blind_box_model.py`` 中实现加权不放回抽取，
+并通过 ``gacha_model.py`` 与游戏包导出。输入每类奖品权重、份数和逐抽价格，
+每次以「剩余份数 × 权重 / 剩余总权重」抽取并移除一份，直到获得指定目标。
+同权重、同规则的非目标奖品可以合并数量以减少状态数；每份奖品包中包含
+多少材料不等于该奖品在池内可被抽取多少次。
+
+一维权重适用于全程固定权重，二维权重可描述逐抽变化或某些抽次零权重。
+模型不自行假设「前五抽不能获得车辆」，是否存在限制必须由输入数据明确。
+活动最大抽数等于初始奖品总份数；获得目标不自动领取其他剩余奖品。
+计算使用有限状态递推，无模拟、无概率截断、无强制归一化。
+
+中途继续抽取需要输入完整 ``remaining``，不能只传已抽次数。
+模型由剩余份数推导已抽次数，继续使用该进度下的价格和权重；花费只统计
+从当前状态开始的新增投入。当前不校验所给剩余奖池是否能由历史权重实际到达。
+
+**版本配置：** ``BLIND_BOX_CONFIGS`` 保存各期奖品分类、数量及前五抽/第六抽起
+权重，``BLIND_BOX_COSTS`` 保存逐抽价格；``blind_boxes["1.1"]`` 至
+``blind_boxes["1.4"]`` 使用同一计算模型。1.1、1.3、1.4 价格相同，1.2 价格更低；
+奖池并非前三者完全相同：1.1 与 1.2 主载具抽次分布相同，1.3 多一项权重 5 的
+奖品并减少一份权重 99 的奖品，1.4 的两辆车在前五抽都为零权重。
+1.3 三套时装依次为灿阳逐浪（权重 3）、夏日澄空和海盐金平糖（均为权重 5）。
+其概率显示表的「其他」含一份权重 10 的手写信及九份权重 99 的奖励；
+模型将手写信单列，配置中的「其他」仅指后九份，二者统计口径不同。
+
+来源为 2026-10-31 更新的《异环盲盒官方公告收集.md》：价格取用户提供的
+`视频价格表 <https://www.bilibili.com/video/BV1Nwaw6aEPP>`_，
+数量和权重取 `NTE攻略Lab <https://game.technophere.com/nte/mystery-box/>`_
+整理的 DT_GashaponLotteryGlobal；属于第三方整理，不标作四期完整官方公示。
+1.4 国服规则截图支持剩余数量乘权重的公式及 1:3:5 示例；尚未逐项核验各服参数。
+更新资料补充了
+`玩家提取快照（提交标为 1.4.13 CN） <https://github.com/Waifus-Grace/NTE_Assets/blob/1816e237ffe9edf687dd6942d028e89cce121381/DataTable/GashaponLottery/DT_GashaponLotteryGlobal.json>`_
+中的四期概率显示表和历史快照对照；1.4 两辆车的全部 15 抽显示值另有玩家实机截图佐证。
+标为 CN 与 Global 的 1.3 快照字段一致，但属于同一提取者的资料，不能替代各服独立验证。
+``BLIND_BOX_918_PUBLISHED_PERCENT`` 原样保存官方显示百分数，存在舍入误差；
+其结构符合各抽次的无条件分布，不能作为本模型输入的奖品权重，也不能作为
+``p2dist`` 的逐抽条件概率。原始图见
+`官方概率图 <https://ntevmg.perfectworld.com/webops/nte/cn.png>`_。
+
+按当前配置从完整奖池抽到主载具即停止，解析结果如下；两种货币支付方式分别计算：
+
+.. list-table:: 主载具获得期望
+   :header-rows: 1
+
+   * - 期次 / 目标
+     - 活动抽取次数
+     - 环石
+     - 万方斯
+   * - 1.1 / Porsche 918 Spyder
+     - 14.37
+     - 11724.16
+     - 1761.25
+   * - 1.2 / Draco
+     - 14.37
+     - 5419.43
+     - 1057.20
+   * - 1.3 / Tide
+     - 14.22
+     - 11454.01
+     - 1715.23
+   * - 1.4 / Taycan Turbo GT
+     - 14.37
+     - 11715.38
+     - 1759.67
+
+目标索引对应配置中的 ``prizes``，0 为主载具；1.4 的索引 1 是 911，期望
+9621.04 环石或 1384.46 万方斯。1.4 返场的 918 使用 1.1 模型，并通过
+``remaining`` 继承此前奖池进度，不与骏影疾驰共用抽取记录。
+
+.. code-block:: python
+
+   from GGanalysis.games.neverness_to_everness import blind_boxes
+
+   model = blind_boxes["1.2"]
+   dist = model(target=0, unit="annulith")
+   means = model.expectations(target=0)
+   print(f"期望 {means['annulith']:.2f} 环石；全用方斯时 {means['fons_10k']:.2f} 万方斯")
+   # 5419.43 环石，或 1057.20 万方斯；两种支付结果不能相加。
+
+``expectations`` 直接按累计价格加权，适合大金额单位；若需要完整分布，
+建议方斯按万为索引单位，以免分配千万长度的数组。不同货币支付结果分别表示
+全程使用该货币，不扣除奖品中的资源返还，也不按商城礼包价格换算。
+本地验证包括独立有理数路径枚举、等权重多份目标、逐抽权重、继承剩余奖池后
+的价格档位、概率质量与输入检查；1.1 五个单独奖品逐抽分布及「其他」当次
+概率在官方表显示精度内一致。1.2 官方图与 1.1 数值相同，见
+`1.2 官方公告 <https://nte.perfectworld.com/en/article/news/gameevent/20260708/263085.html>`_。
+新增表格复核覆盖四期各五个单列奖项，共 300 个概率值；与模型结果的差异均小于
+0.005 个百分点。权重与提取表可能同源，此项是内部一致性检查。
+「其他」栏单独核验：1.4 第 11 抽模型为约 45.54535%，显示为 45.6%，
+偏差约 0.05465 个百分点，略超一位小数的通常舍入界限；原因未明，保留原始
+显示值与计算值的差异，不调整权重或强制归一化来拟合显示表。
+
+从仓库根目录运行以下命令，将沿用 ``DrawDistribution`` 双图模板输出四期主载具
+的环石柱状分布与无填充 CDF，保存 PNG/SVG 到 ``figure/``；期望合并至左上角说明。
+
+.. code-block:: bash
+
+   python -m GGanalysis.games.neverness_to_everness.figure_plot_blind_box
+
+.. autoclass:: GGanalysis.games.neverness_to_everness.blind_box_model.NTEBlindBoxModel
+   :members: __call__, expectations
+
+棋盘与弧盘接口
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: GGanalysis.games.neverness_to_everness.gacha_kernel.build_cycle_kernel
 
@@ -294,7 +405,7 @@ API
 .. autoclass:: GGanalysis.games.neverness_to_everness.stationary_statistic.NTEStationaryAnalysis
    :members:
 
-.. autoclass:: GGanalysis.games.neverness_to_everness.gacha_model.NTEArcDiscUPModel
+.. autoclass:: GGanalysis.games.neverness_to_everness.gacha_model.NTEWeaponUPModel
    :members: __call__
 
-.. autofunction:: GGanalysis.games.neverness_to_everness.stationary_statistic.arc_disc_stationary_rates
+.. autofunction:: GGanalysis.games.neverness_to_everness.stationary_statistic.weapon_stationary_rates

@@ -10,10 +10,13 @@ from GGanalysis.distribution_1d import FiniteDist
 from GGanalysis.markov import MarkovTransition, StateSpace
 from GGanalysis.state_distribution import ConvolutionMethod, StateKernel
 from GGanalysis.games.neverness_to_everness.gacha_data import (
-    ARC_DISC_S_PROBABILITY,
-    ARC_DISC_UP_GIVEN_S,
-    ARC_DISC_S_PITY,
-    ARC_DISC_UP_PITY,
+    BLIND_BOX_CONFIGS,
+    BLIND_BOX_COSTS,
+    BLIND_BOX_PHASE_CHANGE,
+    WEAPON_5STAR_PROBABILITY,
+    WEAPON_UP_GIVEN_5STAR,
+    WEAPON_5STAR_PITY,
+    WEAPON_UP_PITY,
     CHARACTER_COSMETIC_RULES,
     CHARACTER_MAP_INFO,
     CHARACTER_MAP_PITY_INFO,
@@ -34,9 +37,10 @@ from GGanalysis.games.neverness_to_everness.gacha_kernel import (
 from GGanalysis.games.neverness_to_everness.stationary_statistic import (
     NacupedaStatistics,
     NTEStationaryAnalysis,
-    arc_disc_stationary_rates,
+    weapon_stationary_rates,
 )
 from GGanalysis.games.neverness_to_everness.cosmetic_model import NTECosmeticModel
+from GGanalysis.games.neverness_to_everness.blind_box_model import NTEBlindBoxModel
 
 
 __all__ = [
@@ -47,14 +51,16 @@ __all__ = [
     "NTEStationaryAnalysis",
     "NTEMonopolyModel",
     "NTECosmeticModel",
+    "NTEBlindBoxModel",
+    "blind_boxes",
     "character_stationary",
     "standard_stationary",
     "up_5star_character",
     "standard_5star_character",
-    "PITY_ARC_DISC_S",
-    "NTEArcDiscUPModel",
-    "up_5star_arc_disc",
-    "arc_disc_stationary_rates",
+    "PITY_WEAPON_5STAR",
+    "NTEWeaponUPModel",
+    "up_5star_weapon",
+    "weapon_stationary_rates",
 ]
 
 
@@ -152,7 +158,7 @@ class NTEMonopolyModel(GachaModel):
         """当前棋盘的 wing/paint/outfit 装扮模型；不含对应格子的棋盘返回空字典。"""
         return dict(self._cosmetics)
 
-class NTEArcDiscUPModel(PityBernoulliModel):
+class NTEWeaponUPModel(PityBernoulliModel):
     """逐件判定的 UP S 弧盘花费模型。
 
     任意 S 清 S 计数，只有 UP 清 UP 计数；80 抽保底强制 UP。
@@ -161,10 +167,10 @@ class NTEArcDiscUPModel(PityBernoulliModel):
     """
 
     def __init__(self) -> None:
-        super().__init__(PITY_ARC_DISC_S, ARC_DISC_UP_GIVEN_S)
+        super().__init__(PITY_WEAPON_5STAR, WEAPON_UP_GIVEN_5STAR)
 
     def _first_dist(self, item_pity: int = 0, up_pity: int = 0) -> FiniteDist:
-        cap = ARC_DISC_UP_PITY - up_pity
+        cap = WEAPON_UP_PITY - up_pity
         dist = super().__call__(item_pity=item_pity).dist
         return FiniteDist(np.r_[dist[:cap], 1 - dist[:cap].sum()])
 
@@ -217,11 +223,22 @@ standard_stationary: NTEStationaryAnalysis = standard_5star_character.stationary
 
 
 # 弧盘研募：任意 S 基础概率 3%，60 抽保 S；每次出 S 有 25% 为当期 UP。
-PITY_ARC_DISC_S = np.zeros(ARC_DISC_S_PITY + 1)
-PITY_ARC_DISC_S[1:ARC_DISC_S_PITY] = ARC_DISC_S_PROBABILITY
-PITY_ARC_DISC_S[ARC_DISC_S_PITY] = 1
+PITY_WEAPON_5STAR = np.zeros(WEAPON_5STAR_PITY + 1)
+PITY_WEAPON_5STAR[1:WEAPON_5STAR_PITY] = WEAPON_5STAR_PROBABILITY
+PITY_WEAPON_5STAR[WEAPON_5STAR_PITY] = 1
 
-up_5star_arc_disc = NTEArcDiscUPModel()
+up_5star_weapon = NTEWeaponUPModel()
+
+# 同一递推规则，逐期传入奖池和价格；1.4 的失速狂飙返场沿用 1.1 模型与剩余奖池。
+blind_boxes = {
+    version: NTEBlindBoxModel(
+        weights=[config["early"]] * BLIND_BOX_PHASE_CHANGE
+                + [config["late"]] * (sum(config["counts"]) - BLIND_BOX_PHASE_CHANGE),
+        counts=config["counts"],
+        costs=BLIND_BOX_COSTS[config["costs"]],
+    )
+    for version, config in BLIND_BOX_CONFIGS.items()
+}
 
 
 if __name__ == "__main__":

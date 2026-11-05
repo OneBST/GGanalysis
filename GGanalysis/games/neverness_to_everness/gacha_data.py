@@ -1,4 +1,4 @@
-"""异环棋盘格信息和由其派生的五星概率数据。
+"""异环棋盘格、五星概率与活动盲盒数据。
 
 棋盘格代码说明
 --------------
@@ -56,6 +56,18 @@
 当已经连续 70 抽没有获得 S 级角色时，会从普通棋盘切换到变格棋盘。对应数据
 分别记录在 ``STANDARD_MAP_INFO`` / ``CHARACTER_MAP_INFO`` 与
 ``STANDARD_MAP_PITY_INFO`` / ``CHARACTER_MAP_PITY_INFO`` 中。
+
+活动盲盒数据说明
+----------------
+
+``BLIND_BOX_CONFIGS`` 按版本记录奖池：``prizes`` 为奖品名称，``counts``
+为份数，``early`` / ``late`` 为前5抽 / 第6抽起的权重；「其他」合并权重99的奖品。
+
+``BLIND_BOX_COSTS`` 记录逐抽价格：``annulith`` 为环石，``fons_10k`` 为万方斯。
+1.1、1.3、1.4 使用 ``standard`` 价格，1.2 单独配置。
+
+``BLIND_BOX_918_PUBLISHED_PERCENT`` 保存第1—15抽的原始显示百分数，仅用于核验。
+官方原图：https://ntevmg.perfectworld.com/webops/nte/cn.png 。
 """
 
 from typing import Sequence
@@ -67,7 +79,7 @@ PITY_START = 70
 # 角色棋盘集点赠礼：每十次主抽额外赠送一件，不替换落格奖励，不因 S 重置。
 POINT_GIFT_PERIOD = 10
 POINT_GIFT_A_CHARACTER_PROBABILITY = 0.2
-POINT_GIFT_A_ARC_DISC_PROBABILITY = 1.0 - POINT_GIFT_A_CHARACTER_PROBABILITY
+POINT_GIFT_A_WEAPON_PROBABILITY = 1.0 - POINT_GIFT_A_CHARACTER_PROBABILITY
 
 # 装扮类型、奖励格标签、同名棋盘一次性累计领取次数、重复兑换失纬棋子数。
 CHARACTER_COSMETIC_RULES = {
@@ -77,12 +89,102 @@ CHARACTER_COSMETIC_RULES = {
 }
 
 # 弧盘研募采用逐单抽判定；S 不重置 A 级保底，UP 同时重置 S/UP 保底。
-ARC_DISC_S_PROBABILITY = 0.03
-ARC_DISC_UP_GIVEN_S = 0.25
-ARC_DISC_A_PROBABILITY = 0.07
-ARC_DISC_S_PITY = 60
-ARC_DISC_UP_PITY = 80
-ARC_DISC_A_PITY = 10
+WEAPON_5STAR_PROBABILITY = 0.03
+WEAPON_UP_GIVEN_5STAR = 0.25
+WEAPON_A_PROBABILITY = 0.07
+WEAPON_5STAR_PITY = 60
+WEAPON_UP_PITY = 80
+WEAPON_A_PITY = 10
+
+BLIND_BOX_PHASE_CHANGE = 5
+
+BLIND_BOX_COSTS = {
+    "standard": {
+        "annulith": (50, 80, 100, 150, 200, 300, 500, 600, 800, 1200, 1400, 1600, 1800, 2000, 2200),
+        "fons_10k": (5, 8, 10, 15, 20, 30, 50, 80, 100, 150, 200, 250, 300, 350, 420),
+    },
+    "1.2": {
+        "annulith": (50, 80, 100, 120, 150, 200, 280, 350, 400, 450, 500, 600, 800, 900, 1000),
+        "fons_10k": (5, 8, 10, 12, 15, 30, 45, 60, 75, 90, 110, 130, 170, 200, 220),
+    },
+}
+
+_BLIND_BOX_COUNTS = (1, 1, 1, 1, 1, 10)
+_BLIND_BOX_EARLY = (0, 3, 5, 10, 10, 99)
+_BLIND_BOX_LATE = (1, 3, 5, 10, 10, 99)
+
+BLIND_BOX_CONFIGS = {
+    "1.1": {
+        "name": "失速狂飙",
+        "prizes": (
+            "Porsche 918 Spyder",
+            "最佳拍档",
+            "捏造骰子×10",
+            "一封手写信×3",
+            "方斯×500000",
+            "其他",
+        ),
+        "counts": _BLIND_BOX_COUNTS,
+        "early": _BLIND_BOX_EARLY,
+        "late": _BLIND_BOX_LATE,
+        "costs": "standard",
+    },
+    "1.2": {
+        "name": "霓虹撕裂时",
+        "prizes": (
+            "Draco",
+            "授勋日",
+            "捏造骰子×10",
+            "授勋日·赤心",
+            "授勋日·落星",
+            "其他",
+        ),
+        "counts": _BLIND_BOX_COUNTS,
+        "early": _BLIND_BOX_EARLY,
+        "late": _BLIND_BOX_LATE,
+        "costs": "1.2",
+    },
+    "1.3": {
+        "name": "逐光破浪",
+        "prizes": (
+            "Tide",
+            "灿阳逐浪",
+            "夏日澄空",
+            "海盐金平糖",
+            "捏造骰子×5",
+            "一封手写信×2",
+            "其他",
+        ),
+        "counts": (1, 1, 1, 1, 1, 1, 9),
+        "early": (0, 3, 5, 5, 10, 10, 99),
+        "late": (1, 3, 5, 5, 10, 10, 99),
+        "costs": "standard",
+    },
+    "1.4": {
+        "name": "骏影疾驰",
+        "prizes": (
+            "Porsche Taycan Turbo GT with Weissach Package",
+            "Porsche 911 Turbo (930)",
+            "捏造骰子×10",
+            "一封手写信×3",
+            "方斯×500000",
+            "其他",
+        ),
+        "counts": _BLIND_BOX_COUNTS,
+        "early": (0, 0, 5, 10, 10, 99),
+        "late": _BLIND_BOX_LATE,
+        "costs": "standard",
+    },
+}
+
+BLIND_BOX_918_PUBLISHED_PERCENT = {
+    "porsche_918_spyder": (0, 0, 0, 0, 0, 0.19, 0.23, 0.29, 0.39, 0.64, 1.97, 4.12, 7.60, 16.43, 68.14),
+    "outfit": (0.29, 0.32, 0.36, 0.41, 0.47, 0.55, 0.67, 0.84, 1.16, 1.86, 5.81, 11.58, 19.86, 36.55, 19.26),
+    "fabricated_dice_10": (0.49, 0.54, 0.60, 0.68, 0.77, 0.91, 1.09, 1.38, 1.89, 3.02, 9.53, 17.87, 27.34, 25.38, 8.51),
+    "handwritten_letter_3": (0.98, 1.08, 1.19, 1.33, 1.52, 1.76, 2.11, 2.65, 3.58, 5.70, 18.21, 25.85, 21.30, 10.70, 2.04),
+    "fons_500000": (0.98, 1.08, 1.19, 1.33, 1.52, 1.76, 2.11, 2.65, 3.58, 5.70, 18.21, 25.85, 21.30, 10.70, 2.04),
+    "other": (97.20, 97.00, 96.70, 96.20, 95.70, 94.80, 93.80, 92.20, 89.40, 83.10, 46.30, 14.70, 2.60, 0.20, 0.00),
+}
 
 # 格子类型对应的五星角色概率；未列出的类型概率为 0。
 TILE_5STAR_PROBABILITY = {
@@ -179,16 +281,20 @@ CHARACTER_POOL_PITY_MAP_5 = parse_5star_probability_map(CHARACTER_MAP_PITY_INFO)
 
 
 __all__ = [
+    "BLIND_BOX_PHASE_CHANGE",
+    "BLIND_BOX_COSTS",
+    "BLIND_BOX_CONFIGS",
+    "BLIND_BOX_918_PUBLISHED_PERCENT",
     "CHARACTER_COSMETIC_RULES",
     "POINT_GIFT_PERIOD",
     "POINT_GIFT_A_CHARACTER_PROBABILITY",
-    "POINT_GIFT_A_ARC_DISC_PROBABILITY",
-    "ARC_DISC_S_PROBABILITY",
-    "ARC_DISC_UP_GIVEN_S",
-    "ARC_DISC_A_PROBABILITY",
-    "ARC_DISC_S_PITY",
-    "ARC_DISC_UP_PITY",
-    "ARC_DISC_A_PITY",
+    "POINT_GIFT_A_WEAPON_PROBABILITY",
+    "WEAPON_5STAR_PROBABILITY",
+    "WEAPON_UP_GIVEN_5STAR",
+    "WEAPON_A_PROBABILITY",
+    "WEAPON_5STAR_PITY",
+    "WEAPON_UP_PITY",
+    "WEAPON_A_PITY",
     "HARD_PITY",
     "END_POS",
     "PITY_START",

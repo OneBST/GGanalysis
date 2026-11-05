@@ -105,3 +105,97 @@ GGanalysis 使用基本的抽卡模板模型结合 `基于1500万抽数据统计
 **光锥活动跃迁获得特定UP四星光锥的模型**
 
 .. automethod:: GGanalysis.games.honkai_star_rail.gacha_model.up_4star_specific_weapon
+
+幻乐秀场时装抽取
+------------------------
+
+``Phantasia Showstage`` （幻乐秀场）模型计算从未参与活动开始，首次获得
+``Star Lotto`` （群星乐透）时装的花费。英文名称见
+`HoYoverse 4.7 新闻稿 <https://www.gamespress.com/Honkai-Star-Rail-Version-47-Now-Lay-Laughter-to-All-St-wwwhoyoversecom>`_，
+概率与消耗依据 2026-10-30 提供的官方活动说明、游戏内公示截图。
+活动时间为 2026-11-11 的 4.7 更新后至 2026-12-23 03:59。
+
+.. list-table:: 时装逐抽条件概率与消耗
+   :header-rows: 1
+
+   * - 抽取次数
+     - 尚未获得时装时的命中概率
+     - 本次邀请函消耗
+     - 累计星琼消耗
+   * - 1
+     - 0.05%
+     - 0
+     - 0
+   * - 2
+     - 0.25%
+     - 3
+     - 300
+   * - 3
+     - 1%
+     - 5
+     - 800
+   * - 4
+     - 1.5%
+     - 8
+     - 1600
+   * - 5
+     - 2%
+     - 12
+     - 2800
+   * - 6
+     - 5%
+     - 15
+     - 4300
+   * - 7
+     - 25%
+     - 20
+     - 6300
+   * - 8
+     - 100%
+     - 24
+     - 8700
+
+每抽获得一个奖项并将其移除；抽到时装时同时获得所有剩余奖品，活动结束。
+模型只计算首次获得时装，不支持重复获取或跨期继承，不需要假设非时装奖品
+的后续概率如何分配。邀请函均按每张 100 星琼折算，首次免费；不扣除
+邀请函消耗计入「万象和鸣」所带来的其他奖励价值。
+
+设第 k 抽的条件命中概率为 p[k]，则恰好在该抽获得时装的概率为
+``p[k] * prod(1 - p[j], j < k)``。将该概率映射到累计邀请函或星琼消耗，
+即可得到花费分布；邀请函与星琼分布的零花费概率均为 0.0005。
+这是有限精确递推（仅有浮点舍入误差），不使用模拟、截断或强制归一化。
+
+期望消耗为 **7623.36 星琼，等效 47.65 张星轨专票（160 星琼/张）**。
+该折算票数表示跃迁资源价值，与本活动的实际抽取次数不同。
+6300 星琼内获得时装的概率约为 32.11433568%，以 8700 星琼保底获得的
+概率约为 67.88566432%。50%、90%、99% 分位点均为 8700 星琼。
+本地有理数生存递推已交叉验证分布及期望，并检查概率质量、首抽免费、
+第八抽必得、花费映射和预算区间内累计概率不变。
+
+.. autofunction:: GGanalysis.games.honkai_star_rail.gacha_model.phantasia_showstage
+
+.. code-block:: python
+
+    from GGanalysis.games.honkai_star_rail import phantasia_showstage
+
+    pull_dist = phantasia_showstage()  # 包含免费首抽
+    jade_dist = phantasia_showstage('stellar_jade')
+    print('期望抽数', pull_dist.exp)
+    print('期望星琼', jade_dist.exp)
+    print('6300 星琼内获得的概率', jade_dist.cdf[6300])
+
+从仓库根目录运行绘图脚本：
+
+.. code-block:: console
+
+    python -m GGanalysis.games.honkai_star_rail.figure_plot_phantasia_showstage
+
+脚本输出各消耗档位的概率与期望，在 ``figure/`` 中保存
+``phantasia_showstage_star_lotto.png`` 和同名 SVG。
+上图为八个实际星琼档位的等宽柱状图，每根柱子标注恰好在该档获得时装的
+概率；下图为无面积填充的累计概率阶梯图，每个档位标注星琼和累计概率，
+上下绘图区高度比为 5:4，左右两端各留出 500 星琼空间，
+竖向次网格线按 100 星琼的固定间隔绘制。
+绘图复用 ``DrawDistribution.show_two_graph`` 模板的布局、网格和文字样式，
+调整数据图元、x 轴档位及期望标注，同时显示星琼与按 160 星琼折算的星轨专票数
+（均保留两位小数）。
