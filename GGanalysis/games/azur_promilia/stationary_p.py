@@ -1,6 +1,5 @@
-"""三测两池的稳态概率；四星10抽保底及五星重置规则仍为待验证假设。
-
-运行：python -m GGanalysis.games.azur_promilia.stationary_p
+"""
+公测五星曲线下两池的稳态概率，四星10抽保底及五星重置规则仍为待验证假设。
 """
 from GGanalysis.games.azur_promilia.gacha_model import (
     PITY_5STAR, PITY_W5STAR, PITY_4STAR,
@@ -8,7 +7,7 @@ from GGanalysis.games.azur_promilia.gacha_model import (
 from GGanalysis.distribution_1d import p2exp
 from GGanalysis.markov import PriorityPityChain
 
-# 公示综合概率，仅用于比较稳态结果与反推基础概率。
+# 三测四星公示综合概率，仅用于比较稳态结果与反推基础概率。
 AVG_P_4STAR = 0.12
 
 __all__ = ['exact_four_star_rate', 'four_star_report']

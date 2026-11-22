@@ -5,7 +5,6 @@ from GGanalysis.games.azur_promilia.stationary_p import AVG_P_4STAR, exact_four_
 from GGanalysis.distribution_1d import calc_expectation, linear_p_increase, p2dist, p2exp
 from GGanalysis.games.azur_promilia.gacha_model import (
     BASE_P, SOFT_PITY_BEGIN, HARD_PITY, HARD_PITY_4STAR,
-    PITY_5STAR, PITY_W5STAR,
     HARD_PITY_W5STAR, BASE_P_W5STAR, SOFT_PITY_BEGIN_W5STAR,
 )
 from GGanalysis.reverse_engineering.gacha_model_autocracker import LinearAutoCracker
@@ -34,6 +33,10 @@ def _fit_linear_pity(base: float, avg: float, begin: int, hard: int) -> tuple[np
     step = brentq(lambda s: 1 / p2exp(table(s)) - avg,
                   0, (1 - base) / (hard - begin), xtol=1e-14)
     return table(step), step
+
+
+_TEST_CHARACTER_PITY, _ = _fit_linear_pity(BASE_P, AVG_P, SOFT_PITY_BEGIN, HARD_PITY)
+_TEST_WEAPON_PITY, _ = _fit_linear_pity(BASE_P_W5STAR, AVG_P_W5STAR, SOFT_PITY_BEGIN_W5STAR, HARD_PITY_W5STAR)
 
 
 def _linear_pity(step, pity_begin=SOFT_PITY_BEGIN):
@@ -79,7 +82,7 @@ def candidate_models():
     return {
         '无软保底(仅硬保底)': _flat_pity(BASE_P),
         '阶梯 恒定1.93%': _flat_pity(required_flat_p()),
-        '线性拟合(默认)': PITY_5STAR,
+        '线性拟合(默认)': _TEST_CHARACTER_PITY,
         '等比 ×1.132': _geometric_pity(1.132),
         '线性 +1%/抽': _linear_pity(0.01),
         '线性 +2%/抽': _linear_pity(0.02),
@@ -154,17 +157,17 @@ def required_four_star_base(target_avg=AVG_P_4STAR, hard_pity=HARD_PITY_4STAR):
         pity4 = np.zeros(hard_pity+1)
         pity4[1:hard_pity] = base_p
         pity4[hard_pity] = 1
-        return exact_four_star_rate(PITY_5STAR, pity4) - target_avg
+        return exact_four_star_rate(_TEST_CHARACTER_PITY, pity4) - target_avg
     return _bisect_solve(diff, 0.001, 0.2)
 
 
 if __name__ == '__main__':
     for name, base, avg, hard, begin, table in (
-        ('角色', BASE_P, AVG_P, HARD_PITY, SOFT_PITY_BEGIN, PITY_5STAR),
-        ('武器', BASE_P_W5STAR, AVG_P_W5STAR, HARD_PITY_W5STAR, SOFT_PITY_BEGIN_W5STAR, PITY_W5STAR),
+        ('角色', BASE_P, AVG_P, HARD_PITY, SOFT_PITY_BEGIN, _TEST_CHARACTER_PITY),
+        ('武器', BASE_P_W5STAR, AVG_P_W5STAR, HARD_PITY_W5STAR, SOFT_PITY_BEGIN_W5STAR, _TEST_WEAPON_PITY),
     ):
         cracker = LinearAutoCracker(base, avg, hard, pity_begin=begin, forced_hard_pity=True)
         print(name, '反推网格上下界', cracker.search_params(step_value=0.0001))
         fitted, step = _fit_linear_pity(base, avg, begin, hard)
-        print(name, '拟合增量', step, '与模型概率表的最大差', np.max(np.abs(fitted-table)))
+        print(name, '拟合增量', step, '与三测拟合表的最大差', np.max(np.abs(fitted-table)))
         print(name, pity_p2stats(fitted, hard))

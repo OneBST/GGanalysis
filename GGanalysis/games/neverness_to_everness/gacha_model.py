@@ -276,3 +276,6 @@ if __name__ == "__main__":
         "平均成功追上一次所需抽数: "
         f"{nacupeda.successful_revisit_period_pulls:.6f} 抽"
     )
+
+
+    print(sum(up_5star_character(7, start_pos=0)[:37+1]))
